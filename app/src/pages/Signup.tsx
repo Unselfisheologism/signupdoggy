@@ -1,28 +1,35 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { signup } from '../api';
-import { useAuth } from '../auth';
+import { supabase } from '../supabase';
+import { createKey } from '../api';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [apiKey, setApiKey] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setAuth } = useAuth();
+  const [step, setStep] = useState<'form' | 'key'>('form');
   const navigate = useNavigate();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setLoading(true);
     try {
-      const data = await signup(email, password, name);
-      setAuth(data.user, data.token);
-      setSuccess(`API key created: ${data.api_key.key} — save it now, it won't be shown again!`);
-      navigate('/dashboard');
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } },
+      });
+      if (error) throw error;
+      if (!data.user) throw new Error('Signup failed');
+
+      // Create first API key via portal API
+      const keyResult = await createKey();
+      setApiKey(keyResult.key);
+      setStep('key');
     } catch (err: any) {
       setError(err.message || 'Signup failed');
     } finally {
@@ -30,12 +37,30 @@ export default function Signup() {
     }
   }
 
+  if (step === 'key') {
+    return (
+      <div className="auth-page">
+        <h1>🎉 Account created!</h1>
+        <p className="sub">Save your API key — it will not be shown again.</p>
+        <div className="api-key-reveal">
+          <code className="key-display">{apiKey}</code>
+          <button className="btn btn-sm" onClick={() => navigator.clipboard.writeText(apiKey)}>Copy</button>
+        </div>
+        <p className="sub" style={{ marginTop: 12 }}>
+          You can always create new keys from the dashboard.
+        </p>
+        <button className="btn btn-primary btn-block" onClick={() => navigate('/dashboard')}>
+          Go to Dashboard
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="auth-page">
       <h1>Create your account</h1>
       <p className="sub">Get your API key in under 30 seconds</p>
       {error && <div className="error-msg">{error}</div>}
-      {success && <div className="success-msg">{success}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>Name</label>

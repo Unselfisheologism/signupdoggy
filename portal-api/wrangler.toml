@@ -3,7 +3,6 @@ main = "src/index.ts"
 compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
-# KV Namespaces from fraudguard-api (shared)
 [[kv_namespaces]]
 binding = "API_KEYS"
 id = "c328ecba069a42bc8974d78e982fb714"
@@ -16,12 +15,16 @@ id = "c655b158327142bc9c1ceb5415d854f2"
 binding = "USER_BLACKLISTS"
 id = "5a712d4d30bc4eeca1103cd7d97abbef"
 
-# New KV namespace for portal user accounts
 [[kv_namespaces]]
 binding = "USERS"
 id = "8173bded957845a99a465d60d1405106"
 
-# Environment variables
 [vars]
-JWT_SECRET = "..."
+SUPABASE_URL = "https://xqhnjbbewoldwtndxfrm.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxaG5qYmJld29sZHd0bmR4ZnJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwOTY4NDMsImV4cCI6MjA5NjY3Mjg0M30.9WHMU3utNiMGVyHrwYZs5ivGDT29SN8XFtQ5oSU76Lw"
 PRICE_PER_REQUEST = "0.01"
+DODO_BASE_URL = "https://live.dodopayments.com"
+DODO_PRODUCT_STARTER = "pdt_0NglBAavYpcZkGcj9lJMt"
+DODO_PRODUCT_GROWTH = "pdt_0NglBAcEOw0LxDumDuoGu"
+DODO_PRODUCT_PRO = "pdt_0NglBAdEIuiQKEYxCE23M"
+DODO_CREDIT_ENTITLEMENT_ID = "cde_0NglBAYJrFClVccJ043IE"

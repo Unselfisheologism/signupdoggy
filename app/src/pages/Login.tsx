@@ -1,14 +1,12 @@
 import { useState, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../api';
-import { useAuth } from '../auth';
+import { supabase } from '../supabase';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setAuth } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e: FormEvent) {
@@ -16,8 +14,9 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const data = await login(email, password);
-      setAuth(data.user, data.token);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      if (!data.session) throw new Error('Login failed');
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login failed');

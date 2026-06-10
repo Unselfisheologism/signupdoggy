@@ -4,7 +4,7 @@ import { getUsage, getBilling, type UsageDay, type BillingMonth } from '../api';
 import { useAuth } from '../auth';
 
 export default function Dashboard() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [days, setDays] = useState<UsageDay[]>([]);
   const [months, setMonths] = useState<BillingMonth[]>([]);
   const [totalCost, setTotalCost] = useState(0);
@@ -12,14 +12,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
-    Promise.all([getUsage(token), getBilling(token)]).then(([u, b]) => {
+    Promise.all([getUsage(), getBilling()]).then(([u, b]) => {
       setDays(u.days);
       setMonths(b.months);
       setTotalCost(u.days.reduce((s, d) => s + d.cost, 0));
       setTotalBlocked(u.totals.total_blocked);
     }).catch(console.error).finally(() => setLoading(false));
-  }, [token]);
+  }, []);
 
   const today = days.find(d => {
     const now = new Date();

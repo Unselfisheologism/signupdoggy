@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../auth';
 import { listKeys, createKey as apiCreateKey, deleteKey as apiDeleteKey, type ApiKey } from '../api';
 
 export default function ApiKeys() {
-  const { token } = useAuth();
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [newKey, setNewKey] = useState('');
@@ -11,9 +9,8 @@ export default function ApiKeys() {
   const [error, setError] = useState('');
 
   async function loadKeys() {
-    if (!token) return;
     try {
-      const data = await listKeys(token);
+      const data = await listKeys();
       setKeys(data.keys);
     } catch (err: any) {
       setError(err.message);
@@ -22,13 +19,12 @@ export default function ApiKeys() {
     }
   }
 
-  useEffect(() => { loadKeys(); }, [token]);
+  useEffect(() => { loadKeys(); }, []);
 
   async function handleCreate() {
-    if (!token) return;
     setError('');
     try {
-      const data = await apiCreateKey(token);
+      const data = await apiCreateKey();
       setNewKey(data.key);
       setShowNew(true);
       await loadKeys();
@@ -38,10 +34,10 @@ export default function ApiKeys() {
   }
 
   async function handleDelete(prefix: string) {
-    if (!token || !confirm('Revoke this API key? This cannot be undone.')) return;
+    if (!confirm('Revoke this API key? This cannot be undone.')) return;
     setError('');
     try {
-      await apiDeleteKey(token, prefix);
+      await apiDeleteKey(prefix);
       setKeys(keys.filter(k => !k.key.startsWith(prefix)));
     } catch (err: any) {
       setError(err.message);

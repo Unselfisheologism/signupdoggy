@@ -8,17 +8,16 @@ export type Env = {
   USAGE_LOG: KVNamespace;
   USER_BLACKLISTS: KVNamespace;
   USERS: KVNamespace;
-  JWT_SECRET: string;
+  SUPABASE_URL: string;
+  SUPABASE_ANON_KEY: string;
   PRICE_PER_REQUEST: string;
-};
-
-export type UserRecord = {
-  id: string;
-  email: string;
-  password_hash: string;
-  name: string;
-  created: string;
-  stripe_customer_id: string | null;
+  DODO_API_KEY: string;
+  DODO_WEBHOOK_KEY?: string;
+  DODO_BASE_URL?: string;
+  DODO_PRODUCT_STARTER: string;
+  DODO_PRODUCT_GROWTH: string;
+  DODO_PRODUCT_PRO: string;
+  DODO_CREDIT_ENTITLEMENT_ID: string;
 };
 
 export type ApiKeyRecord = {
@@ -27,64 +26,20 @@ export type ApiKeyRecord = {
   metadata?: { stripe_customer_id: string | null };
 };
 
-export type JWTPayload = {
-  user_id: string;
+export type SupabaseUser = {
+  id: string;
   email: string;
-  exp: number;
+  user_metadata?: { name?: string };
+  created_at: string;
 };
 
-// ─── Auth Helpers ───────────────────────────────────────────────────────────────
+export type Products = {
+  starter: { id: string; price: number; credits: number };
+  growth: { id: string; price: number; credits: number };
+  pro: { id: string; price: number; credits: number };
+};
 
-async function hashPassword(password: string, salt: string): Promise<string> {
-  const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']
-  );
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: enc.encode(salt), iterations: 100000, hash: 'SHA-256' },
-    keyMaterial, 256
-  );
-  return btoa(String.fromCharCode(...new Uint8Array(bits)));
-}
-
-async function createJWT(payload: Omit<JWTPayload, 'exp'>, secret: string): Promise<string> {
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const exp = Math.floor(Date.now() / 1000) + 86400 * 7; // 7 days
-  const body = btoa(JSON.stringify({ ...payload, exp }));
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(`${header}.${body}`));
-  const sigB64 = btoa(String.fromCharCode(...new Uint8Array(sig)));
-  return `${header}.${body}.${sigB64}`;
-}
-
-async function verifyJWT(token: string, secret: string): Promise<JWTPayload | null> {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const enc = new TextEncoder();
-    const key = await crypto.subtle.importKey(
-      'raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']
-    );
-    const valid = await crypto.subtle.verify(
-      'HMAC', key, Uint8Array.from(atob(parts[2]), c => c.charCodeAt(0)),
-      enc.encode(`${parts[0]}.${parts[1]}`)
-    );
-    if (!valid) return null;
-    const payload: JWTPayload = JSON.parse(atob(parts[1]));
-    if (payload.exp < Math.floor(Date.now() / 1000)) return null;
-    return payload;
-  } catch { return null; }
-}
-
-function generateId(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let id = '';
-  for (let i = 0; i < 24; i++) id += chars.charAt(Math.floor(Math.random() * chars.length));
-  return id;
-}
+// ─── Helpers ───────────────────────────────────────────────────────────────────
 
 function generateApiKey(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -98,9 +53,52 @@ function getToday(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// ─── Dodo Payments API helper ──────────────────────────────────────────────────
+
+async function dodoFetch<T>(env: Env, method: string, path: string, body?: unknown): Promise<T> {
+  const base = env.DODO_BASE_URL || 'https://live.dodopayments.com';
+  const res = await fetch(`${base}${path}`, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${env.DODO_API_KEY}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Dodo API ${res.status}: ${text.slice(0, 200)}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+const PRODUCTS: Products = {
+  starter: { id: 'pdt_0NglBAavYpcZkGcj9lJMt', price: 1000, credits: 1000 },
+  growth: { id: 'pdt_0NglBAcEOw0LxDumDuoGu', price: 5000, credits: 5500 },
+  pro: { id: 'pdt_0NglBAdEIuiQKEYxCE23M', price: 10000, credits: 12000 },
+};
+
+// ─── Validate Supabase JWT via REST API ────────────────────────────────────────
+
+async function validateSupabaseSession(token: string, env: Env): Promise<SupabaseUser | null> {
+  try {
+    const resp = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'apikey': env.SUPABASE_ANON_KEY,
+      },
+    });
+    if (!resp.ok) return null;
+    return await resp.json() as SupabaseUser;
+  } catch {
+    return null;
+  }
+}
+
 // ─── App ────────────────────────────────────────────────────────────────────────
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: { user: SupabaseUser } }>();
 
 app.use('*', cors({
   origin: '*',
@@ -113,106 +111,130 @@ app.use('*', cors({
 async function authMiddleware(c: any, next: any) {
   const auth = c.req.header('Authorization');
   if (!auth?.startsWith('Bearer ')) return c.json({ error: 'Not authenticated' }, 401);
-  const payload = await verifyJWT(auth.slice(7), c.env.JWT_SECRET);
-  if (!payload) return c.json({ error: 'Invalid or expired token' }, 401);
-  c.set('user', payload);
+
+  const env: Env = c.env as Env;
+  const user = await validateSupabaseSession(auth.slice(7), env);
+  if (!user) return c.json({ error: 'Invalid or expired session' }, 401);
+
+  c.set('user', user);
   await next();
 }
 
-// ─── POST /api/auth/signup ─────────────────────────────────────────────────────
+// ─── POST /api/auth/signup (proxies to Supabase Auth) ─────────────────────────
 
 app.post('/api/auth/signup', async (c) => {
   const body: { email?: string; password?: string; name?: string } = await c.req.json();
   if (!body.email || !body.password) {
     return c.json({ error: 'Email and password are required' }, 400);
   }
-  if (body.password.length < 6) {
-    return c.json({ error: 'Password must be at least 6 characters' }, 400);
+
+  const resp = await fetch(`${c.env.SUPABASE_URL}/auth/v1/signup`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': c.env.SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({
+      email: body.email.toLowerCase().trim(),
+      password: body.password,
+      data: { name: body.name || body.email.split('@')[0] },
+    }),
+  });
+
+  if (!resp.ok) {
+    const text = await resp.text();
+    let err;
+    try { err = JSON.parse(text); } catch { err = { error: text }; }
+    if (err.msg?.includes('already registered') || err.error?.includes('duplicate') || err.message?.includes('already exists')) {
+      return c.json({ error: 'Email already registered' }, 409);
+    }
+    return c.json({ error: err.msg || err.error || err.message || `Signup failed (${resp.status})` }, resp.status);
   }
 
-  const email = body.email.toLowerCase().trim();
-  const existing = await c.env.USERS.get(email);
-  if (existing) return c.json({ error: 'Email already registered' }, 409);
-
-  const salt = generateId();
-  const password_hash = await hashPassword(body.password, salt);
-  const userId = `usr_${generateId()}`;
-
-  const record: UserRecord = {
-    id: userId,
-    email,
-    password_hash: `${salt}:${password_hash}`,
-    name: body.name || email.split('@')[0],
-    created: new Date().toISOString().split('T')[0],
-    stripe_customer_id: null,
-  };
-
-  await c.env.USERS.put(email, JSON.stringify(record));
+  const authData = await resp.json() as any;
 
   // Auto-create an API key for the new user
   const apiKey = generateApiKey();
+  const created = getToday();
+  const userId = authData.user?.id || authData.id;
   const keyRecord: ApiKeyRecord = {
     user_id: userId,
-    created: record.created,
+    created,
     metadata: { stripe_customer_id: null },
   };
-  await c.env.API_KEYS.put(apiKey, JSON.stringify(keyRecord));
 
-  // Index the key for this user
+  await c.env.API_KEYS.put(apiKey, JSON.stringify(keyRecord));
   await c.env.USERS.put(`keys:${userId}`, JSON.stringify([apiKey]));
 
-  const token = await createJWT({ user_id: userId, email }, c.env.JWT_SECRET);
-
   return c.json({
-    user: { id: userId, email, name: record.name, created: record.created },
-    api_key: { key: apiKey, created: record.created },
-    token,
+    user: {
+      id: userId,
+      email: authData.user?.email || body.email,
+      name: body.name || body.email.split('@')[0],
+      created: authData.user?.created_at || created,
+    },
+    api_key: { key: apiKey, created },
+    token: authData.access_token,
   }, 201);
 });
 
-// ─── POST /api/auth/login ──────────────────────────────────────────────────────
+// ─── POST /api/auth/login (proxies to Supabase Auth) ──────────────────────────
 
 app.post('/api/auth/login', async (c) => {
   const body: { email?: string; password?: string } = await c.req.json();
-  if (!body.email || !body.password) return c.json({ error: 'Email and password required' }, 400);
+  if (!body.email || !body.password) {
+    return c.json({ error: 'Email and password required' }, 400);
+  }
 
-  const email = body.email.toLowerCase().trim();
-  const existing = await c.env.USERS.get(email);
-  if (!existing) return c.json({ error: 'Invalid email or password' }, 401);
+  const resp = await fetch(`${c.env.SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': c.env.SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({
+      email: body.email.toLowerCase().trim(),
+      password: body.password,
+    }),
+  });
 
-  const record: UserRecord = JSON.parse(existing);
-  const [salt, storedHash] = record.password_hash.split(':');
-  const hash = await hashPassword(body.password, salt);
+  if (!resp.ok) {
+    return c.json({ error: 'Invalid email or password' }, 401);
+  }
 
-  if (hash !== storedHash) return c.json({ error: 'Invalid email or password' }, 401);
-
-  const token = await createJWT({ user_id: record.id, email }, c.env.JWT_SECRET);
+  const authData = await resp.json() as any;
 
   return c.json({
-    user: { id: record.id, email: record.email, name: record.name, created: record.created },
-    token,
+    user: {
+      id: authData.user.id,
+      email: authData.user.email,
+      name: authData.user.user_metadata?.name || authData.user.email?.split('@')[0],
+      created: authData.user.created_at,
+    },
+    token: authData.access_token,
+    refresh_token: authData.refresh_token,
   });
 });
 
 // ─── GET /api/me ────────────────────────────────────────────────────────────────
 
 app.get('/api/me', authMiddleware, async (c) => {
-  const user = c.get('user') as JWTPayload;
-  const existing = await c.env.USERS.get(user.email);
-  if (!existing) return c.json({ error: 'User not found' }, 404);
-  const record: UserRecord = JSON.parse(existing);
-  return c.json({ id: record.id, email: record.email, name: record.name, created: record.created });
+  const user = c.get('user') as SupabaseUser;
+  return c.json({
+    id: user.id,
+    email: user.email,
+    name: user.user_metadata?.name || user.email?.split('@')[0],
+    created: user.created_at,
+  });
 });
 
 // ─── GET /api/keys — List API keys ─────────────────────────────────────────────
 
 app.get('/api/keys', authMiddleware, async (c) => {
-  const user = c.get('user') as JWTPayload;
+  const user = c.get('user') as SupabaseUser;
   const keys: { key: string; created: string; usage_today: number }[] = [];
 
-  // List all keys from API_KEYS namespace that belong to this user
-  // KV doesn't support listing by value, so we maintain a user→keys index
-  const userKeysIndex = await c.env.USERS.get(`keys:${user.user_id}`);
+  const userKeysIndex = await c.env.USERS.get(`keys:${user.id}`);
   if (!userKeysIndex) return c.json({ keys: [] });
 
   const keyList: string[] = JSON.parse(userKeysIndex);
@@ -233,23 +255,22 @@ app.get('/api/keys', authMiddleware, async (c) => {
 // ─── POST /api/keys — Create new API key ───────────────────────────────────────
 
 app.post('/api/keys', authMiddleware, async (c) => {
-  const user = c.get('user') as JWTPayload;
+  const user = c.get('user') as SupabaseUser;
   const apiKey = generateApiKey();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getToday();
 
   const record: ApiKeyRecord = {
-    user_id: user.user_id,
+    user_id: user.id,
     created: today,
     metadata: { stripe_customer_id: null },
   };
 
   await c.env.API_KEYS.put(apiKey, JSON.stringify(record));
 
-  // Update user→keys index
-  const existingIndex = await c.env.USERS.get(`keys:${user.user_id}`);
+  const existingIndex = await c.env.USERS.get(`keys:${user.id}`);
   const keyList: string[] = existingIndex ? JSON.parse(existingIndex) : [];
   keyList.push(apiKey);
-  await c.env.USERS.put(`keys:${user.user_id}`, JSON.stringify(keyList));
+  await c.env.USERS.put(`keys:${user.id}`, JSON.stringify(keyList));
 
   return c.json({ key: apiKey, created: today, message: 'Save this key — it will not be shown again.' }, 201);
 });
@@ -257,10 +278,10 @@ app.post('/api/keys', authMiddleware, async (c) => {
 // ─── DELETE /api/keys/:prefix — Revoke API key ─────────────────────────────────
 
 app.delete('/api/keys/:prefix', authMiddleware, async (c) => {
-  const user = c.get('user') as JWTPayload;
+  const user = c.get('user') as SupabaseUser;
   const prefix = c.req.param('prefix');
 
-  const existingIndex = await c.env.USERS.get(`keys:${user.user_id}`);
+  const existingIndex = await c.env.USERS.get(`keys:${user.id}`);
   if (!existingIndex) return c.json({ error: 'No keys found' }, 404);
 
   const keyList: string[] = JSON.parse(existingIndex);
@@ -269,7 +290,7 @@ app.delete('/api/keys/:prefix', authMiddleware, async (c) => {
 
   await c.env.API_KEYS.delete(match);
   const updated = keyList.filter(k => k !== match);
-  await c.env.USERS.put(`keys:${user.user_id}`, JSON.stringify(updated));
+  await c.env.USERS.put(`keys:${user.id}`, JSON.stringify(updated));
 
   return c.json({ message: 'Key revoked' });
 });
@@ -277,15 +298,13 @@ app.delete('/api/keys/:prefix', authMiddleware, async (c) => {
 // ─── GET /api/usage — Usage analytics ──────────────────────────────────────────
 
 app.get('/api/usage', authMiddleware, async (c) => {
-  const user = c.get('user') as JWTPayload;
+  const user = c.get('user') as SupabaseUser;
 
-  // Get last 30 days of usage
   const days: { date: string; requests: number; blocked: number; cost: number }[] = [];
   const today = new Date();
   const price = parseFloat(c.env.PRICE_PER_REQUEST || '0.01');
 
-  // Get user's keys
-  const existingIndex = await c.env.USERS.get(`keys:${user.user_id}`);
+  const existingIndex = await c.env.USERS.get(`keys:${user.id}`);
   const keyList: string[] = existingIndex ? JSON.parse(existingIndex) : [];
 
   for (let i = 29; i >= 0; i--) {
@@ -296,13 +315,11 @@ app.get('/api/usage', authMiddleware, async (c) => {
     let totalRequests = 0;
     let totalBlocked = 0;
 
-    // Sum across all keys
     for (const key of keyList) {
       const usageStr = await c.env.USAGE_LOG.get(`usage:${key}:${dateStr}`);
       if (usageStr) totalRequests += parseInt(usageStr, 10);
     }
 
-    // Blocked total (tracked per-day, not per-key)
     const blockedStr = await c.env.USAGE_LOG.get(`blocked:${dateStr}:total`);
     if (blockedStr) totalBlocked = parseInt(blockedStr, 10);
 
@@ -314,7 +331,6 @@ app.get('/api/usage', authMiddleware, async (c) => {
     });
   }
 
-  // Totals
   const totalRequests = days.reduce((s, d) => s + d.requests, 0);
   const totalBlocked = days.reduce((s, d) => s + d.blocked, 0);
   const totalCost = parseFloat((totalRequests * price).toFixed(2));
@@ -325,22 +341,19 @@ app.get('/api/usage', authMiddleware, async (c) => {
 // ─── GET /api/billing — Billing history ────────────────────────────────────────
 
 app.get('/api/billing', authMiddleware, async (c) => {
-  const user = c.get('user') as JWTPayload;
-
-  // Calculate monthly billing history from daily usage
+  const user = c.get('user') as SupabaseUser;
   const today = new Date();
   const price = parseFloat(c.env.PRICE_PER_REQUEST || '0.01');
-  const months: { month: string; requests: number; cost: number }[] = [];
 
-  // Get user's keys
-  const existingIndex = await c.env.USERS.get(`keys:${user.user_id}`);
+  const existingIndex = await c.env.USERS.get(`keys:${user.id}`);
   const keyList: string[] = existingIndex ? JSON.parse(existingIndex) : [];
 
   if (keyList.length === 0) {
     return c.json({ months: [], total_all_time: 0 });
   }
 
-  // Look back 6 months
+  const months: { month: string; requests: number; cost: number }[] = [];
+
   for (let m = 5; m >= 0; m--) {
     const d = new Date(today.getFullYear(), today.getMonth() - m, 1);
     const monthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -367,9 +380,153 @@ app.get('/api/billing', authMiddleware, async (c) => {
   return c.json({ months, total_all_time: parseFloat(totalAllTime.toFixed(2)) });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════════
+//  DODO PAYMENTS INTEGRATION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── POST /api/checkout — Create checkout session ──────────────────────────────
+
+app.post('/api/checkout', authMiddleware, async (c) => {
+  const user = c.get('user') as SupabaseUser;
+  const body: { pack?: string; return_url?: string } = await c.req.json();
+  const pack = body.pack || 'starter';
+
+  const product = (PRODUCTS as any)[pack];
+  if (!product) return c.json({ error: 'Invalid pack. Choose: starter, growth, pro' }, 400);
+
+  try {
+    // First, create or retrieve the Dodo customer for this user
+    const dodoCustomerId = await getOrCreateDodoCustomer(c.env, user);
+
+    // Create checkout session
+    const session = await dodoFetch<any>(c.env, 'POST', '/checkouts', {
+      product_cart: [{ product_id: product.id, quantity: 1 }],
+      customer: { customer_id: dodoCustomerId },
+      return_url: body.return_url || 'https://registerguardian.pages.dev/dashboard',
+      metadata: {
+        user_id: user.id,
+        pack: pack,
+        credits: String(product.credits),
+        price: String(product.price),
+      },
+    });
+
+    return c.json({
+      session_id: session.session_id,
+      checkout_url: session.checkout_url,
+      client_secret: session.client_secret,
+    });
+  } catch (err: any) {
+    return c.json({ error: err.message || 'Failed to create checkout' }, 500);
+  }
+});
+
+// ─── GET /api/products — List available packs ──────────────────────────────────
+
+app.get('/api/products', authMiddleware, async (c) => {
+  return c.json({
+    products: [
+      { id: 'starter', name: 'Starter Pack', price: 10, credits: 1000, description: '1,000 API requests' },
+      { id: 'growth', name: 'Growth Pack', price: 50, credits: 5500, description: '5,500 API requests (10% bonus)' },
+      { id: 'pro', name: 'Pro Pack', price: 100, credits: 12000, description: '12,000 API requests (20% bonus)' },
+    ],
+  });
+});
+
+// ─── POST /api/webhook/dodopayments — Handle payment events ────────────────────
+
+app.post('/api/webhook/dodopayments', async (c) => {
+  const signature = c.req.header('x-webhook-signature');
+  const body = await c.req.json() as any;
+  const eventType = body.type || body.event_type;
+
+  // Verify webhook signature if key is configured
+  if (c.env.DODO_WEBHOOK_KEY && !signature) {
+    return c.json({ error: 'Missing webhook signature' }, 401);
+  }
+
+  console.log(`[Webhook] Received: ${eventType}`, JSON.stringify(body).slice(0, 300));
+
+  if (eventType === 'payment.succeeded' || eventType === 'checkout.session.completed') {
+    const paymentData = body.data || body;
+    const metadata = paymentData.metadata || {};
+    const userId = metadata.user_id;
+    const packName = metadata.pack;
+    const creditsStr = metadata.credits;
+
+    if (!userId || !creditsStr) {
+      return c.json({ error: 'Missing user_id or credits in metadata' }, 200); // acknowledge but don't process
+    }
+
+    const credits = parseInt(creditsStr, 10);
+
+    // Record payment in KV
+    const paymentKey = `payments:${userId}`;
+    const existing = await c.env.USERS.get(paymentKey);
+    const payments: any[] = existing ? JSON.parse(existing) : [];
+    payments.push({
+      id: paymentData.id || paymentData.payment_id,
+      pack: packName,
+      credits,
+      amount: paymentData.amount_paid || paymentData.amount || 0,
+      date: getToday(),
+    });
+    await c.env.USERS.put(paymentKey, JSON.stringify(payments));
+
+    // Add credits to user's balance
+    const balanceKey = `credits:${userId}`;
+    const currentBalance = parseInt(await c.env.USERS.get(balanceKey) || '0', 10);
+    await c.env.USERS.put(balanceKey, String(currentBalance + credits));
+
+    console.log(`[Webhook] Credited ${credits} to user ${userId}. New balance: ${currentBalance + credits}`);
+
+    return c.json({ received: true, credited: credits, balance: currentBalance + credits });
+  }
+
+  return c.json({ received: true, event: eventType });
+});
+
+// ─── GET /api/credits — Check credit balance ──────────────────────────────────
+
+app.get('/api/credits', authMiddleware, async (c) => {
+  const user = c.get('user') as SupabaseUser;
+  const balanceKey = `credits:${user.id}`;
+  const balance = parseInt(await c.env.USERS.get(balanceKey) || '0', 10);
+
+  const paymentKey = `payments:${user.id}`;
+  const existing = await c.env.USERS.get(paymentKey);
+  const payments: any[] = existing ? JSON.parse(existing) : [];
+
+  return c.json({
+    balance,
+    total_purchased: payments.reduce((s: number, p: any) => s + (p.credits || 0), 0),
+    total_spent: payments.reduce((s: number, p: any) => s + (p.amount || 0), 0),
+    payments: payments.slice(-10).reverse(),
+  });
+});
+
+// ─── Helper: Get or create Dodo customer ─────────────────────────────────────
+
+async function getOrCreateDodoCustomer(env: Env, user: SupabaseUser): Promise<string> {
+  const customerKey = `dodo_customer:${user.id}`;
+  const existing = await env.USERS.get(customerKey);
+  if (existing) return existing;
+
+  // Create a new customer in Dodo Payments
+  const customer: any = await dodoFetch(env, 'POST', '/customers', {
+    email: user.email,
+    name: user.user_metadata?.name || user.email?.split('@')[0],
+    metadata: { supabase_user_id: user.id },
+  });
+
+  const customerId = customer.id || customer.customer_id;
+  await env.USERS.put(customerKey, customerId);
+  return customerId;
+}
+
 // ─── GET / — Health ────────────────────────────────────────────────────────────
 
-app.get('/', (c) => c.json({ service: 'RegisterGuardian Portal API', version: '1.0.0' }));
+app.get('/', (c) => c.json({ service: 'RegisterGuardian Portal API', version: '3.0.0', auth: 'supabase', payments: 'dodopayments' }));
 
 // ─── Export ─────────────────────────────────────────────────────────────────────
 

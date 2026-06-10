@@ -1,44 +1,49 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { getMe, type User } from './api';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from './supabase';
+import type { Session, User } from '@supabase/supabase-js';
 
 interface AuthCtx {
   user: User | null;
-  token: string | null;
-  setAuth: (u: User, t: string) => void;
-  logout: () => void;
+  session: Session | null;
   loading: boolean;
+  logout: VoidFunction;
 }
 
 const AuthContext = createContext<AuthCtx>(null!);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const t = localStorage.getItem('rg_token');
-    if (t) {
-      setToken(t);
-      getMe(t).then(u => { setUser(u); setLoading(false); }).catch(() => { localStorage.removeItem('rg_token'); setLoading(false); });
-    } else {
+    // Restore session from storage
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      setUser(s?.user ?? null);
       setLoading(false);
-    }
+    });
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      setUser(s?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const setAuth = useCallback((u: User, t: string) => {
-    localStorage.setItem('rg_token', t);
-    setUser(u);
-    setToken(t);
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('rg_token');
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    setToken(null);
+    setSession(null);
   }, []);
 
-  return <AuthContext.Provider value={{ user, token, setAuth, logout, loading }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, session, loading, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() { return useContext(AuthContext); }
