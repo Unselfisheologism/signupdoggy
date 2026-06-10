@@ -1,0 +1,31 @@
+{
+  "name": "registerguardian-api",
+  "version": "1.0.0",
+  "description": "RegisterGuardian API — Serverless fraud prevention for indie hackers",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --experimental-vm-modules node_modules/.bin/vitest run",
+    "load-test": "k6 run tests/load/k6-script.js"
+  },
+  "keywords": [
+    "fraud",
+    "prevention",
+    "cloudflare",
+    "workers",
+    "disposable-email",
+    "vpn-detection"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^4.12.25"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260610.1",
+    "@types/node": "^25.9.2",
+    "vitest": "^4.1.8",
+    "wrangler": "^4.99.0"
+  }
+}

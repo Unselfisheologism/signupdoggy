@@ -1,0 +1,27 @@
+name = "registerguardian-portal-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# KV Namespaces from fraudguard-api (shared)
+[[kv_namespaces]]
+binding = "API_KEYS"
+id = "c328ecba069a42bc8974d78e982fb714"
+
+[[kv_namespaces]]
+binding = "USAGE_LOG"
+id = "c655b158327142bc9c1ceb5415d854f2"
+
+[[kv_namespaces]]
+binding = "USER_BLACKLISTS"
+id = "5a712d4d30bc4eeca1103cd7d97abbef"
+
+# New KV namespace for portal user accounts
+[[kv_namespaces]]
+binding = "USERS"
+id = "8173bded957845a99a465d60d1405106"
+
+# Environment variables
+[vars]
+JWT_SECRET = "..."
+PRICE_PER_REQUEST = "0.01"

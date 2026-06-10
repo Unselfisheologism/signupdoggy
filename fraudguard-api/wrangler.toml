@@ -1,0 +1,42 @@
+name = "registerguardian-api"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# KV Namespaces
+[[kv_namespaces]]
+binding = "DISPOSABLE_EMAILS"
+id = "c3b2812accb2408cad28cf5e237da212"
+
+[[kv_namespaces]]
+binding = "TOR_EXIT_NODES"
+id = "988970d546cb47ceadc5eb4c968cd409"
+
+[[kv_namespaces]]
+binding = "HOSTING_IP_RANGES"
+id = "141fbe2930f74f1db1b89233c0b56c88"
+
+[[kv_namespaces]]
+binding = "API_KEYS"
+id = "c328ecba069a42bc8974d78e982fb714"
+
+[[kv_namespaces]]
+binding = "USAGE_LOG"
+id = "c655b158327142bc9c1ceb5415d854f2"
+
+[[kv_namespaces]]
+binding = "USER_BLACKLISTS"
+id = "5a712d4d30bc4eeca1103cd7d97abbef"
+
+[[kv_namespaces]]
+binding = "SYNC_LOGS"
+id = "699f4736ee394bb186f51ae6b535052f"
+
+# Cron Triggers
+[triggers]
+crons = ["0 3 * * *", "0 * * * *"]
+
+# Environment variables
+[vars]
+PRICE_PER_REQUEST = "0.01"
+MAXMIND_LICENSE_KEY = ""

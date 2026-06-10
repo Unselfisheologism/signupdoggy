@@ -1,0 +1,19 @@
+{
+  "name": "registerguardian-portal-api",
+  "version": "1.0.0",
+  "description": "RegisterGuardian customer portal API",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.99.0",
+    "typescript": "^5.7.0",
+    "@cloudflare/workers-types": "^4.20250201.0"
+  }
+}
