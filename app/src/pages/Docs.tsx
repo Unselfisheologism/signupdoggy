@@ -1,15 +1,15 @@
 export default function Docs() {
-  const curlCheck = `curl -X POST https://registerguardian-api.jeffrinjames99.workers.dev/v1/check \\
-  -H "x-api-key: rg_your_key_here" \\
+  const curlCheck = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \\
+  -H "x-api-key: sd_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'`;
 
-  const curlKey = `curl -X POST https://registerguardian-api.jeffrinjames99.workers.dev/v1/keys`;
+  const curlKey = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/keys`;
 
-  const nodeExample = `const res = await fetch('https://registerguardian-api.jeffrinjames99.workers.dev/v1/check', {
+  const nodeExample = `const res = await fetch('https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check', {
   method: 'POST',
   headers: {
-    'x-api-key': 'rg_your_key_here',
+    'x-api-key': 'sd_your_key_here',
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
@@ -23,8 +23,8 @@ console.log(data.recommendation); // "allow" | "review" | "block"`;
   const pyExample = `import requests
 
 res = requests.post(
-    'https://registerguardian-api.jeffrinjames99.workers.dev/v1/check',
-    headers={'x-api-key': 'rg_your_key_here'},
+    'https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check',
+    headers={'x-api-key': 'sd_your_key_here'},
     json={'email': 'user@example.com', 'ip': '1.2.3.4'}
 )
 data = res.json()
@@ -82,7 +82,7 @@ print(data['recommendation'])  # "allow" | "review" | "block"`;
       </div>
 
       <h2>📋 Authentication</h2>
-      <p>All endpoints except <code>/v1/keys</code> require an API key sent via the <code>x-api-key</code> header. Keys are 51-character strings starting with <code>rg_</code>.</p>
+      <p>All endpoints except <code>/v1/keys</code> require an API key sent via the <code>x-api-key</code> header. Keys are 51-character strings starting with <code>sd_</code>.</p>
 
       <h2>🔑 Request Body</h2>
       <table>
@@ -135,7 +135,7 @@ print(data['recommendation'])  # "allow" | "review" | "block"`;
       </pre>
 
       <div className="footer">
-        <p>🛡️ RegisterGuardian API — Built on Cloudflare Workers. Powered by open data.</p>
+        <p>🛡️ SignupDoggy API — Built on Cloudflare Workers. Powered by open data.</p>
       </div>
     </div>
   );

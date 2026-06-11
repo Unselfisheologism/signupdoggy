@@ -28,7 +28,7 @@ export default function Login() {
   return (
     <div className="auth-page">
       <h1>Log in</h1>
-      <p className="sub">Welcome back to RegisterGuardian</p>
+      <p className="sub">Welcome back to SignupDoggy</p>
       {error && <div className="error-msg">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">

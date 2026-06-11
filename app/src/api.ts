@@ -1,4 +1,4 @@
-const API = 'https://registerguardian-portal-api.jeffrinjames99.workers.dev'
+const API = 'https://signupdoggy-portal-api.jeffrinjames99.workers.dev'
 
 export interface UserProfile { id: string; email: string; name: string; created: string }
 export interface ApiKey { key: string; created: string; usage_today: number }

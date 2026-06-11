@@ -43,7 +43,7 @@ export type Products = {
 
 function generateApiKey(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let key = 'rg_';
+  let key = 'sd_';
   for (let i = 0; i < 48; i++) key += chars.charAt(Math.floor(Math.random() * chars.length));
   return key;
 }
@@ -402,7 +402,7 @@ app.post('/api/checkout', authMiddleware, async (c) => {
     const session = await dodoFetch<any>(c.env, 'POST', '/checkouts', {
       product_cart: [{ product_id: product.id, quantity: 1 }],
       customer: { customer_id: dodoCustomerId },
-      return_url: body.return_url || 'https://registerguardian.pages.dev/dashboard',
+      return_url: body.return_url || 'https://signupdoggy.pages.dev/dashboard',
       metadata: {
         user_id: user.id,
         pack: pack,
@@ -526,7 +526,7 @@ async function getOrCreateDodoCustomer(env: Env, user: SupabaseUser): Promise<st
 
 // ─── GET / — Health ────────────────────────────────────────────────────────────
 
-app.get('/', (c) => c.json({ service: 'RegisterGuardian Portal API', version: '3.0.0', auth: 'supabase', payments: 'dodopayments' }));
+app.get('/', (c) => c.json({ service: 'SignupDoggy Portal API', version: '3.0.0', auth: 'supabase', payments: 'dodopayments' }));
 
 // ─── Export ─────────────────────────────────────────────────────────────────────
 

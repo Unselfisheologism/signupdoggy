@@ -5,8 +5,8 @@ export default function Landing() {
   const { user } = useAuth();
 
   const curlCmd = [
-    'curl -X POST https://registerguardian-api.jeffrinjames99.workers.dev/v1/check \\',
-    '  -H "x-api-key: rg_your_key_here" \\',
+    'curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \\',
+    '  -H "x-api-key: sd_your_key_here" \\',
     '  -H "Content-Type: application/json" \\',
     "  -d '{\"email\": \"user@example.com\", \"ip\": \"1.2.3.4\"}'",
   ].join('\n');
@@ -34,7 +34,7 @@ export default function Landing() {
     <>
       <nav className="navbar">
         <div className="nav-inner">
-          <Link to="/" className="nav-logo">🛡️ RegisterGuardian</Link>
+          <Link to="/" className="nav-logo">🛡️ SignupDoggy</Link>
           <div className="nav-links">
             <Link to="/pricing">Pricing</Link>
             <Link to="/docs">Docs</Link>
@@ -121,7 +121,7 @@ export default function Landing() {
       </div>
 
       <div className="footer">
-        <p>🛡️ RegisterGuardian — Built on Cloudflare Workers. Powered by open data.</p>
+        <p>🛡️ SignupDoggy — Built on Cloudflare Workers. Powered by open data.</p>
       </div>
     </>
   );

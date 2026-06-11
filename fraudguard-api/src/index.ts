@@ -270,7 +270,7 @@ function getToday(): string {
 
 function generateApiKey(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let key = 'rg_';
+  let key = 'sd_';
   for (let i = 0; i < 48; i++) {
     key += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -317,7 +317,7 @@ app.use('*', secureHeaders());
 
 app.get('/', (c) => {
   return c.json({
-    service: 'RegisterGuardian API',
+    service: 'SignupDoggy API',
     version: '1.0.0',
     docs: '/docs',
     spec: '/openapi.json',
@@ -645,14 +645,14 @@ app.get('/openapi.json', (c) => {
   const spec = {
     openapi: '3.0.3',
     info: {
-      title: 'RegisterGuardian API',
+      title: 'SignupDoggy API',
       description: 'Stop fake signups in 5 minutes. One API call. $0.01/request. Built for builders. Priced for startups. Powered by open data.',
       version: '1.0.0',
-      contact: { url: 'https://registerguardian.dev' },
+      contact: { url: 'https://signupdoggy.dev' },
     },
     servers: [
-      { url: 'https://registerguardian-api.jeffrinjames99.workers.dev', description: 'Production' },
-      { url: 'https://registerguardian.dev', description: 'Production' },
+      { url: 'https://signupdoggy-api.jeffrinjames99.workers.dev', description: 'Production' },
+      { url: 'https://signupdoggy.dev', description: 'Production' },
     ],
     paths: {
       '/v1/check': {
@@ -665,7 +665,7 @@ app.get('/openapi.json', (c) => {
               in: 'header',
               required: true,
               schema: { type: 'string' },
-              description: 'Your API key (starts with rg_)',
+              description: 'Your API key (starts with sd_)',
             },
           ],
           requestBody: {
@@ -723,15 +723,15 @@ app.get('/openapi.json', (c) => {
           'x-codeSamples': [
             {
               lang: 'cURL',
-              source: `curl -X POST https://registerguardian.dev/v1/check \\\n  -H "x-api-key: rg_your_key_here" \\\n  -H "Content-Type: application/json" \\\n  -d '{"email": "user@example.com", "ip": "1.2.3.4"}'`,
+              source: `curl -X POST https://signupdoggy.dev/v1/check \\\n  -H "x-api-key: sd_your_key_here" \\\n  -H "Content-Type: application/json" \\\n  -d '{"email": "user@example.com", "ip": "1.2.3.4"}'`,
             },
             {
               lang: 'Node.js',
-              source: `const res = await fetch('https://registerguardian.dev/v1/check', {\n  method: 'POST',\n  headers: {\n    'x-api-key': 'rg_your_key_here',\n    'Content-Type': 'application/json',\n  },\n  body: JSON.stringify({ email: 'user@example.com', ip: '1.2.3.4' }),\n});\nconst data = await res.json();`,
+              source: `const res = await fetch('https://signupdoggy.dev/v1/check', {\n  method: 'POST',\n  headers: {\n    'x-api-key': 'sd_your_key_here',\n    'Content-Type': 'application/json',\n  },\n  body: JSON.stringify({ email: 'user@example.com', ip: '1.2.3.4' }),\n});\nconst data = await res.json();`,
             },
             {
               lang: 'Python',
-              source: `import requests\n\nres = requests.post(\n    'https://registerguardian.dev/v1/check',\n    headers={'x-api-key': 'rg_your_key_here'},\n    json={'email': 'user@example.com', 'ip': '1.2.3.4'}\n)\ndata = res.json()`,
+              source: `import requests\n\nres = requests.post(\n    'https://signupdoggy.dev/v1/check',\n    headers={'x-api-key': 'sd_your_key_here'},\n    json={'email': 'user@example.com', 'ip': '1.2.3.4'}\n)\ndata = res.json()`,
             },
           ],
         },
@@ -850,7 +850,7 @@ app.get('/docs', (c) => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RegisterGuardian API — Docs</title>
+  <title>SignupDoggy API — Docs</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0f; color: #e4e4e7; line-height: 1.6; }
@@ -888,15 +888,15 @@ app.get('/docs', (c) => {
 </head>
 <body>
   <div class="container">
-    <h1>🛡️ RegisterGuardian API</h1>
+    <h1>🛡️ SignupDoggy API</h1>
     <p class="tagline">Stop fake signups in <strong>5 minutes</strong>. One API call. <strong>$0.01/request</strong>. No minimum. No contract.</p>
 
     <div class="section">
       <h2>⚡ Quick Start</h2>
       <p>Get your API key and check a signup in under 30 seconds:</p>
-      <pre><code id="key-code">curl -X POST https://registerguardian.dev/v1/keys</code><button class="copy-btn" onclick="copy('key-code')">Copy</button></pre>
-      <pre><code id="check-code">curl -X POST https://registerguardian.dev/v1/check \\
-  -H "x-api-key: rg_your_key_here" \\
+      <pre><code id="key-code">curl -X POST https://signupdoggy.dev/v1/keys</code><button class="copy-btn" onclick="copy('key-code')">Copy</button></pre>
+      <pre><code id="check-code">curl -X POST https://signupdoggy.dev/v1/check \\
+  -H "x-api-key: sd_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'</code><button class="copy-btn" onclick="copy('check-code')">Copy</button></pre>
     </div>
@@ -933,7 +933,7 @@ app.get('/docs', (c) => {
     <div class="section">
       <h2>📋 Authentication</h2>
       <p>All endpoints except <code>/v1/keys</code> require an API key sent via the <code>x-api-key</code> header.</p>
-      <pre><code>curl -H "x-api-key: rg_your_key_here" https://registerguardian.dev/v1/check</code></pre>
+      <pre><code>curl -H "x-api-key: sd_your_key_here" https://signupdoggy.dev/v1/check</code></pre>
     </div>
 
     <div class="section">
@@ -960,16 +960,16 @@ app.get('/docs', (c) => {
           </ul>
         </div>
       </div>
-      <p><strong>Why this is cheaper than SignupGate:</strong> SignupGate charges $29/month minimum even if you only need 100 requests. RegisterGuardian charges a flat $0.01/request — at 1k requests that's $10. No minimum, no commitment, no tiers. Built on Cloudflare's global edge network with zero egress fees.</p>
+      <p><strong>Why this is cheaper than SignupGate:</strong> SignupGate charges $29/month minimum even if you only need 100 requests. SignupDoggy charges a flat $0.01/request — at 1k requests that's $10. No minimum, no commitment, no tiers. Built on Cloudflare's global edge network with zero egress fees.</p>
     </div>
 
     <div class="section">
       <h2>🛠️ SDK Code Snippets</h2>
 
       <h3>Node.js / TypeScript</h3>
-      <pre><code id="node-code">const RegisterGuardian = {
+      <pre><code id="node-code">const SignupDoggy = {
   async check(apiKey: string, data: { email?: string; ip?: string }) {
-    const res = await fetch('https://registerguardian.dev/v1/check', {
+    const res = await fetch('https://signupdoggy.dev/v1/check', {
       method: 'POST',
       headers: {
         'x-api-key': apiKey,
@@ -981,7 +981,7 @@ app.get('/docs', (c) => {
   },
 };
 
-const result = await RegisterGuardian.check('rg_your_key_here', {
+const result = await SignupDoggy.check('sd_your_key_here', {
   email: 'user@example.com',
   ip: '1.2.3.4',
 });</code><button class="copy-btn" onclick="copy('node-code')">Copy</button></pre>
@@ -991,17 +991,17 @@ const result = await RegisterGuardian.check('rg_your_key_here', {
 
 def check_signup(api_key: str, email: str = None, ip: str = None):
     res = requests.post(
-        'https://registerguardian.dev/v1/check',
+        'https://signupdoggy.dev/v1/check',
         headers={'x-api-key': api_key},
         json={'email': email, 'ip': ip}
     )
     return res.json()
 
-data = check_signup('rg_your_key_here', email='user@example.com', ip='1.2.3.4')</code><button class="copy-btn" onclick="copy('py-code')">Copy</button></pre>
+data = check_signup('sd_your_key_here', email='user@example.com', ip='1.2.3.4')</code><button class="copy-btn" onclick="copy('py-code')">Copy</button></pre>
 
       <h3>cURL</h3>
-      <pre><code id="curl-code">curl -X POST https://registerguardian.dev/v1/check \\
-  -H "x-api-key: rg_your_key_here" \\
+      <pre><code id="curl-code">curl -X POST https://signupdoggy.dev/v1/check \\
+  -H "x-api-key: sd_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'</code><button class="copy-btn" onclick="copy('curl-code')">Copy</button></pre>
     </div>
@@ -1018,7 +1018,7 @@ data = check_signup('rg_your_key_here', email='user@example.com', ip='1.2.3.4')<
     </div>
 
     <div class="footer">
-      <p>RegisterGuardian API — Powered by open data. Built on Cloudflare Workers.</p>
+      <p>SignupDoggy API — Powered by open data. Built on Cloudflare Workers.</p>
     </div>
   </div>
 

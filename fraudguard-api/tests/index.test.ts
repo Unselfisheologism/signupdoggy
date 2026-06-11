@@ -28,7 +28,7 @@ function computeRecommendation(riskScores: number[], overall: 'low' | 'medium' |
 
 function generateApiKey(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let key = 'rg_';
+  let key = 'sd_';
   for (let i = 0; i < 48; i++) {
     key += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -136,9 +136,9 @@ describe('computeRecommendation', () => {
 });
 
 describe('generateApiKey', () => {
-  it('should start with rg_', () => {
+  it('should start with sd_', () => {
     const key = generateApiKey();
-    expect(key.startsWith('rg_')).toBe(true);
+    expect(key.startsWith('sd_')).toBe(true);
   });
 
   it('should be 51 characters long (3 + 48)', () => {
@@ -150,7 +150,7 @@ describe('generateApiKey', () => {
     const key = generateApiKey();
     const prefix = key.slice(0, 3);
     const rest = key.slice(3);
-    expect(prefix).toBe('rg_');
+    expect(prefix).toBe('sd_');
     expect(rest).toMatch(/^[a-z0-9]+$/);
   });
 

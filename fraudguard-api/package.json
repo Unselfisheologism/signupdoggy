@@ -1,7 +1,7 @@
 {
-  "name": "registerguardian-api",
+  "name": "signupdoggy-api",
   "version": "1.0.0",
-  "description": "RegisterGuardian API — Serverless fraud prevention for indie hackers",
+  "description": "SignupDoggy API — Serverless fraud prevention for indie hackers",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {

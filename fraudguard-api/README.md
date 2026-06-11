@@ -1,10 +1,10 @@
-# 🛡️ RegisterGuardian API
+# 🛡️ SignupDoggy API
 
 > Stop fake signups in **5 minutes**. One API call. **$0.01/request**. No minimum. No contract.
 
 **Built for builders. Priced for startups. Powered by open data.**
 
-RegisterGuardian is a serverless fraud prevention API that detects disposable emails, Tor exit nodes, hosting/VPN providers, and custom blacklisted entities — all from a single endpoint. Runs on Cloudflare Workers with zero external dependencies.
+SignupDoggy is a serverless fraud prevention API that detects disposable emails, Tor exit nodes, hosting/VPN providers, and custom blacklisted entities — all from a single endpoint. Runs on Cloudflare Workers with zero external dependencies.
 
 ---
 
@@ -12,11 +12,11 @@ RegisterGuardian is a serverless fraud prevention API that detects disposable em
 
 ```bash
 # Get your API key (shown once)
-curl -X POST https://registerguardian.dev/v1/keys
+curl -X POST https://signupdoggy.dev/v1/keys
 
 # Check an email and IP address
-curl -X POST https://registerguardian.dev/v1/check \
-  -H "x-api-key: rg_your_key_here" \
+curl -X POST https://signupdoggy.dev/v1/check \
+  -H "x-api-key: sd_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'
 
@@ -81,21 +81,21 @@ curl -X POST https://registerguardian.dev/v1/check \
 
 ### `POST /v1/keys` — Create API key
 ```bash
-curl -X POST https://registerguardian.dev/v1/keys
+curl -X POST https://signupdoggy.dev/v1/keys
 # → { "api_key": "fg_...", "user_id": "user_...", "created": "2024-01-01" }
 ```
 
 ### `POST /v1/blacklist` — Custom blacklist management
 ```bash
-curl -X POST https://registerguardian.dev/v1/blacklist \
-  -H "x-api-key: rg_your_key_here" \
+curl -X POST https://signupdoggy.dev/v1/blacklist \
+  -H "x-api-key: sd_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{"type": "email", "value": "bad@spammer.com", "action": "add"}'
 ```
 
 ### `GET /v1/stats` — Usage statistics
 ```bash
-curl -H "x-api-key: rg_your_key_here" https://registerguardian.dev/v1/stats
+curl -H "x-api-key: sd_your_key_here" https://signupdoggy.dev/v1/stats
 ```
 
 ---
@@ -107,7 +107,7 @@ curl -H "x-api-key: rg_your_key_here" https://registerguardian.dev/v1/stats
 | **$0.01/request** | No tiers. No minimum. No subscription. You pay exactly $0.01 per API call. |
 
 **Why this is cheaper than SignupGate:**
-SignupGate charges $29/month minimum even if you use 100 requests. RegisterGuardian charges a flat $0.01/request — at 1k requests that's $10. **No minimum. No commitment. No tiers.**
+SignupGate charges $29/month minimum even if you use 100 requests. SignupDoggy charges a flat $0.01/request — at 1k requests that's $10. **No minimum. No commitment. No tiers.**
 
 Infrastructure cost at 1M requests: **< $5/month** (Cloudflare KV + Workers).
 
@@ -117,10 +117,10 @@ Infrastructure cost at 1M requests: **< $5/month** (Cloudflare KV + Workers).
 
 ### Node.js
 ```typescript
-const res = await fetch('https://registerguardian.dev/v1/check', {
+const res = await fetch('https://signupdoggy.dev/v1/check', {
   method: 'POST',
   headers: {
-    'x-api-key': 'rg_your_key_here',
+    'x-api-key': 'sd_your_key_here',
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({ email: 'user@example.com', ip: '1.2.3.4' }),
@@ -134,8 +134,8 @@ console.log(data.recommendation); // "allow" | "review" | "block"
 import requests
 
 res = requests.post(
-    'https://registerguardian.dev/v1/check',
-    headers={'x-api-key': 'rg_your_key_here'},
+    'https://signupdoggy.dev/v1/check',
+    headers={'x-api-key': 'sd_your_key_here'},
     json={'email': 'user@example.com', 'ip': '1.2.3.4'}
 )
 data = res.json()
@@ -144,8 +144,8 @@ print(data['recommendation'])
 
 ### cURL
 ```bash
-curl -X POST https://registerguardian.dev/v1/check \
-  -H "x-api-key: rg_your_key_here" \
+curl -X POST https://signupdoggy.dev/v1/check \
+  -H "x-api-key: sd_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'
 ```
@@ -157,8 +157,8 @@ curl -X POST https://registerguardian.dev/v1/check \
 ```bash
 # Prerequisites: Node.js 18+, a Cloudflare account, and wrangler logged in
 
-git clone https://github.com/yourusername/registerguardian-api.git
-cd registerguardian-api
+git clone https://github.com/yourusername/signupdoggy-api.git
+cd signupdoggy-api
 
 # Install dependencies
 npm install --include=dev
@@ -178,7 +178,7 @@ npx wrangler kv:namespace create "SYNC_LOGS"
 npx wrangler deploy
 
 # Verify it works
-curl https://registerguardian.dev/v1/keys
+curl https://signupdoggy.dev/v1/keys
 ```
 
 ---
@@ -222,7 +222,7 @@ All data cached in Cloudflare KV for O(1) lookups with <50ms p95 latency.
 
 ## 🔒 Authentication
 
-- API keys are 48-character random strings prefixed with `rg_`
+- API keys are 48-character random strings prefixed with `sd_`
 - Pass via `x-api-key` header on every request (except `/v1/keys`)
 - Keys are stored in KV and shown only once on creation
 - All keys billed at $0.01 per request — no tiers, no limits
@@ -252,4 +252,4 @@ MIT — Built with ❤️ for indie hackers and bootstrapped startups.
 
 - [OpenAPI Spec](/openapi.json)
 - [API Documentation](/docs)
-- [GitHub](https://github.com/yourusername/registerguardian-api)
+- [GitHub](https://github.com/yourusername/signupdoggy-api)

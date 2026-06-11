@@ -2,8 +2,8 @@ import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { Rate, Trend } from 'k6/metrics';
 
-const BASE_URL = __ENV.REGISTERGUARDIAN_URL || 'https://registerguardian.dev';
-const API_KEY = __ENV.REGISTERGUARDIAN_API_KEY || 'rg_test_key_placeholder';
+const BASE_URL = __ENV.REGISTERGUARDIAN_URL || 'https://signupdoggy.dev';
+const API_KEY = __ENV.REGISTERGUARDIAN_API_KEY || 'sd_test_key_placeholder';
 
 const failRate = new Rate('failed_requests');
 const latencyTrend = new Trend('latency_ms');

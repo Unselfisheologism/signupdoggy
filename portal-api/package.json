@@ -1,7 +1,7 @@
 {
-  "name": "registerguardian-portal-api",
+  "name": "signupdoggy-portal-api",
   "version": "1.0.0",
-  "description": "RegisterGuardian customer portal API",
+  "description": "SignupDoggy customer portal API",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {

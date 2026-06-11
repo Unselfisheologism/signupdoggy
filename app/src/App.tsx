@@ -18,7 +18,7 @@ function Navbar() {
   return (
     <nav className="navbar">
       <div className="nav-inner">
-        <Link to="/" className="nav-logo">🛡️ RegisterGuardian</Link>
+        <Link to="/" className="nav-logo">🛡️ SignupDoggy</Link>
         <div className="nav-links">
           <Link to="/pricing">Pricing</Link>
           <Link to="/docs">Docs</Link>
