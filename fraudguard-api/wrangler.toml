@@ -9,6 +9,10 @@ binding = "DISPOSABLE_EMAILS"
 id = "c3b2812accb2408cad28cf5e237da212"
 
 [[kv_namespaces]]
+binding = "DISPOSABLE_PHONE_NUMBERS"
+id = "13427c4701744af4b3047d508a34d69d"
+
+[[kv_namespaces]]
 binding = "TOR_EXIT_NODES"
 id = "988970d546cb47ceadc5eb4c968cd409"
 

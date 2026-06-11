@@ -6,6 +6,7 @@ import { secureHeaders } from 'hono/secure-headers';
 
 export type Env = {
   DISPOSABLE_EMAILS: KVNamespace;
+  DISPOSABLE_PHONE_NUMBERS: KVNamespace;
   TOR_EXIT_NODES: KVNamespace;
   HOSTING_IP_RANGES: KVNamespace;
   API_KEYS: KVNamespace;
@@ -26,17 +27,24 @@ export type ApiKeyRecord = {
 export type CheckRequest = {
   email?: string;
   ip?: string;
+  phone?: string;
 };
 
 export type UserBlacklist = {
   emails: string[];
   ips: string[];
+  phones: string[];
 };
 
 export type CheckResponse = {
   email: {
     is_disposable: boolean;
     domain: string;
+    risk_score: number;
+  } | null;
+  phone: {
+    is_disposable: boolean;
+    number: string;
     risk_score: number;
   } | null;
   ip: {
@@ -59,6 +67,7 @@ export type StatsResponse = {
     tor_exit: number;
     proxy: number;
     custom_blacklist: number;
+    disposable_phone: number;
   };
   estimated_cost_usd: number;
 };
@@ -294,6 +303,34 @@ function computeRecommendation(riskScores: number[], overall: 'low' | 'medium' |
   return 'allow';
 }
 
+// ── Phone Number Helpers ──
+
+function normalizePhone(phone: string): string {
+  return phone.replace(/[^+\d]/g, '');
+}
+
+function phoneMatchesMask(phone: string, candidate: string): boolean {
+  return phone === candidate;
+}
+
+async function checkDisposablePhone(env: Env, phone: string): Promise<boolean> {
+  try {
+    const raw = await env.DISPOSABLE_PHONE_NUMBERS.get('_all');
+    if (!raw) return false;
+    const numbers: string[] = JSON.parse(raw);
+    // iP1SMS format is plain digits (no +), so strip + for matching
+    const normalized = normalizePhone(phone).replace(/^\+/, '');
+    // Binary search or Set would be faster but KV serves 118k numbers as one blob
+    // so we iterate — still < 10ms for 118k string comparisons
+    for (const num of numbers) {
+      if (normalized === num) return true;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 // ─── Usage Tracking ────────────────────────────────────────────────────────────
 
 async function incrementUsage(env: Env, apiKey: string, today: string): Promise<void> {
@@ -355,10 +392,10 @@ app.post('/v1/blacklist', async (c) => {
 
   const body: { type?: string; value?: string; action?: string } = await c.req.json();
   if (!body.type || !body.value || !body.action) {
-    return c.json({ error: 'Required fields: type (email|ip), value, action (add|remove)' }, 400);
+    return c.json({ error: 'Required fields: type (email|ip|phone), value, action (add|remove)' }, 400);
   }
-  if (!['email', 'ip'].includes(body.type)) {
-    return c.json({ error: 'type must be "email" or "ip"' }, 400);
+  if (!['email', 'ip', 'phone'].includes(body.type)) {
+    return c.json({ error: 'type must be "email", "ip", or "phone"' }, 400);
   }
   if (!['add', 'remove'].includes(body.action)) {
     return c.json({ error: 'action must be "add" or "remove"' }, 400);
@@ -366,9 +403,10 @@ app.post('/v1/blacklist', async (c) => {
 
   const blacklistKey = `blacklist:${apiKey}`;
   const existing = await c.env.USER_BLACKLISTS.get(blacklistKey);
-  const blacklist: UserBlacklist = existing ? JSON.parse(existing) : { emails: [], ips: [] };
+  const blacklist: UserBlacklist = existing ? JSON.parse(existing) : { emails: [], ips: [], phones: [] };
 
-  const targetList = body.type === 'email' ? 'emails' : 'ips';
+  const typeToList: Record<string, keyof UserBlacklist> = { email: 'emails', ip: 'ips', phone: 'phones' };
+  const targetList = typeToList[body.type] || 'emails';
 
   if (body.action === 'add') {
     if (!blacklist[targetList].includes(body.value.toLowerCase())) {
@@ -387,6 +425,7 @@ app.post('/v1/blacklist', async (c) => {
     current_count: {
       emails: blacklist.emails.length,
       ips: blacklist.ips.length,
+      phones: blacklist.phones.length,
     },
   });
 });
@@ -421,8 +460,8 @@ app.post('/v1/check', async (c) => {
     return c.json({ error: 'Invalid JSON body' }, 400);
   }
 
-  if (!body.email && !body.ip) {
-    return c.json({ error: 'At least one of "email" or "ip" is required' }, 400);
+  if (!body.email && !body.ip && !body.phone) {
+    return c.json({ error: 'At least one of "email", "ip", or "phone" is required' }, 400);
   }
 
   // Increment usage counter
@@ -431,6 +470,7 @@ app.post('/v1/check', async (c) => {
   // Build response
   const response: CheckResponse = {
     email: null,
+    phone: null,
     ip: null,
     overall_risk: 'low',
     recommendation: 'allow',
@@ -575,6 +615,40 @@ app.post('/v1/check', async (c) => {
     riskScores.push(ipRisk);
   }
 
+  // ── Phone Check ──
+  if (body.phone) {
+    const normalizedPhone = normalizePhone(body.phone);
+    let phoneRisk = 0;
+    const isDisposablePhone = await checkDisposablePhone(c.env, normalizedPhone);
+
+    if (isDisposablePhone) {
+      phoneRisk = 85;
+      if (!blocked) {
+        blocked = true;
+        blockedReason = 'disposable_phone';
+      }
+    }
+
+    // Check user blacklist for phone
+    const blacklistKey = `blacklist:${apiKey}`;
+    const existingBlacklist = await c.env.USER_BLACKLISTS.get(blacklistKey);
+    if (existingBlacklist) {
+      const blacklist: UserBlacklist = JSON.parse(existingBlacklist);
+      if (blacklist.phones && blacklist.phones.includes(normalizedPhone)) {
+        phoneRisk = 100;
+        blocked = true;
+        blockedReason = 'custom_blacklist';
+      }
+    }
+
+    response.phone = {
+      is_disposable: isDisposablePhone || (phoneRisk >= 100),
+      number: normalizedPhone,
+      risk_score: phoneRisk,
+    };
+    riskScores.push(phoneRisk);
+  }
+
   // ── Calculate overall risk ──
   response.overall_risk = computeOverallRisk(riskScores);
   response.recommendation = computeRecommendation(riskScores, response.overall_risk);
@@ -628,12 +702,14 @@ app.get('/v1/stats', async (c) => {
   const blockedTor = await c.env.USAGE_LOG.get(`blocked:${today}:tor_exit`);
   const blockedProxy = await c.env.USAGE_LOG.get(`blocked:${today}:proxy`);
   const blockedBlacklist = await c.env.USAGE_LOG.get(`blocked:${today}:custom_blacklist`);
+  const blockedPhone = await c.env.USAGE_LOG.get(`blocked:${today}:disposable_phone`);
   const blockedTotalStr = await c.env.USAGE_LOG.get(`blocked:${today}:total`);
 
   const disposableCount = blockedEmail ? parseInt(blockedEmail, 10) : 0;
   const torCount = blockedTor ? parseInt(blockedTor, 10) : 0;
   const proxyCount = blockedProxy ? parseInt(blockedProxy, 10) : 0;
   const blacklistCount = blockedBlacklist ? parseInt(blockedBlacklist, 10) : 0;
+  const phoneCount = blockedPhone ? parseInt(blockedPhone, 10) : 0;
   const blockedTotal = blockedTotalStr ? parseInt(blockedTotalStr, 10) : 0;
 
   const pricePerRequest = parseFloat(c.env.PRICE_PER_REQUEST || '0.01');
@@ -648,6 +724,7 @@ app.get('/v1/stats', async (c) => {
       tor_exit: torCount,
       proxy: proxyCount,
       custom_blacklist: blacklistCount,
+      disposable_phone: phoneCount,
     },
     estimated_cost_usd: estimatedCost,
   };
@@ -693,6 +770,7 @@ app.get('/openapi.json', (c) => {
                   properties: {
                     email: { type: 'string', format: 'email', description: 'Email address to check' },
                     ip: { type: 'string', format: 'ipv4', description: 'IP address to check' },
+                    phone: { type: 'string', description: 'Phone number to check (E.164 format)' },
                   },
                 },
               },
@@ -723,6 +801,15 @@ app.get('/openapi.json', (c) => {
                           is_proxy: { type: 'boolean' },
                           is_hosting: { type: 'boolean' },
                           asn: { type: 'string', nullable: true },
+                          risk_score: { type: 'integer', minimum: 0, maximum: 100 },
+                        },
+                      },
+                      phone: {
+                        type: 'object',
+                        nullable: true,
+                        properties: {
+                          is_disposable: { type: 'boolean' },
+                          number: { type: 'string' },
                           risk_score: { type: 'integer', minimum: 0, maximum: 100 },
                         },
                       },
@@ -795,7 +882,7 @@ app.get('/openapi.json', (c) => {
                 schema: {
                   type: 'object',
                   properties: {
-                    type: { type: 'string', enum: ['email', 'ip'] },
+                    type: { type: 'string', enum: ['email', 'ip', 'phone'] },
                     value: { type: 'string' },
                     action: { type: 'string', enum: ['add', 'remove'] },
                   },
@@ -841,6 +928,7 @@ app.get('/openapi.json', (c) => {
                           tor_exit: { type: 'integer' },
                           proxy: { type: 'integer' },
                           custom_blacklist: { type: 'integer' },
+                          disposable_phone: { type: 'integer' },
                         },
                       },
                       estimated_cost_usd: { type: 'number' },
@@ -1119,6 +1207,24 @@ async function syncTorExitNodes(env: Env): Promise<string> {
   }
 }
 
+async function syncDisposablePhoneNumbers(env: Env): Promise<string> {
+  try {
+    const resp = await fetch(
+      'https://raw.githubusercontent.com/iP1SMS/disposable-phone-numbers/master/number-list.json',
+      { cf: { cacheTtl: 0 } }
+    );
+    if (!resp.ok) return `Phone sync failed: HTTP ${resp.status}`;
+    const json = await resp.json() as Record<string, string>;
+    const numbers = Object.keys(json).filter(k => /^\d{5,15}$/.test(k));
+
+    await env.DISPOSABLE_PHONE_NUMBERS.put('_all', JSON.stringify(numbers));
+    await env.SYNC_LOGS.put(`phone:${getToday()}`, `Synced ${numbers.length} disposable phone numbers`);
+    return `Synced ${numbers.length} disposable phone numbers`;
+  } catch (e: any) {
+    return `Phone sync error: ${e.message}`;
+  }
+}
+
 app.get('/__cron/run', async (c) => {
   const results: string[] = [];
 
@@ -1127,6 +1233,9 @@ app.get('/__cron/run', async (c) => {
 
   const torResult = await syncTorExitNodes(c.env);
   results.push(torResult);
+
+  const phoneResult = await syncDisposablePhoneNumbers(c.env);
+  results.push(phoneResult);
 
   return c.json({ status: 'ok', results });
 });
