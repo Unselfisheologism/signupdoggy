@@ -11,6 +11,7 @@ export type Env = {
   API_KEYS: KVNamespace;
   USAGE_LOG: KVNamespace;
   USER_BLACKLISTS: KVNamespace;
+  USERS: KVNamespace;
   SYNC_LOGS: KVNamespace;
   PRICE_PER_REQUEST: string;
   MAXMIND_LICENSE_KEY: string;
@@ -399,6 +400,17 @@ app.post('/v1/check', async (c) => {
   const keyRecord = await c.env.API_KEYS.get(apiKey);
   if (!keyRecord) return c.json({ error: 'Invalid API key' }, 401);
 
+  // ── Credit check — verify user has balance ──
+  const parsedRecord: ApiKeyRecord = JSON.parse(keyRecord);
+  const userId = parsedRecord.user_id;
+  const creditsBalance = parseInt(await c.env.USERS.get(`credits:${userId}`) || '0', 10);
+  if (creditsBalance <= 0) {
+    return c.json({
+      error: 'Insufficient credits — top up at https://signupdoggy.pages.dev/billing',
+      code: 'insufficient_credits',
+    }, 402);
+  }
+
   const today = getToday();
 
   // Parse request body
@@ -589,6 +601,10 @@ app.post('/v1/check', async (c) => {
   c.header('X-Fraud-Blocked-Today', String(blockedToday + (blocked ? 1 : 0)));
   c.header('X-Fraud-Blocked-Reason', blockedReason || 'none');
   c.header('X-Estimated-Cost', cost.toFixed(2));
+  c.header('X-Credit-Balance', String(creditsBalance - 1));
+
+  // Deduct one credit for this request
+  await c.env.USERS.put(`credits:${userId}`, String(creditsBalance - 1));
 
   return c.json(response);
 });

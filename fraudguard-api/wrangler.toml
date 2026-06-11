@@ -32,6 +32,10 @@ id = "5a712d4d30bc4eeca1103cd7d97abbef"
 binding = "SYNC_LOGS"
 id = "699f4736ee394bb186f51ae6b535052f"
 
+[[kv_namespaces]]
+binding = "USERS"
+id = "8173bded957845a99a465d60d1405106"
+
 # Cron Triggers
 [triggers]
 crons = ["0 3 * * *", "0 * * * *"]

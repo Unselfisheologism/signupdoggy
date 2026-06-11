@@ -14,10 +14,11 @@ export type Env = {
   DODO_API_KEY: string;
   DODO_WEBHOOK_KEY?: string;
   DODO_BASE_URL?: string;
-  DODO_PRODUCT_STARTER: string;
-  DODO_PRODUCT_GROWTH: string;
-  DODO_PRODUCT_PRO: string;
   DODO_CREDIT_ENTITLEMENT_ID: string;
+  DODO_METER_EVENT_NAME: string;
+  DODO_AUTOPAY_PRODUCT_ID: string;
+  DODO_AUTOPAY_THRESHOLD: string;
+  DODO_BRAND_ID: string;
 };
 
 export type ApiKeyRecord = {
@@ -74,9 +75,9 @@ async function dodoFetch<T>(env: Env, method: string, path: string, body?: unkno
 }
 
 const PRODUCTS: Products = {
-  starter: { id: 'pdt_0NglBAavYpcZkGcj9lJMt', price: 1000, credits: 1000 },
-  growth: { id: 'pdt_0NglBAcEOw0LxDumDuoGu', price: 5000, credits: 5500 },
-  pro: { id: 'pdt_0NglBAdEIuiQKEYxCE23M', price: 10000, credits: 12000 },
+  starter: { id: 'pdt_0NgohFQN7SnJHnXa1wxYE', price: 1000, credits: 1000 },
+  growth: { id: 'pdt_0NgohFU8YXlsLQL1HPqMb', price: 5000, credits: 5000 },
+  pro: { id: 'pdt_0NgohFXieflgTTjr1UUGv', price: 10000, credits: 10000 },
 };
 
 // ─── Validate Supabase JWT via REST API ────────────────────────────────────────
@@ -427,8 +428,8 @@ app.get('/api/products', authMiddleware, async (c) => {
   return c.json({
     products: [
       { id: 'starter', name: 'Starter Pack', price: 10, credits: 1000, description: '1,000 API requests' },
-      { id: 'growth', name: 'Growth Pack', price: 50, credits: 5500, description: '5,500 API requests (10% bonus)' },
-      { id: 'pro', name: 'Pro Pack', price: 100, credits: 12000, description: '12,000 API requests (20% bonus)' },
+      { id: 'growth', name: 'Growth Pack', price: 50, credits: 5000, description: '5,000 API requests' },
+      { id: 'pro', name: 'Pro Pack', price: 100, credits: 10000, description: '10,000 API requests' },
     ],
   });
 });
@@ -503,6 +504,36 @@ app.get('/api/credits', authMiddleware, async (c) => {
     total_spent: payments.reduce((s: number, p: any) => s + (p.amount || 0), 0),
     payments: payments.slice(-10).reverse(),
   });
+});
+
+// ─── POST /api/autopay — Configure or trigger autopay ─────────────────────────
+
+app.post('/api/autopay', authMiddleware, async (c) => {
+  const user = c.get('user') as SupabaseUser;
+  const body: { enabled?: boolean; threshold?: number; top_up_product?: string } = await c.req.json();
+
+  const autopayKey = `autopay:${user.id}`;
+  const existing = await c.env.USERS.get(autopayKey);
+  const config = existing ? JSON.parse(existing) : { enabled: false, threshold: 500, top_up_product: 'growth' };
+
+  if (body.enabled !== undefined) config.enabled = body.enabled;
+  if (body.threshold) config.threshold = body.threshold;
+  if (body.top_up_product) config.top_up_product = body.top_up_product;
+
+  await c.env.USERS.put(autopayKey, JSON.stringify(config));
+
+  return c.json({ autopay: config });
+});
+
+// ─── GET /api/autopay — Get autopay config ────────────────────────────────────
+
+app.get('/api/autopay', authMiddleware, async (c) => {
+  const user = c.get('user') as SupabaseUser;
+  const autopayKey = `autopay:${user.id}`;
+  const existing = await c.env.USERS.get(autopayKey);
+  const config = existing ? JSON.parse(existing) : { enabled: false, threshold: 500, top_up_product: 'growth' };
+
+  return c.json({ autopay: config });
 });
 
 // ─── Helper: Get or create Dodo customer ─────────────────────────────────────
