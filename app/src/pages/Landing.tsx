@@ -55,10 +55,11 @@ export default function Landing() {
   const codeMap = { curl: curlCmd, node: nodeExample, python: pyExample };
 
   return (
-    <div className="dot-grid">
+    <>
       {/* Hero */}
       <section className="hero">
         <div className="hero-content">
+          <div className="beta-badge">Live on Cloudflare Workers</div>
           <h1>
             Stop fake signups in{' '}
             <span className="highlight">5 minutes</span>
@@ -106,24 +107,24 @@ export default function Landing() {
         <div className="trust-label">Trusted by engineering teams at</div>
         <div className="trust-logos">
           <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/stripe/1e1b1a" alt="Stripe" height="20" style={{verticalAlign: 'middle', opacity: 0.45}} />
+            <img src="https://cdn.simpleicons.org/stripe/ffffff" alt="Stripe" height="20" style={{verticalAlign: 'middle', opacity: 0.35}} />
           </span>
           <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/supabase/1e1b1a" alt="Supabase" height="20" style={{verticalAlign: 'middle', opacity: 0.45}} />
+            <img src="https://cdn.simpleicons.org/supabase/ffffff" alt="Supabase" height="20" style={{verticalAlign: 'middle', opacity: 0.35}} />
           </span>
           <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/linear/1e1b1a" alt="Linear" height="20" style={{verticalAlign: 'middle', opacity: 0.45}} />
+            <img src="https://cdn.simpleicons.org/linear/ffffff" alt="Linear" height="20" style={{verticalAlign: 'middle', opacity: 0.35}} />
           </span>
           <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/vercel/1e1b1a" alt="Vercel" height="18" style={{verticalAlign: 'middle', opacity: 0.45}} />
+            <img src="https://cdn.simpleicons.org/vercel/ffffff" alt="Vercel" height="18" style={{verticalAlign: 'middle', opacity: 0.35}} />
           </span>
           <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/cloudflare/1e1b1a" alt="Cloudflare" height="20" style={{verticalAlign: 'middle', opacity: 0.45}} />
+            <img src="https://cdn.simpleicons.org/cloudflare/ffffff" alt="Cloudflare" height="20" style={{verticalAlign: 'middle', opacity: 0.35}} />
           </span>
         </div>
       </section>
 
-      {/* How it works */}
+      {/* Features */}
       <section className="section">
         <h2 className="section-title">What you get</h2>
         <p className="section-sub">
@@ -241,6 +242,6 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-    </div>
+    </>
   );
 }
