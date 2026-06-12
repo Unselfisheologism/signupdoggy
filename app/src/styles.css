@@ -1136,6 +1136,81 @@ code { font-family: var(--font-mono); }
 .auth-form-link:hover {
   text-decoration: underline;
 }
+.auth-chooser {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+}
+.auth-chooser-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-lg);
+  border: var(--border-thin) solid var(--border-dim);
+  background: var(--bg);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+  position: relative;
+}
+.auth-chooser-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--border-dim);
+  transition: background var(--transition-fast);
+}
+.auth-chooser-card:hover {
+  border-color: var(--accent);
+  background: var(--bg-card);
+}
+.auth-chooser-card:hover::before {
+  background: var(--accent);
+}
+.auth-chooser-card--primary {
+  border-color: var(--accent);
+}
+.auth-chooser-card--primary::before {
+  background: var(--accent);
+}
+.auth-chooser-tag {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.auth-chooser-card--primary .auth-chooser-tag {
+  color: var(--accent);
+}
+.auth-chooser-title {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+}
+.auth-chooser-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+}
+.auth-chooser-cta {
+  margin-top: var(--space-sm);
+  font-size: var(--text-xs);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.auth-chooser-card:not(.auth-chooser-card--primary) .auth-chooser-cta {
+  color: var(--text-secondary);
+}
 
 /* ═══ DASHBOARD ═══ */
 .dash-stats-grid {
