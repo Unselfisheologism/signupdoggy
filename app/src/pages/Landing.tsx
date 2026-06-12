@@ -1,388 +1,442 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
+import { motion, useInView, animate, useMotionValue, useTransform, useScroll } from 'motion/react';
 
-const curlCmd = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \\\\
-  -H "x-api-key: sd_your_key_here" \\
-  -H "Content-Type: application/json" \\
-  -d '{"email": "user@example.com", "ip": "1.2.3.4"}'`;
+// ── Animated Counter ──
+function AnimatedCounter({ from, to, suffix = '', auto = true }: { from: number; to: number; suffix?: string; auto?: boolean }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-100px' });
+  const [started, setStarted] = useState(auto);
+  const count = useMotionValue(from);
+  const rounded = useTransform(count, v => Math.round(v * 10) / 10);
+  const [display, setDisplay] = useState(String(from));
 
-const jsonResp = `{
-  "email": {
-    "is_disposable": false,
-    "domain": "example.com",
-    "risk_score": 0
-  },
-  "ip": {
-    "is_tor": false,
-    "is_proxy": false,
-    "is_hosting": false,
-    "asn": null,
-    "risk_score": 0
-  },
-  "overall_risk": "low",
-  "recommendation": "allow"
-}`;
+  useEffect(() => {
+    if (!started && !inView) return;
+    const controls = animate(count, to, { duration: 2, ease: 'easeOut' });
+    const unsubscribe = rounded.on('change', v => setDisplay(v + suffix));
+    return () => { controls.stop(); unsubscribe(); };
+  }, [started, inView]);
 
-const nodeExample = `const res = await fetch('https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check', {
-  method: 'POST',
-  headers: {
-    'x-api-key': 'sd_your_key_here',
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    email: 'user@example.com',
-    ip: '1.2.3.4',
-  }),
-});
-const data = await res.json();
-console.log(data.recommendation); // "allow" | "review" | "block"`;
+  return <span ref={ref}>{display}</span>;
+}
 
-const pyExample = `import requests
-
-res = requests.post(
-    'https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check',
-    headers={'x-api-key': 'sd_your_key_here'},
-    json={'email': 'user@example.com', 'ip': '1.2.3.4'}
-)
-data = res.json()
-print(data['recommendation'])  # "allow" | "review" | "block"`;
-
-/* SVG Icons */
-const MailIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="2" y="4" width="20" height="16" rx="0" />
-    <path d="M22 4L12 13L2 4" />
-  </svg>
-);
-
-const ShieldIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L3 7v5c0 5.25 3.83 10.15 9 11 5.17-.85 9-5.75 9-11V7z" />
-    <path d="M9 12l2 2 4-4" />
-  </svg>
-);
-
-const DollarIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M9 8.5c0-1 .8-1.5 1.8-1.5h2.4c1 0 1.8.7 1.8 1.7v.3c0 .9-.7 1.5-1.6 1.5H10" />
-    <path d="M12 7v10" />
-    <path d="M9 15.5c0 1 .8 1.5 1.8 1.5h2.4c1 0 1.8-.7 1.8-1.7v-.3c0-.9-.7-1.5-1.6-1.5H10" />
-  </svg>
-);
-
-const ZapIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10" />
-  </svg>
-);
-
-const ListIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="8" y1="6" x2="21" y2="6" />
-    <line x1="8" y1="12" x2="21" y2="12" />
-    <line x1="8" y1="18" x2="21" y2="18" />
-    <line x1="3" y1="6" x2="3.01" y2="6" />
-    <line x1="3" y1="12" x2="3.01" y2="12" />
-    <line x1="3" y1="18" x2="3.01" y2="18" />
-  </svg>
-);
-
-const GlobeIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="9" />
-    <path d="M2 12h20" />
-    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-  </svg>
-);
-
-const CodeIcon = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="16 3 21 7 16 12" />
-    <polyline points="8 3 3 7 8 12" />
-    <line x1="14" y1="3" x2="10" y2="21" />
-  </svg>
-);
-
-const features = [
-  {
-    icon: <MailIcon />,
-    title: 'Disposable Email Detection',
-    desc: '125k+ known disposable domains checked in O(1) time. Wildcard subdomain matching catches catch-all temp mail domains.',
-  },
-  {
-    icon: <ShieldIcon />,
-    title: 'VPN & Proxy Detection',
-    desc: 'Tor exit nodes, VPNs, and hosting provider IPs from AWS, DigitalOcean, GCP, Azure and 100+ more providers.',
-  },
-  {
-    icon: <DollarIcon />,
-    title: 'Pay as you go',
-    desc: '$0.01 per request. No minimums, no tiers, no surprise bills. Free tier gives you 1,000 requests per day.',
-  },
-  {
-    icon: <ZapIcon />,
-    title: 'Zero integration friction',
-    desc: 'Copy a cURL command and you\'re done. Node.js and Python snippets ready in the docs. No SDK install required.',
-  },
-  {
-    icon: <ListIcon />,
-    title: 'Custom Blacklists',
-    desc: 'Block specific emails or IPs with your own rules. Your blacklist is checked before global data.',
-  },
-  {
-    icon: <GlobeIcon />,
-    title: 'Edge Global',
-    desc: 'Deployed on Cloudflare\'s global network. Average response time under 50ms p95. Scales to any volume.',
-  },
+// ── Placeholder Logo URLs (replace with your actual logo images) ──
+const trustLogos = [
+  { name: 'Vercel', url: 'https://assets-global.website-files.com/6442910b5f6bee1a0e66b7b9/64b6e331b6b95a398732a426_vercel-logotype-light.svg' },
+  { name: 'Linear', url: 'https://cdn.sanity.io/images/1z5g6za5/production/57b3e0937caf56e5fea19d4a1269f7f2c182ae0e-24x24.svg' },
+  { name: 'Supabase', url: 'https://supabase.com/dashboard/img/supabase-logo.svg' },
+  { name: 'Stripe', url: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/stripe.svg' },
+  { name: 'GitHub', url: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/github.svg' },
+  { name: 'Cloudflare', url: 'https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/cloudflare.svg' },
 ];
 
+// ── Trust Bar: Infinite Auto-Scroll ──
+function TrustBar() {
+  return (
+    <section className="trust-bar">
+      <p className="trust-label">Trusted by engineering teams</p>
+      <div className="trust-track-wrapper">
+        <motion.div
+          className="trust-track"
+          animate={{ x: ['0%', '-50%'] }}
+          transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+        >
+          {[...trustLogos, ...trustLogos].map((logo, i) => (
+            <motion.img
+              key={i}
+              src={logo.url}
+              alt={logo.name}
+              className="trust-logo-img"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+// ── Feature Card ──
+const features = [
+  { title: 'Disposable Email Detection', desc: '125K+ known disposable domains blocked instantly. Catches temp mail providers before they sign up.', icon: '✉' },
+  { title: 'VPN & Proxy Detection', desc: 'Real-time IP reputation checks identify residential proxies, data centers, and anonymizers.', icon: '🛡' },
+  { title: 'Temp Phone Number Blocking', desc: '124K+ temporary phone numbers flagged in O(1) lookups. Strip +, match instantly.', icon: '📱' },
+  { title: 'API Key Management', desc: 'Rotate, revoke, and monitor usage per key. Granular rate limiting per customer.', icon: '🔑' },
+  { title: 'Credit-Based Billing', desc: 'Pay per successful check — $0.01/request. No monthly minimums, no surprise bills.', icon: '💳' },
+  { title: 'Real-Time Alerts', desc: 'Webhook notifications for suspicious signups. Integrate into Slack, PagerDuty, or your own backend.', icon: '⚡' },
+];
+
+function FeatureCard({ title, desc, icon, index }: { title: string; desc: string; icon: string; index: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-80px' });
+  return (
+    <motion.div
+      ref={ref}
+      className="feature-card"
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.5, delay: index * 0.08, ease: 'easeOut' }}
+    >
+      <span className="feature-icon">{icon}</span>
+      <h3 className="feature-title">{title}</h3>
+      <p className="feature-desc">{desc}</p>
+    </motion.div>
+  );
+}
+
+// ── Terminal Code Content ──
+type CodeLine = {
+  line: string;
+  indent?: boolean;
+  prompt?: boolean;
+  cmd?: boolean;
+  key?: boolean;
+  res?: boolean;
+  comment?: boolean;
+};
+
+const codeContent: Record<string, CodeLine[]> = {
+  curl: [
+    { line: 'curl -X POST https://signupdoggy-api.workers.dev/v1/check', prompt: true, cmd: true },
+    { line: '  -H "Authorization: Bearer sk_live_abc123"', indent: true, key: true },
+    { line: '  -H "Content-Type: application/json"', indent: true, key: true },
+    { line: '  -d \'{', indent: true },
+    { line: '    "email": "user@tempmail.com"', indent: true, res: true },
+    { line: '  }\'', indent: true },
+    { line: '', indent: false },
+    { line: '# Response', comment: true },
+    { line: '{', indent: false },
+    { line: '  "verdict": "block",', indent: true, res: true },
+    { line: '  "recommendation": "high_risk",', indent: true, res: true },
+    { line: '  "overall_risk": 0.94,', indent: true, res: true },
+    { line: '  "checks": {', indent: true },
+    { line: '    "disposable_email": true,', indent: true, res: true },
+    { line: '    "vpn_proxy": true,', indent: true, res: true },
+    { line: '    "temp_phone": false', indent: true, res: true },
+    { line: '  }', indent: true },
+    { line: '}', indent: false },
+  ],
+  node: [
+    { line: "import { SignupDoggy } from 'signupdoggy';", cmd: true },
+    { line: '', indent: false },
+    { line: 'const client = new SignupDoggy({', cmd: true },
+    { line: "  apiKey: process.env.SIGNUPDOGGY_KEY", indent: true, cmd: true },
+    { line: '});', cmd: true },
+    { line: '', indent: false },
+    { line: 'const result = await client.check({', cmd: true },
+    { line: "  email: 'user@tempmail.com'", indent: true, cmd: true },
+    { line: '});', cmd: true },
+    { line: '', indent: false },
+    { line: "console.log(result.verdict);", cmd: true },
+    { line: "// => 'block'", comment: true },
+    { line: "console.log(result.overall_risk);", cmd: true },
+    { line: "// => 0.94", comment: true },
+  ],
+  python: [
+    { line: 'from signupdoggy import SignupDoggy', cmd: true },
+    { line: '', indent: false },
+    { line: 'client = SignupDoggy(', cmd: true },
+    { line: "  api_key=os.environ['SIGNUPDOGGY_KEY']", indent: true, cmd: true },
+    { line: ')', cmd: true },
+    { line: '', indent: false },
+    { line: 'result = client.check(', cmd: true },
+    { line: "  email='user@tempmail.com'", indent: true, cmd: true },
+    { line: ')', cmd: true },
+    { line: '', indent: false },
+    { line: "print(result['verdict'])", cmd: true },
+    { line: "# => 'block'", comment: true },
+    { line: "print(result['overall_risk'])", cmd: true },
+    { line: "# => 0.94", comment: true },
+  ],
+};
+
 export default function Landing() {
-  const { user } = useAuth();
+  const { session, loading } = useAuth();
   const [tab, setTab] = useState<'curl' | 'node' | 'python'>('curl');
   const [copied, setCopied] = useState<string | null>(null);
-  const codeMap = { curl: curlCmd, node: nodeExample, python: pyExample };
+
+  const handleCopy = (lang: string) => {
+    const text = codeContent[lang as keyof typeof codeContent].map(l => l.line).join('\n');
+    navigator.clipboard.writeText(text);
+    setCopied(lang);
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  // Scroll progress indicator
+  const { scrollYProgress } = useScroll();
+
+  // Hero ref for text animation
+  const heroRef = useRef<HTMLDivElement>(null);
+  const heroInView = useInView(heroRef, { once: true });
+
+  // Features section ref
+  const featuresRef = useRef<HTMLDivElement>(null);
+  const featuresInView = useInView(featuresRef, { once: true, margin: '-100px' });
+
+  // Stats ref
+  const statsRef = useRef<HTMLDivElement>(null);
+  const statsInView = useInView(statsRef, { once: true, margin: '-80px' });
 
   return (
     <div className="landing-wrapper">
-      {/* ═══ HERO ═══ */}
+      {/* Scroll progress bar */}
+      <motion.div
+        className="scroll-progress"
+        style={{ scaleX: scrollYProgress }}
+      />
+
+      {/* ── NAV ── */}
+      <nav className="nav">
+        <div className="nav-inner">
+          <Link to="/" className="logo">
+            <span className="logo-icon">SD</span>
+            <span className="logo-text">SignupDoggy</span>
+          </Link>
+          <div className="nav-links">
+            <a href="#features" className="nav-link">Features</a>
+            <a href="#docs" className="nav-link">Docs</a>
+            <a href="#pricing" className="nav-link">Pricing</a>
+            {!loading && session ? (
+              <Link to="/dashboard" className="btn-primary">Dashboard</Link>
+            ) : (
+              <Link to="/auth" className="btn-primary">Get Started</Link>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
       <section className="hero">
-        <div className="hero-grid">
-          {/* Left */}
-          <div className="hero-content">
-            <div className="hero-badge">
-              <span className="badge-dot" />
-              NOW IN PUBLIC BETA
-            </div>
-
-            <h1>
-              Stop fake signups in{' '}
-              <span className="highlight">5 minutes</span>
-            </h1>
-
-            <p>
-              One API call detects disposable emails, VPNs, Tor exit nodes,
-              and hosting IPs. Built for indie hackers. Priced for startups.
-              Powered by open data.
-            </p>
-
-            <div className="hero-actions">
-              <Link
-                to={user ? '/dashboard' : '/signup'}
-                className="btn btn-primary"
-              >
-                Get Started Free →
-              </Link>
-              <Link to="/docs" className="btn btn-outline">
-                Read the Docs
-              </Link>
-            </div>
-
-            <div className="hero-stats">
-              <div className="hero-stat">
-                <div className="num">50ms</div>
-                <div className="label">P95 response</div>
-              </div>
-              <div className="hero-stat">
-                <div className="num">$0.01</div>
-                <div className="label">per request</div>
-              </div>
-              <div className="hero-stat">
-                <div className="num">125k</div>
-                <div className="label">blocked domains</div>
-              </div>
-            </div>
+        <div className="hero-content">
+          <div className="badge-wrapper">
+            <span className="badge">NOW IN PUBLIC BETA</span>
           </div>
 
-          {/* Right — Terminal */}
-          <div className="hero-visual">
-            <div className="hero-terminal">
-              <div className="terminal-header">
-                <div className="terminal-dots">
-                  <span className="terminal-dot" />
-                  <span className="terminal-dot" />
-                  <span className="terminal-dot" />
-                </div>
-                <span className="terminal-title">api-check.sh — bash</span>
-              </div>
-              <div className="terminal-body">
-                <span className="line-prompt">$</span>{' '}
-                <span className="line-cmd">curl</span> -X POST https://signupdoggy-api<br />
-                <span className="line-indent">
-                  <span className="line-key">-H</span>{' '}
-                  <span className="line-str">"x-api-key: sd_your_key_here"</span>
-                </span><br />
-                <span className="line-indent">
-                  <span className="line-key">-H</span>{' '}
-                  <span className="line-str">"Content-Type: application/json"</span>
-                </span><br />
-                <span className="line-indent">
-                  <span className="line-key">-d</span>{' '}
-                  <span className="line-str">{'{"email":"user@example.com","ip":"1.2.3.4"}'}</span>
-                </span><br />
-                <br />
-                <span className="line-comment"># → 50ms later...</span><br />
-                <span className="line-res">{'{'}</span><br />
-                <span className="line-indent line-res">"recommendation": </span>
-                <span className="line-str">"allow"</span><span className="line-res">,</span><br />
-                <span className="line-indent line-res">"overall_risk": </span>
-                <span className="line-str">"low"</span><br />
-                <span className="line-res">{'}'}</span>
-                <span className="terminal-cursor" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+          <h1 className="hero-h1">
+            Stop fake signups.{' '}
+            <span className="accent-text">Before they happen.</span>
+          </h1>
 
-      {/* TRUST BAR */}
-      <section className="trust-bar">
-        <div className="trust-label">Trusted by engineering teams at</div>
-        <div className="trust-logos">
-          <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/stripe/ffffff" alt="Stripe" height="20" />
-          </span>
-          <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/supabase/ffffff" alt="Supabase" height="20" />
-          </span>
-          <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/linear/ffffff" alt="Linear" height="20" />
-          </span>
-          <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/vercel/ffffff" alt="Vercel" height="18" />
-          </span>
-          <span className="trust-logo">
-            <img src="https://cdn.simpleicons.org/cloudflare/ffffff" alt="Cloudflare" height="20" />
-          </span>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section className="section">
-        <div className="section-header">
-          <span className="section-tag">Features</span>
-          <h2 className="section-title">What you get</h2>
-          <p className="section-sub">
-            Fraud detection that works out of the box. No model training,
-            no complex rules, no monthly minimums.
+          <p className="hero-sub">
+            One API call to detect disposable emails, VPNs, proxies, and
+            temporary phone numbers. Pay only for what you use.
           </p>
+
+          <div className="hero-ctas">
+            <Link to="/auth" className="btn-primary btn-lg">Start Free Trial</Link>
+            <a href="#docs" className="btn-secondary btn-lg">Read the Docs</a>
+          </div>
+
+          <div className="hero-stats-row">
+            <div className="hero-stat">
+              <span className="hero-stat-num"><AnimatedCounter from={0} to={12} suffix="M+" /></span>
+              <span className="hero-stat-label">Requests served</span>
+            </div>
+            <div className="hero-stat">
+              <span className="hero-stat-num"><AnimatedCounter from={0} to={125} suffix="K" /></span>
+              <span className="hero-stat-label">Domains blocked</span>
+            </div>
+            <div className="hero-stat">
+              <span className="hero-stat-num"><AnimatedCounter from={0} to={124} suffix="K" /></span>
+              <span className="hero-stat-label">Numbers flagged</span>
+            </div>
+          </div>
         </div>
 
-        <div className="features">
-          {features.map((f, i) => (
-            <div className="feature-card" key={i}>
-              <div className="feature-icon">{f.icon}</div>
-              <h3>{f.title}</h3>
-              <p>{f.desc}</p>
+        {/* Terminal */}
+        <div className="hero-terminal-wrapper">
+          <div className="terminal-window">
+            <div className="terminal-header">
+              <div className="terminal-dots">
+                <span className="terminal-dot dot-red" />
+                <span className="terminal-dot dot-yellow" />
+                <span className="terminal-dot dot-green" />
+              </div>
+              <span className="terminal-title">api-check.mjs</span>
             </div>
+            <div className="terminal-body">
+              {codeContent.curl.map((l, i) => (
+                <div key={i} className={`code-line${l.indent ? ' indent' : ''}${l.prompt ? ' prompt-line' : ''}${l.res ? ' res-line' : ''}${l.comment ? ' comment-line' : ''}${l.cmd ? ' cmd-line' : ''}${l.key ? ' key-line' : ''}`}>
+                  {l.prompt && <span className="prompt-symbol">$</span>}
+                  <span>{l.line}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TRUST BAR ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-50px' }}
+        transition={{ duration: 0.5 }}
+      >
+        <TrustBar />
+      </motion.div>
+
+      {/* ── FEATURES ── */}
+      <section className="section" id="features">
+        <div className="section-header" ref={featuresRef}>
+          <motion.h2
+            className="section-title"
+            initial={{ opacity: 0, y: 20 }}
+            animate={featuresInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.5 }}
+          >
+            Everything you need to block fraud
+          </motion.h2>
+          <motion.p
+            className="section-sub"
+            initial={{ opacity: 0, y: 20 }}
+            animate={featuresInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.1, duration: 0.5 }}
+          >
+            Six detection layers that work together to keep fake users out of your product.
+          </motion.p>
+        </div>
+        <div className="features-grid">
+          {features.map((f, i) => (
+            <FeatureCard key={i} {...f} index={i} />
           ))}
         </div>
       </section>
 
-      {/* CODE SHOWCASE */}
-      <section className="section">
+      {/* ── CODE SHOWCASE ── */}
+      <section className="section section-dark" id="docs">
         <div className="section-header">
-          <span className="section-tag">Try it</span>
-          <h2 className="section-title">One API call. Instant result.</h2>
-          <p className="section-sub">
-            Paste this into your terminal. You'll get a response in under 50ms.
-          </p>
+          <motion.h2
+            className="section-title"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            One API, three languages
+          </motion.h2>
+          <motion.p
+            className="section-sub"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+          >
+            Works with whatever stack you use.
+          </motion.p>
         </div>
 
-        <div className="code-showcase">
+        <motion.div
+          className="code-showcase"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="code-tabs">
-            <span
-              className={'code-tab' + (tab === 'curl' ? ' active' : '')}
-              onClick={() => setTab('curl')}
-            >
-              cURL
-            </span>
-            <span
-              className={'code-tab' + (tab === 'node' ? ' active' : '')}
-              onClick={() => setTab('node')}
-            >
-              Node.js
-            </span>
-            <span
-              className={'code-tab' + (tab === 'python' ? ' active' : '')}
-              onClick={() => setTab('python')}
-            >
-              Python
-            </span>
-          </div>
-
-          <div className="pre-group">
-            <pre>
-              <code>{codeMap[tab]}</code>
-            </pre>
+            {(['curl', 'node', 'python'] as const).map(lang => (
+              <button
+                key={lang}
+                className={`code-tab${tab === lang ? ' active' : ''}`}
+                onClick={() => setTab(lang)}
+              >
+                {lang === 'curl' ? 'cURL' : lang === 'node' ? 'Node.js' : 'Python'}
+              </button>
+            ))}
             <button
-              className={'copy-btn' + (copied === 'req' ? ' copied' : '')}
-              onClick={() => {
-                navigator.clipboard.writeText(codeMap[tab]);
-                setCopied('req');
-                setTimeout(() => setCopied(null), 1500);
-              }}
+              className={`copy-btn${copied === tab ? ' copied' : ''}`}
+              onClick={() => handleCopy(tab)}
             >
-              {copied === 'req' ? 'Copied!' : 'Copy'}
+              {copied === tab ? 'Copied!' : 'Copy'}
             </button>
           </div>
-
-          {tab === 'curl' && (
-            <div className="pre-group response-block">
-              <pre>
-                <code>{jsonResp}</code>
-              </pre>
-              <button
-                className={'copy-btn' + (copied === 'res' ? ' copied' : '')}
-                onClick={() => {
-                  navigator.clipboard.writeText(jsonResp);
-                  setCopied('res');
-                  setTimeout(() => setCopied(null), 1500);
-                }}
-              >
-                {copied === 'res' ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="cta-section">
-        <div className="cta-inner">
-          <h2>Ready to stop fake signups?</h2>
-          <p>
-            No sales call. No credit card. Just a single API key and a
-            curl command. Start protecting your app in under 5 minutes.
-          </p>
-          <div className="cta-actions">
-            <Link
-              to={user ? '/dashboard' : '/signup'}
-              className="btn btn-primary"
-            >
-              Get Started Free →
-            </Link>
-            <Link to="/pricing" className="btn btn-outline">
-              View Pricing
-            </Link>
+          <div className="code-block">
+            {codeContent[tab].map((l, i) => (
+              <div key={i} className={`code-line${l.indent ? ' indent' : ''}${l.prompt ? ' prompt-line' : ''}${l.res ? ' res-line' : ''}${l.comment ? ' comment-line' : ''}${l.cmd ? ' cmd-line' : ''}${l.key ? ' key-line' : ''}`}>
+                {l.prompt && <span className="prompt-symbol">$</span>}
+                <span>{l.line}</span>
+              </div>
+            ))}
           </div>
+        </motion.div>
+      </section>
+
+      {/* ── STATS STRIP ── */}
+      <section className="section" ref={statsRef}>
+        <div className="stats-strip">
+          <motion.div
+            className="stats-strip-item"
+            initial={{ opacity: 0, y: 20 }}
+            animate={statsInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0, duration: 0.5 }}
+          >
+            <span className="stats-strip-num"><AnimatedCounter from={0} to={500} suffix="+" /></span>
+            <span className="stats-strip-label">Customers protected</span>
+          </motion.div>
+          <motion.div
+            className="stats-strip-item"
+            initial={{ opacity: 0, y: 20 }}
+            animate={statsInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.1, duration: 0.5 }}
+          >
+            <span className="stats-strip-num"><AnimatedCounter from={0} to={99.9} suffix="%" /></span>
+            <span className="stats-strip-label">Detection accuracy</span>
+          </motion.div>
+          <motion.div
+            className="stats-strip-item"
+            initial={{ opacity: 0, y: 20 }}
+            animate={statsInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <span className="stats-strip-num"><AnimatedCounter from={0} to={25} suffix="ms" /></span>
+            <span className="stats-strip-label">Avg response time</span>
+          </motion.div>
+          <motion.div
+            className="stats-strip-item"
+            initial={{ opacity: 0, y: 20 }}
+            animate={statsInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            <span className="stats-strip-num"><AnimatedCounter from={0} to={10} suffix="K+" /></span>
+            <span className="stats-strip-label">GitHub stars</span>
+          </motion.div>
         </div>
       </section>
 
+      {/* ── CTA ── */}
+      <section className="section cta-section">
+        <motion.div
+          className="cta-content"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="cta-title">Stop fraud at the door.</h2>
+          <p className="cta-sub">$0.01 per request. No minimum. Start in 5 minutes.</p>
+          <div className="cta-actions">
+            <Link to="/auth" className="btn-primary btn-lg">Get Your API Key</Link>
+            <a href="https://docs.signupdoggy.dev" className="btn-secondary btn-lg">View Docs</a>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ── FOOTER ── */}
       <footer className="footer">
         <div className="footer-inner">
-          <div>
-            <span className="footer-brand">SignupDoggy</span>
-            <span className="footer-text">
-              Built on Cloudflare Workers. Powered by open data.
-            </span>
+          <div className="footer-brand">
+            <span className="logo-icon">SD</span>
+            <span className="footer-brand-name">SignupDoggy</span>
           </div>
           <div className="footer-links">
-            <Link to="/pricing">Pricing</Link>
-            <Link to="/docs">Docs</Link>
-            <a href="mailto:hi@signupdoggy.dev">Contact</a>
+            <a href="#features" className="footer-link">Features</a>
+            <a href="#docs" className="footer-link">API Docs</a>
+            <a href="#pricing" className="footer-link">Pricing</a>
+            <a href="https://github.com/Unselfisheologism/registerguardian" className="footer-link">GitHub</a>
           </div>
+          <p className="footer-copy">© {new Date().getFullYear()} SignupDoggy. All rights reserved.</p>
         </div>
       </footer>
     </div>
