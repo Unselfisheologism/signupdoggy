@@ -6,25 +6,50 @@
 
 /* ── Root Variables ── */
 :root {
-  /* Palette */
-  --bg-deep: #0a0a0d;
-  --bg-card: #111115;
-  --bg-elevated: #18181d;
-  --bg-surface: #1e1e24;
-  --accent-orange: #e87040;
-  --accent-amber: #d47b3a;
-  --accent-blue: #3b82f6;
-  --accent-green: #22c55e;
-  --text-primary: #ededee;
-  --text-secondary: #9c9ca4;
-  --text-muted: #6b6b75;
-  --border-dim: #2a2a32;
-  --border-accent: #e87040;
-  --crt-green: #33cc66;
-  --indigo: #2d2dbe;
-  --warm-beige: #d4c9b8;
-  --terracotta: #b85d28;
-  --sage: #aca694;
+  /* ═══ EXACT Pinterest Board Palette ═══
+     Extracted from pinterest.com/jeffrinjames99/ui:
+     Pin 6 (CRT error 1044) → #DCFE52
+     Pin 7 (CyberOS terminal) → #2B2C81, #9494C9
+     Pin 8 (orange/black) → #FE990F
+     Pin 2/9 (desktops) → #1F1F21, #AEB5E7
+     Pin 10/11 (iPhone dashboards) → #E6DEBB, #FEFEFE
+  */
+
+  /* Backgrounds */
+  --bg: #000000;
+  --bg-card: #1F1F21;
+  --bg-elevated: #2A2A2C;
+  --bg-surface: #342A34;
+
+  /* Accent colors */
+  --accent: #DCFE52;        /* CRT terminal lime green (Pin 6) */
+  --accent-secondary: #2B2C81;  /* CyberOS deep indigo (Pin 7) */
+  --accent-warm: #FE990F;   /* Amber/orange from orange screen (Pin 8) */
+  --accent-lavender: #AEB5E7;   /* Light lavender (Pin 2) */
+
+  /* Text */
+  --text-primary: #FEFEFE;  /* White (Pin 4/7/10/11) */
+  --text-secondary: #9494C9;    /* Muted lavender text (Pin 7) */
+  --text-muted: #5C5C5C;    /* Gray (Pin 2/7) */
+
+  /* Borders */
+  --border-dim: #2A2A2C;
+  --border-accent: #DCFE52;
+
+  /* Utility */
+  --cream: #E6DEBB;         /* Cream/beige from iPhone pins (Pin 10) */
+  --indigo: #2B2C81;        /* Same as accent-secondary for backward compat */
+  --sage: #556584;           /* Blue-gray (Pin 9) */
+
+  /* macOS traffic light colors (from Pin 7 CyberOS) */
+  --mac-red: #FF5F56;
+  --mac-yellow: #FFBD2E;
+  --mac-green: #27C93F;
+
+  /* Terminal semantic colors */
+  --terminal-green: #DCFE52;    /* CRT terminal green (same as accent) */
+  --terminal-red: #FF5F56;      /* macOS close button red */
+  --terminal-yellow: #FE990F;   /* Amber */
 
   /* Typography */
   --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
@@ -62,7 +87,7 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: var(--bg-deep);
+  background: var(--bg);
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
@@ -75,8 +100,8 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
 code { font-family: var(--font-mono); }
 
 ::selection {
-  background: var(--accent-orange);
-  color: var(--bg-deep);
+  background: var(--accent);
+  color: var(--bg);
 }
 
 /* ── CRT Grain Overlay ──
@@ -111,9 +136,9 @@ code { font-family: var(--font-mono); }
 
 /* ── Scrollbar (terminal-style) ── */
 ::-webkit-scrollbar { width: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-dim); border: 0; }
-::-webkit-scrollbar-thumb:hover { background: var(--accent-orange); }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
 /* ═══════════════════════════════════════════════
    MACOS WINDOW CHROME (from CyberOS pin)
@@ -124,7 +149,7 @@ code { font-family: var(--font-mono); }
   max-width: var(--max-width);
   margin: var(--space-lg) auto;
   border: var(--border-thin) solid var(--border-dim);
-  background: var(--bg-deep);
+  background: var(--bg);
   position: relative;
 }
 
@@ -155,9 +180,9 @@ code { font-family: var(--font-mono); }
   display: block;
 }
 
-.window-dot--close { background: #ff5f57; }
-.window-dot--min { background: #febc2e; }
-.window-dot--max { background: #28c840; }
+.window-dot--close { background: var(--mac-red); }
+.window-dot--min { background: var(--mac-yellow); }
+.window-dot--max { background: var(--mac-green); }
 
 /* URL bar (center of title bar) */
 .window-url {
@@ -226,7 +251,7 @@ code { font-family: var(--font-mono); }
   font-size: 22px;
   font-weight: 800;
   letter-spacing: -0.5px;
-  color: var(--accent-orange);
+  color: var(--accent);
 }
 
 .term-logo span {
@@ -265,15 +290,15 @@ code { font-family: var(--font-mono); }
 }
 
 .term-nav a.active {
-  color: var(--accent-orange);
-  border-color: var(--accent-orange);
+  color: var(--accent);
+  border-color: var(--accent);
   background: rgba(232, 112, 64, 0.06);
 }
 
 .term-nav a.btn-nav {
-  color: var(--bg-deep);
-  background: var(--accent-orange);
-  border-color: var(--accent-orange);
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
   font-weight: 600;
 }
 
@@ -347,7 +372,7 @@ code { font-family: var(--font-mono); }
 }
 
 .hero h1 .highlight {
-  color: var(--accent-orange);
+  color: var(--accent);
   position: relative;
 }
 
@@ -355,7 +380,7 @@ code { font-family: var(--font-mono); }
   display: inline-block;
   width: 3px;
   height: 1em;
-  background: var(--accent-orange);
+  background: var(--accent);
   margin-left: 4px;
   animation: cursor-blink 1s step-end infinite;
   vertical-align: text-bottom;
@@ -389,9 +414,9 @@ code { font-family: var(--font-mono); }
   font-size: 14px;
   font-weight: 600;
   padding: 12px 28px;
-  border: var(--border-thin) solid var(--accent-orange);
-  background: var(--accent-orange);
-  color: var(--bg-deep);
+  border: var(--border-thin) solid var(--accent);
+  background: var(--accent);
+  color: var(--bg);
   cursor: pointer;
   transition: all 0.15s;
   letter-spacing: 0.5px;
@@ -455,7 +480,7 @@ code { font-family: var(--font-mono); }
   font-family: var(--font-mono);
   font-size: 1.75rem;
   font-weight: 700;
-  color: var(--accent-orange);
+  color: var(--accent);
   line-height: 1;
   display: block;
 }
@@ -478,7 +503,7 @@ code { font-family: var(--font-mono); }
   margin: var(--space-2xl) auto;
   max-width: 720px;
   border: var(--border-thin) solid var(--border-dim);
-  background: var(--bg-deep);
+  background: var(--bg);
 }
 
 .code-terminal .term-head {
@@ -506,9 +531,9 @@ code { font-family: var(--font-mono); }
   display: block;
 }
 
-.code-terminal .term-head .dot--r { background: #ff5f57; }
-.code-terminal .term-head .dot--y { background: #febc2e; }
-.code-terminal .term-head .dot--g { background: #28c840; }
+.code-terminal .term-head .dot--r { background: var(--mac-red); }
+.code-terminal .term-head .dot--y { background: var(--mac-yellow); }
+.code-terminal .term-head .dot--g { background: var(--mac-green); }
 
 .code-terminal .term-head .title {
   font-size: 11px;
@@ -549,8 +574,8 @@ code { font-family: var(--font-mono); }
 }
 
 .code-terminal .term-body .tab.active {
-  color: var(--accent-orange);
-  border-color: var(--accent-orange);
+  color: var(--accent);
+  border-color: var(--accent);
   background: rgba(232, 112, 64, 0.06);
 }
 
@@ -572,7 +597,7 @@ code { font-family: var(--font-mono); }
 }
 
 .term-line .key {
-  color: var(--accent-orange);
+  color: var(--accent);
 }
 
 .term-line .comment {
@@ -604,8 +629,8 @@ code { font-family: var(--font-mono); }
 }
 
 .copy-btn:hover {
-  border-color: var(--accent-orange);
-  color: var(--accent-orange);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .copy-btn.copied {
@@ -653,7 +678,7 @@ code { font-family: var(--font-mono); }
 
 .trust-item::before {
   content: '>';
-  color: var(--accent-orange);
+  color: var(--accent);
   margin-right: 8px;
   opacity: 0.6;
 }
@@ -685,7 +710,7 @@ code { font-family: var(--font-mono); }
 .section-header .prefix {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--accent-orange);
+  color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: var(--space-sm);
@@ -737,7 +762,7 @@ code { font-family: var(--font-mono); }
 .feature-card .top-accent {
   width: 32px;
   height: var(--border-thin);
-  background: var(--accent-orange);
+  background: var(--accent);
   margin-bottom: var(--space-lg);
   transition: width 0.2s;
 }
@@ -749,14 +774,14 @@ code { font-family: var(--font-mono); }
 .feature-card .icon-wrap {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--accent-orange);
+  color: var(--accent);
   margin-bottom: var(--space-md);
   letter-spacing: 2px;
 }
 
 .feature-card .icon-wrap::before {
   content: '◆ ';
-  color: var(--accent-orange);
+  color: var(--accent);
 }
 
 .feature-card h3 {
@@ -805,7 +830,7 @@ code { font-family: var(--font-mono); }
   font-family: var(--font-mono);
   font-size: 1.6rem;
   font-weight: 700;
-  color: var(--accent-orange);
+  color: var(--accent);
   display: block;
   line-height: 1;
 }
