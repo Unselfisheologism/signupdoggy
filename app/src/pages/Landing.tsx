@@ -194,6 +194,8 @@ export default function Landing() {
       switch (e.key.toLocaleLowerCase()) {
         case 'd': window.location.href = '/docs'; break;
         case 'p': window.location.href = '/pricing'; break;
+        case 'f': document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); break;
+        case 'g': window.location.href = '/auth'; break;
       }
     };
     window.addEventListener('keydown', handleKey);
@@ -437,8 +439,10 @@ export default function Landing() {
             <span>SIGNUPDOGGY v2.1.0 · 2026</span>
             <span className="section-divider">|</span>
             <div className="keybind">
+              <span>[<kbd>F</kbd>] <a href="#features">Features</a></span>
               <span>[<kbd>D</kbd>] <a href="/docs">Docs</a></span>
               <span>[<kbd>P</kbd>] <a href="/pricing">Pricing</a></span>
+              <span>[<kbd>G</kbd>] <a href="/auth">Get Started</a></span>
             </div>
           </footer>
         </div>

@@ -42,6 +42,8 @@ export default function AppLayout({
       switch (e.key.toLocaleLowerCase()) {
         case 'd': navigate('/docs'); break;
         case 'p': navigate('/pricing'); break;
+        case 'f': navigate('/#features'); break;
+        case 'g': navigate('/auth'); break;
       }
     };
     window.addEventListener('keydown', handleKey);
@@ -111,8 +113,10 @@ export default function AppLayout({
             <span>SIGNUPDOGGY v2.1.0 · 2026</span>
             <span className="section-divider">|</span>
             <div className="keybind">
+              <span>[<kbd>F</kbd>] <a href="/#features">Features</a></span>
               <span>[<kbd>D</kbd>] <a href="/docs">Docs</a></span>
               <span>[<kbd>P</kbd>] <a href="/pricing">Pricing</a></span>
+              <span>[<kbd>G</kbd>] <a href="/auth">Get Started</a></span>
             </div>
           </footer>
         )}
