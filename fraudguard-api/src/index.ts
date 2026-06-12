@@ -16,6 +16,7 @@ export type Env = {
   SYNC_LOGS: KVNamespace;
   PRICE_PER_REQUEST: string;
   MAXMIND_LICENSE_KEY: string;
+  FOUNDER_EMAILS: string;
 };
 
 export type ApiKeyRecord = {
@@ -278,6 +279,15 @@ function getToday(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+// Returns true if the supplied email matches one in the comma-separated
+// FOUNDER_EMAILS env var (case-insensitive, trimmed). Used to grant the
+// founder unrestricted API access for testing/QA without consuming credits.
+function isFounderEmail(email: string | null | undefined, env: Env): boolean {
+  if (!email || !env.FOUNDER_EMAILS) return false;
+  const founders = env.FOUNDER_EMAILS.split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+  return founders.includes(email.toLowerCase());
+}
+
 function generateApiKey(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let key = 'sd_';
@@ -439,15 +449,21 @@ app.post('/v1/check', async (c) => {
   const keyRecord = await c.env.API_KEYS.get(apiKey);
   if (!keyRecord) return c.json({ error: 'Invalid API key' }, 401);
 
-  // ── Credit check — verify user has balance ──
+  // ── Credit check — verify user has balance (skipped for founders) ──
   const parsedRecord: ApiKeyRecord = JSON.parse(keyRecord);
   const userId = parsedRecord.user_id;
-  const creditsBalance = parseInt(await c.env.USERS.get(`credits:${userId}`) || '0', 10);
-  if (creditsBalance <= 0) {
-    return c.json({
-      error: 'Insufficient credits — top up at https://signupdoggy.pages.dev/billing',
-      code: 'insufficient_credits',
-    }, 402);
+  const userEmail = await c.env.USERS.get(`user_email:${userId}`);
+  const founderBypass = isFounderEmail(userEmail, c.env);
+
+  let creditsBalance = 0;
+  if (!founderBypass) {
+    creditsBalance = parseInt(await c.env.USERS.get(`credits:${userId}`) || '0', 10);
+    if (creditsBalance <= 0) {
+      return c.json({
+        error: 'Insufficient credits — top up at https://signupdoggy.pages.dev/billing',
+        code: 'insufficient_credits',
+      }, 402);
+    }
   }
 
   const today = getToday();
@@ -672,13 +688,16 @@ app.post('/v1/check', async (c) => {
   const pricePerRequest = parseFloat(c.env.PRICE_PER_REQUEST || '0.01');
   const cost = totalUsage * pricePerRequest;
 
+  c.header('X-Founder-Bypass', String(founderBypass));
   c.header('X-Fraud-Blocked-Today', String(blockedToday + (blocked ? 1 : 0)));
   c.header('X-Fraud-Blocked-Reason', blockedReason || 'none');
   c.header('X-Estimated-Cost', cost.toFixed(2));
-  c.header('X-Credit-Balance', String(creditsBalance - 1));
+  c.header('X-Credit-Balance', String(Math.max(0, creditsBalance - 1)));
 
-  // Deduct one credit for this request
-  await c.env.USERS.put(`credits:${userId}`, String(creditsBalance - 1));
+  // Deduct one credit for this request (skipped for founders)
+  if (!founderBypass) {
+    await c.env.USERS.put(`credits:${userId}`, String(creditsBalance - 1));
+  }
 
   return c.json(response);
 });

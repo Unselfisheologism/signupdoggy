@@ -48,3 +48,7 @@ crons = ["0 3 * * *", "0 * * * *"]
 [vars]
 PRICE_PER_REQUEST = "0.01"
 MAXMIND_LICENSE_KEY = ""
+# Comma-separated list of account emails that bypass the credit check
+# in /v1/check. Used to grant the founder unrestricted API access for
+# testing/QA. Add addresses one at a time; case-insensitive.
+FOUNDER_EMAILS = "jeffrinjames99@gmail.com,jeff9james@protonmail.com"

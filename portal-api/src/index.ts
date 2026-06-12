@@ -118,6 +118,10 @@ async function authMiddleware(c: any, next: any) {
   if (!user) return c.json({ error: 'Invalid or expired session' }, 401);
 
   c.set('user', user);
+  // Cache user_id -> email mapping so the detection worker can identify
+  // founders (FOUNDER_EMAILS env var) for the credit-check bypass. Cheap,
+  // idempotent, runs on every authenticated call.
+  await c.env.USERS.put(`user_email:${user.id}`, user.email);
   await next();
 }
 
