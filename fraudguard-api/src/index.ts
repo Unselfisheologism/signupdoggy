@@ -1195,44 +1195,55 @@ data = check_signup('sd_your_key_here', email='user@example.com', ip='1.2.3.4')<
 // ─── GET /__cron/run — Cron Sync Handler ───────────────────────────────────────
 
 async function syncDisposableEmails(env: Env): Promise<string> {
-  const urls = [
-    'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf',
-    'https://raw.githubusercontent.com/ivolo/disposable-email-domains/master/index.json',
+  // Primary: deviceandbrowserinfo.com — actively maintained, includes long-tail
+  // domains (aratrin.com, 30k+ entries from temp-mail.org rotations, etc.) that
+  // the public GitHub blocklists miss. Secondary: the two community-maintained
+  // GitHub lists, kept for extra coverage. Set dedupes.
+  const sources: { url: string; format: 'json-array' | 'conf' }[] = [
+    { url: 'https://deviceandbrowserinfo.com/api/emails/disposable', format: 'json-array' },
+    { url: 'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf', format: 'conf' },
+    { url: 'https://raw.githubusercontent.com/ivolo/disposable-email-domains/master/index.json', format: 'json-array' },
   ];
 
   const allDomains = new Set<string>();
+  const perSource: Record<string, number> = {};
 
-  for (const url of urls) {
+  for (const { url, format } of sources) {
     try {
       const resp = await fetch(url, { cf: { cacheTtl: 0 } });
       if (!resp.ok) continue;
       const text = await resp.text();
+      let count = 0;
 
-      if (url.endsWith('.conf')) {
-        const lines = text.split('\n');
-        for (const line of lines) {
+      if (format === 'conf') {
+        for (const line of text.split('\n')) {
           const trimmed = line.trim();
           if (trimmed && !trimmed.startsWith('#')) {
             allDomains.add(trimmed.toLowerCase());
+            count++;
           }
         }
-      } else if (url.endsWith('.json')) {
+      } else {
         try {
-          const json = JSON.parse(text);
-          if (Array.isArray(json)) {
-            for (const d of json) {
-              if (typeof d === 'string') allDomains.add(d.toLowerCase());
+          const arr = JSON.parse(text);
+          if (Array.isArray(arr)) {
+            for (const d of arr) {
+              if (typeof d === 'string') {
+                allDomains.add(d.toLowerCase());
+                count++;
+              }
             }
           }
         } catch { /* skip malformed json */ }
       }
-    } catch { /* skip failed url */ }
+      perSource[new URL(url).hostname] = count;
+    } catch { /* skip failed source */ }
   }
 
   const domainsArray = Array.from(allDomains);
   await env.DISPOSABLE_EMAILS.put('_all', JSON.stringify(domainsArray));
-  await env.SYNC_LOGS.put(`disposable:${getToday()}`, `Synced ${domainsArray.length} domains`);
-  return `Synced ${domainsArray.length} disposable email domains`;
+  await env.SYNC_LOGS.put(`disposable:${getToday()}`, JSON.stringify({ total: domainsArray.length, perSource }));
+  return `Synced ${domainsArray.length} disposable email domains (sources: ${JSON.stringify(perSource)})`;
 }
 
 async function syncTorExitNodes(env: Env): Promise<string> {
@@ -1258,22 +1269,79 @@ async function syncTorExitNodes(env: Env): Promise<string> {
 }
 
 async function syncDisposablePhoneNumbers(env: Env): Promise<string> {
-  try {
-    const resp = await fetch(
-      'https://raw.githubusercontent.com/iP1SMS/disposable-phone-numbers/master/number-list.json',
-      { cf: { cacheTtl: 0 } }
-    );
-    if (!resp.ok) return `Phone sync failed: HTTP ${resp.status}`;
-    const json = await resp.json() as Record<string, string>;
-    const numbers = Object.keys(json).filter(k => /^\d{5,15}$/.test(k));
+  // Primary: deviceandbrowserinfo.com — 100k+ entries, includes VOIP/temp
+  // carriers the iP1SMS GitHub list misses. Kept as a fallback in case
+  // deviceandbrowserinfo is down.
+  const sources: string[] = [
+    'https://deviceandbrowserinfo.com/api/phones/disposable',
+    'https://raw.githubusercontent.com/iP1SMS/disposable-phone-numbers/master/number-list.json',
+  ];
 
-    await env.DISPOSABLE_PHONE_NUMBERS.put('_all', JSON.stringify(numbers));
-    await env.SYNC_LOGS.put(`phone:${getToday()}`, `Synced ${numbers.length} disposable phone numbers`);
-    return `Synced ${numbers.length} disposable phone numbers`;
-  } catch (e: any) {
-    return `Phone sync error: ${e.message}`;
+  const allNumbers = new Set<string>();
+  const perSource: Record<string, number> = {};
+
+  for (const url of sources) {
+    try {
+      const resp = await fetch(url, { cf: { cacheTtl: 0 } });
+      if (!resp.ok) continue;
+      const text = await resp.text();
+      let count = 0;
+      const hostname = new URL(url).hostname;
+
+      if (url.includes('deviceandbrowserinfo.com')) {
+        // Plain JSON array of E.164-style numeric strings
+        const arr = JSON.parse(text);
+        if (Array.isArray(arr)) {
+          for (const n of arr) {
+            if (typeof n === 'string' && /^\d{5,15}$/.test(n)) {
+              allNumbers.add(n);
+              count++;
+            }
+          }
+        }
+      } else {
+        // iP1SMS format: JSON object { "1234567890": "carrier name" }
+        const obj = JSON.parse(text) as Record<string, string>;
+        for (const k of Object.keys(obj)) {
+          if (/^\d{5,15}$/.test(k)) {
+            allNumbers.add(k);
+            count++;
+          }
+        }
+      }
+      perSource[hostname] = count;
+    } catch { /* skip failed source */ }
   }
+
+  const numbers = Array.from(allNumbers);
+  await env.DISPOSABLE_PHONE_NUMBERS.put('_all', JSON.stringify(numbers));
+  await env.SYNC_LOGS.put(`phone:${getToday()}`, JSON.stringify({ total: numbers.length, perSource }));
+  return `Synced ${numbers.length} disposable phone numbers (sources: ${JSON.stringify(perSource)})`;
 }
+
+// ─── POST /v1/admin/sync — Founder-only manual sync trigger ────────────────────
+// Lets you refresh the disposable lists without waiting for the cron tick.
+// Auth: requires x-api-key whose owner is in FOUNDER_EMAILS. Run from the
+// repo root or any terminal with the founder's key:
+//   curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/admin/sync \
+//     -H "x-api-key: sd_ptc..."
+app.post('/v1/admin/sync', async (c) => {
+  const apiKey = c.req.header('x-api-key');
+  if (!apiKey) return c.json({ error: 'Missing x-api-key header' }, 401);
+
+  const keyRecord = await c.env.API_KEYS.get(apiKey);
+  if (!keyRecord) return c.json({ error: 'Invalid API key' }, 401);
+
+  const { user_id } = JSON.parse(keyRecord) as ApiKeyRecord;
+  const userEmail = await c.env.USERS.get(`user_email:${user_id}`);
+  if (!isFounderEmail(userEmail, c.env)) {
+    return c.json({ error: 'Founder access required' }, 403);
+  }
+
+  const emailResult = await syncDisposableEmails(c.env);
+  const phoneResult = await syncDisposablePhoneNumbers(c.env);
+  return c.json({ status: 'ok', emails: emailResult, phones: phoneResult });
+});
 
 app.get('/__cron/run', async (c) => {
   const results: string[] = [];
