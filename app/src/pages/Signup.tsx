@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
+import AppLayout from '../components/AppLayout';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -18,56 +19,70 @@ export default function Signup() {
     }
     setLoading(true);
     const { error: authErr } = await supabase.auth.signUp({
-      email,
-      password,
+      email, password,
       options: { emailRedirectTo: window.location.origin },
     });
     setLoading(false);
-    if (authErr) {
-      setError(authErr.message);
-    } else {
-      navigate('/dashboard');
-    }
+    if (authErr) { setError(authErr.message); }
+    else { navigate('/dashboard'); }
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1>Create your account</h1>
-        <p className="auth-sub">Start with 1,000 free requests per day</p>
-        {error && <div className="error-msg">{error}</div>}
-        <form onSubmit={handleSignup}>
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <AppLayout title="signup.signupdoggy.pages.dev">
+      <div className="page-content" style={{ maxWidth: 440, margin: '0 auto' }}>
+        <div className="term-banner" style={{ marginBottom: 'var(--space-xl)' }}>
+          <span className="banner-prompt">$</span> ./signup --free-tier
+        </div>
+
+        <div className="auth-form-wrap">
+          <h1 className="auth-form-title">CREATE YOUR ACCOUNT</h1>
+          <p className="auth-form-sub">START WITH 1,000 FREE REQUESTS PER DAY</p>
+
+          {error && <div className="error-msg retro-error">! {error}</div>}
+
+          <form onSubmit={handleSignup}>
+            <div className="form-group">
+              <label htmlFor="email" className="form-label">EMAIL</label>
+              <input
+                id="email"
+                type="email"
+                className="form-input"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="password" className="form-label">PASSWORD</label>
+              <input
+                id="password"
+                type="password"
+                className="form-input"
+                placeholder="At least 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn-terminal btn-terminal--full"
+              disabled={loading}
+            >
+              <span className="prompt">$</span>
+              {loading ? './creating-account...' : './create-account'}
+            </button>
+          </form>
+
+          <div className="auth-form-footer">
+            <span className="auth-form-divider">──</span>
+            <span>ALREADY HAVE ONE? <Link to="/login" className="auth-form-link">LOG IN</Link></span>
+            <span className="auth-form-divider">──</span>
           </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="At least 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-            />
-          </div>
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-            {loading ? 'Creating account...' : 'Create account'}
-          </button>
-        </form>
-        <div className="auth-link">
-          Already have an account? <Link to="/login">Log in</Link>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }

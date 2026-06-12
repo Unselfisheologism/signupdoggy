@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AppLayout from '../components/AppLayout';
 
 const curlCheck = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \\
   -H "x-api-key: sd_your_key_here" \\
@@ -54,276 +55,177 @@ const blacklistCurl = `curl -X POST https://signupdoggy-api.jeffrinjames99.worke
 const statsCurl = `curl https://signupdoggy-api.jeffrinjames99.workers.dev/v1/stats \\
   -H "x-api-key: sd_your_key_here"`;
 
-export default function Docs() {
-  const [tab, setTab] = useState<'curl' | 'node' | 'python'>('curl');
-  const codeMap = { curl: curlCheck, node: nodeExample, python: pyExample };
-
+function CodeBlock({ code, label }: { code: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   return (
-    <div className="docs-page">
-      <h1>API Reference</h1>
-      <p className="docs-lead">
-        SignupDoggy is a REST API. Authenticate with your API key, send us an
-        email or IP address, and get a fraud assessment back in under 50ms.
-      </p>
+    <div className="docs-code-block">
+      {label && <div className="docs-code-label">{label}</div>}
+      <pre className="docs-code-pre"><code>{code}</code></pre>
+      <button className="docs-copy-btn" onClick={handleCopy}>
+        [{copied ? 'COPIED' : 'COPY'}]
+      </button>
+    </div>
+  );
+}
 
-      {/* Authentication */}
-      <h2>Authentication</h2>
-      <p>
-        Every request requires an API key sent via the <code>x-api-key</code>
-        header. You can create a key from the dashboard after signing up.
-      </p>
-      <pre>
-        <code>{'x-api-key: sd_your_key_here'}</code>
-        <button
-          className="copy-btn"
-          onClick={() => navigator.clipboard.writeText('x-api-key: sd_your_key_here')}
-        >Copy</button>
-      </pre>
+function Endpoint({ method, path, desc }: { method: string; path: string; desc: string }) {
+  const mClass = method === 'POST' ? 'endpoint-post' : method === 'GET' ? 'endpoint-get' : 'endpoint-del';
+  return (
+    <div className="docs-endpoint">
+      <span className={`docs-method ${mClass}`}>{method}</span>
+      <code className="docs-path">{path}</code>
+      <span className="docs-endpoint-desc">{desc}</span>
+    </div>
+  );
+}
 
-      {/* Endpoints */}
-      <h2>Endpoints</h2>
-
-      <h3>Check a signup</h3>
-      <div className="endpoint-group">
-        <div className="endpoint">
-          <span className="method post">POST</span>
-          <code>/v1/check</code>
-          <span className="endpoint-desc">Evaluate an email and/or IP address for fraud risk</span>
-        </div>
-      </div>
-
-      <p>
-        The main endpoint. Pass an email, an IP, or both. The API returns
-        risk scores for each signal plus an overall recommendation.
-      </p>
-
-      <h4>Request body</h4>
-      <table>
+function FieldTable({ rows, headers = ['FIELD', 'TYPE', 'REQUIRED', 'DESCRIPTION'] }: { rows: (string | undefined)[][]; headers?: string[] }) {
+  return (
+    <div className="docs-table-wrap">
+      <table className="docs-table">
         <thead>
           <tr>
-            <th>Field</th>
-            <th>Type</th>
-            <th>Required</th>
-            <th>Description</th>
+            {headers.map(h => (<th key={h}>{h}</th>))}
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td><code>email</code></td>
-            <td>string</td>
-            <td>No*</td>
-            <td>Email address to check (required if IP is not provided)</td>
-          </tr>
-          <tr>
-            <td><code>ip</code></td>
-            <td>string</td>
-            <td>No*</td>
-            <td>IP address to check (required if email is not provided)</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h4>Response</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>Field</th>
-            <th>Type</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>email.is_disposable</code></td>
-            <td>boolean</td>
-            <td>Whether the email domain is a known disposable provider</td>
-          </tr>
-          <tr>
-            <td><code>email.domain</code></td>
-            <td>string</td>
-            <td>The domain portion of the email address</td>
-          </tr>
-          <tr>
-            <td><code>email.risk_score</code></td>
-            <td>number</td>
-            <td>0-100 score based on email signals</td>
-          </tr>
-          <tr>
-            <td><code>ip.is_tor</code></td>
-            <td>boolean</td>
-            <td>Whether the IP is a known Tor exit node</td>
-          </tr>
-          <tr>
-            <td><code>ip.is_proxy</code></td>
-            <td>boolean</td>
-            <td>Whether the IP belongs to a VPN or proxy service</td>
-          </tr>
-          <tr>
-            <td><code>ip.is_hosting</code></td>
-            <td>boolean</td>
-            <td>Whether the IP is from a cloud hosting provider</td>
-          </tr>
-          <tr>
-            <td><code>ip.asn</code></td>
-            <td>string|null</td>
-            <td>ASN identifier if available</td>
-          </tr>
-          <tr>
-            <td><code>ip.risk_score</code></td>
-            <td>number</td>
-            <td>0-100 score based on IP signals</td>
-          </tr>
-          <tr>
-            <td><code>overall_risk</code></td>
-            <td>string</td>
-            <td>low, medium, or high</td>
-          </tr>
-          <tr>
-            <td><code>recommendation</code></td>
-            <td>string</td>
-            <td>allow, review, or block</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div className="code-showcase">
-        <div className="code-tabs">
-          <span className={'code-tab' + (tab === 'curl' ? ' active' : '')} onClick={() => setTab('curl')}>cURL</span>
-          <span className={'code-tab' + (tab === 'node' ? ' active' : '')} onClick={() => setTab('node')}>Node.js</span>
-          <span className={'code-tab' + (tab === 'python' ? ' active' : '')} onClick={() => setTab('python')}>Python</span>
-        </div>
-        <div className="pre-group">
-          <pre><code>{codeMap[tab]}</code></pre>
-          <button
-            className="copy-btn"
-            onClick={() => navigator.clipboard.writeText(codeMap[tab])}
-          >Copy</button>
-        </div>
-        {tab === 'curl' && (
-          <div className="pre-group">
-            <pre><code>{jsonResp}</code></pre>
-            <button
-              className="copy-btn"
-              onClick={() => navigator.clipboard.writeText(jsonResp)}
-            >Copy</button>
-          </div>
-        )}
-      </div>
-
-      {/* Blacklist */}
-      <h2>Custom Blacklists</h2>
-
-      <h3>Add a blacklist entry</h3>
-      <div className="endpoint-group">
-        <div className="endpoint">
-          <span className="method post">POST</span>
-          <code>/v1/blacklist</code>
-          <span className="endpoint-desc">Add an email or IP to your personal blacklist</span>
-        </div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Field</th>
-            <th>Type</th>
-            <th>Required</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>type</code></td>
-            <td>string</td>
-            <td>Yes</td>
-            <td>email or ip</td>
-          </tr>
-          <tr>
-            <td><code>value</code></td>
-            <td>string</td>
-            <td>Yes</td>
-            <td>The email address or IP to block</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div className="pre-group">
-        <pre><code>{blacklistCurl}</code></pre>
-        <button className="copy-btn" onClick={() => navigator.clipboard.writeText(blacklistCurl)}>Copy</button>
-      </div>
-
-      <h3>Get stats</h3>
-      <div className="endpoint-group">
-        <div className="endpoint">
-          <span className="method get">GET</span>
-          <code>/v1/stats</code>
-          <span className="endpoint-desc">View usage statistics and remaining free tier quota</span>
-        </div>
-      </div>
-
-      <div className="pre-group">
-        <pre><code>{statsCurl}</code></pre>
-        <button className="copy-btn" onClick={() => navigator.clipboard.writeText(statsCurl)}>Copy</button>
-      </div>
-
-      {/* Rate limits */}
-      <h2>Rate Limits</h2>
-      <p>
-        Free tier accounts are limited to 1,000 requests per day. Paid
-        accounts have no daily cap. Rate limit status is returned in the
-        response headers of every <code>/v1/check</code> request:
-      </p>
-      <table>
-        <thead>
-          <tr>
-            <th>Header</th>
-            <th>Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>X-RateLimit-Limit</code></td>
-            <td>Your daily request limit</td>
-          </tr>
-          <tr>
-            <td><code>X-RateLimit-Remaining</code></td>
-            <td>Requests remaining for today</td>
-          </tr>
-          <tr>
-            <td><code>X-Fraud-Blocked-Today</code></td>
-            <td>Number of requests blocked by fraud detection today</td>
-          </tr>
-        </tbody>
-      </table>
-
-      {/* Errors */}
-      <h2>Errors</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Meaning</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>400</code></td>
-            <td>Bad request. Missing or invalid parameters.</td>
-          </tr>
-          <tr>
-            <td><code>401</code></td>
-            <td>Unauthorized. Missing or invalid API key.</td>
-          </tr>
-          <tr>
-            <td><code>429</code></td>
-            <td>Rate limit exceeded for free tier.</td>
-          </tr>
-          <tr>
-            <td><code>500</code></td>
-            <td>Internal server error. Check back soon.</td>
-          </tr>
+          {rows.map((r, i) => (
+            <tr key={i} className={i % 2 === 1 ? 'docs-row-alt' : ''}>
+              {r.map((c, j) => (
+                <td key={j}>{j === 0 ? <code>{c}</code> : c}</td>
+              ))}
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
+  );
+}
+
+export default function Docs() {
+  const [tab, setTab] = useState<'curl' | 'node' | 'python'>('curl');
+  const codeMap = { curl: curlCheck, node: nodeExample, python: pyExample };
+  const [sdkCopied, setSdkCopied] = useState(false);
+  const handleSdkCopy = () => {
+    navigator.clipboard.writeText('x-api-key: sd_your_key_here');
+    setSdkCopied(true);
+    setTimeout(() => setSdkCopied(false), 2000);
+  };
+
+  return (
+    <AppLayout title="docs.signupdoggy.pages.dev">
+      <div className="page-content">
+        <div className="term-banner">
+          <span className="banner-prompt">$</span> ./docs --api-reference
+          <span className="banner-status">● REST API</span>
+        </div>
+
+        <h1 className="docs-h1">API REFERENCE</h1>
+        <p className="docs-lead">
+          SIGNUPDOGGY IS A REST API. AUTHENTICATE WITH YOUR API KEY, SEND US AN
+          EMAIL OR IP ADDRESS, AND GET A FRAUD ASSESSMENT BACK IN UNDER 50MS.
+        </p>
+
+        {/* Authentication */}
+        <h2 className="docs-h2"># AUTHENTICATION</h2>
+        <p className="docs-p">
+          EVERY REQUEST REQUIRES AN API KEY SENT VIA THE <code>X-API-KEY</code> HEADER.
+          CREATE A KEY FROM THE DASHBOARD AFTER SIGNING UP.
+        </p>
+        <div className="docs-code-block">
+          <pre className="docs-code-pre"><code>{'x-api-key: sd_your_key_here'}</code></pre>
+          <button className="docs-copy-btn" onClick={handleSdkCopy}>
+            [{sdkCopied ? 'COPIED' : 'COPY'}]
+          </button>
+        </div>
+
+        {/* Endpoints */}
+        <h2 className="docs-h2"># ENDPOINTS</h2>
+
+        <h3 className="docs-h3">## CHECK A SIGNUP</h3>
+        <Endpoint method="POST" path="/v1/check" desc="EVALUATE AN EMAIL AND/OR IP ADDRESS FOR FRAUD RISK" />
+        <p className="docs-p">
+          THE MAIN ENDPOINT. PASS AN EMAIL, AN IP, OR BOTH. THE API RETURNS
+          RISK SCORES FOR EACH SIGNAL PLUS AN OVERALL RECOMMENDATION.
+        </p>
+
+        <h4 className="docs-h4">REQUEST BODY</h4>
+        <FieldTable rows={[
+          ['email', 'string', 'NO*', 'EMAIL TO CHECK (REQUIRED IF NO IP)'],
+          ['ip', 'string', 'NO*', 'IP ADDRESS TO CHECK (REQUIRED IF NO EMAIL)'],
+        ]} />
+
+        <h4 className="docs-h4">RESPONSE</h4>
+        <FieldTable rows={[
+          ['email.is_disposable', 'boolean', 'WHETHER EMAIL DOMAIN IS DISPOSABLE'],
+          ['email.domain', 'string', 'DOMAIN PORTION OF THE EMAIL'],
+          ['email.risk_score', 'number', '0-100 SCORE FROM EMAIL SIGNALS'],
+          ['ip.is_tor', 'boolean', 'WHETHER IP IS A TOR EXIT NODE'],
+          ['ip.is_proxy', 'boolean', 'WHETHER IP IS VPN/PROXY'],
+          ['ip.is_hosting', 'boolean', 'WHETHER IP IS CLOUD HOSTING'],
+          ['ip.asn', 'string|null', 'ASN IDENTIFIER'],
+          ['ip.risk_score', 'number', '0-100 SCORE FROM IP SIGNALS'],
+          ['overall_risk', 'string', 'LOW / MEDIUM / HIGH'],
+          ['recommendation', 'string', 'ALLOW / REVIEW / BLOCK'],
+        ]} />
+
+        {/* Code Tabs */}
+        <div className="docs-code-tabs">
+          <div className="docs-tab-bar">
+            {(['curl', 'node', 'python'] as const).map(t => (
+              <button
+                key={t}
+                className={`docs-tab ${tab === t ? 'docs-tab-active' : ''}`}
+                onClick={() => setTab(t)}
+              >
+                {t === 'curl' ? 'CURL' : t === 'node' ? 'NODE.JS' : 'PYTHON'}
+              </button>
+            ))}
+          </div>
+          <CodeBlock code={codeMap[tab]} />
+          {tab === 'curl' && <CodeBlock code={jsonResp} label="EXAMPLE RESPONSE" />}
+        </div>
+
+        {/* Blacklists */}
+        <h2 className="docs-h2"># CUSTOM BLACKLISTS</h2>
+        <h3 className="docs-h3">## ADD A BLACKLIST ENTRY</h3>
+        <Endpoint method="POST" path="/v1/blacklist" desc="ADD EMAIL/IP TO YOUR PERSONAL BLACKLIST" />
+        <FieldTable rows={[
+          ['type', 'string', 'YES', 'email OR ip'],
+          ['value', 'string', 'YES', 'THE VALUE TO BLOCK'],
+        ]} />
+        <CodeBlock code={blacklistCurl} label="CURL" />
+
+        <h3 className="docs-h3">## GET STATS</h3>
+        <Endpoint method="GET" path="/v1/stats" desc="VIEW USAGE + REMAINING FREE QUOTA" />
+        <CodeBlock code={statsCurl} label="CURL" />
+
+        {/* Rate Limits */}
+        <h2 className="docs-h2"># RATE LIMITS</h2>
+        <p className="docs-p">
+          FREE TIER: 1,000 REQUESTS/DAY. PAID: NO DAILY CAP. RATE LIMIT STATUS
+          IS RETURNED IN RESPONSE HEADERS.
+        </p>
+        <FieldTable headers={['FIELD', 'DESCRIPTION']} rows={[
+          ['X-RateLimit-Limit', 'YOUR DAILY REQUEST LIMIT'],
+          ['X-RateLimit-Remaining', 'REQUESTS REMAINING TODAY'],
+          ['X-Fraud-Blocked-Today', 'BLOCKED REQUESTS TODAY'],
+        ]} />
+
+        {/* Errors */}
+        <h2 className="docs-h2"># ERRORS</h2>
+        <FieldTable headers={['STATUS', 'MEANING']} rows={[
+          ['400', 'BAD REQUEST. MISSING/INVALID PARAMETERS.'],
+          ['401', 'UNAUTHORIZED. MISSING/INVALID API KEY.'],
+          ['429', 'RATE LIMIT EXCEEDED.'],
+          ['500', 'INTERNAL SERVER ERROR.'],
+        ]} />
+      </div>
+    </AppLayout>
   );
 }

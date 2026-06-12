@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { supabase } from '../supabase';
+import AppLayout from '../components/AppLayout';
 
 interface Stats {
   total_requests: number;
@@ -12,7 +13,6 @@ interface Stats {
   period: string;
 }
 
-// Generate 14 last-day labels (today + 13 previous)
 function getDayLabels(): string[] {
   const labels: string[] = [];
   for (let i = 13; i >= 0; i--) {
@@ -23,10 +23,7 @@ function getDayLabels(): string[] {
   return labels;
 }
 
-// Mock historical data since we don't have real historical charts yet
 const DAY_LABELS = getDayLabels();
-
-// Generate mock usage data reflecting real patterns
 const MOCK_USAGE = DAY_LABELS.map((_, i) => {
   const base = i === DAY_LABELS.length - 1 ? 47 : Math.floor(Math.random() * 80 + 20);
   return base;
@@ -42,10 +39,7 @@ export default function Dashboard() {
     const fetchStats = async () => {
       try {
         const { data } = await supabase.from('api_keys').select('key').limit(1).single();
-        if (!data) {
-          setLoading(false);
-          return;
-        }
+        if (!data) { setLoading(false); return; }
         const res = await fetch(
           'https://signupdoggy-api.jeffrinjames99.workers.dev/v1/stats',
           { headers: { 'x-api-key': (data as any).key } }
@@ -61,112 +55,148 @@ export default function Dashboard() {
             period: json.period || new Date().toISOString().split('T')[0],
           });
         }
-      } catch {
-        // Silently fall back to defaults
-      }
+      } catch { /* silent */ }
       setLoading(false);
     };
     fetchStats();
   }, []);
 
-  const maxUsage = Math.max(...MOCK_USAGE, 1);
-
   const email = user?.email || 'developer';
   const name = email.split('@')[0];
-
   const remaining = stats?.free_tier_remaining ?? 1000;
-  const totalReq = stats?.total_requests ?? MOCK_USAGE[MOCK_USAGE.length - 1];
-  const blocked = stats?.blocked_count ?? 0;
   const dailyBudget = 1000;
+  const maxUsage = Math.max(...MOCK_USAGE, 1);
 
   return (
-    <div className="dashboard">
-      <h1>Dashboard</h1>
-      <p className="greeting">Welcome back, {name}.</p>
+    <AppLayout title="dashboard.signupdoggy.pages.dev">
+      <div className="page-content">
+        <div className="term-banner">
+          <span className="banner-prompt">$</span> ./dashboard --user={name}
+          <span className="banner-status">● CONNECTED</span>
+        </div>
 
-      {loading && (
-        <div style={{padding: '2rem 0'}}><div className="spinner" /></div>
-      )}
+        {loading && (
+          <div className="loading-row">
+            <span className="loading-dots">LOADING<span className="dots-anim">...</span></span>
+          </div>
+        )}
 
-      {error && <div className="error-msg">{error}</div>}
+        {error && <div className="error-msg retro-error">{error}</div>}
 
-      {!loading && (
-        <>
-          {/* Stats cards */}
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-label">Requests today</div>
-              <div className="stat-value">{totalReq}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-label">Blocked</div>
-              <div className="stat-value">{blocked}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-label">Free tier remaining</div>
-              <div className="stat-value">{remaining}</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-label">Est. cost today</div>
-              <div className="stat-value">
-                ${stats ? stats.estimated_cost_usd.toFixed(2) : '0.00'}
+        {!loading && (
+          <>
+            <div className="dash-stats-grid">
+              <div className="dash-stat-card">
+                <div className="dash-stat-value">
+                  {stats?.total_requests ?? MOCK_USAGE[MOCK_USAGE.length - 1]}
+                </div>
+                <div className="dash-stat-label">REQUESTS TODAY</div>
+              </div>
+              <div className="dash-stat-card">
+                <div className="dash-stat-value dash-stat-value--blocked">
+                  {stats?.blocked_count ?? 0}
+                </div>
+                <div className="dash-stat-label">BLOCKED</div>
+              </div>
+              <div className="dash-stat-card">
+                <div className="dash-stat-value dash-stat-value--remaining">
+                  {remaining}
+                </div>
+                <div className="dash-stat-label">FREE TIER REMAINING</div>
+              </div>
+              <div className="dash-stat-card">
+                <div className="dash-stat-value dash-stat-value--cost">
+                  ${stats ? stats.estimated_cost_usd.toFixed(2) : '0.00'}
+                </div>
+                <div className="dash-stat-label">EST. COST TODAY</div>
               </div>
             </div>
-          </div>
 
-          {/* Usage chart */}
-          <div className="chart-container">
-            <h2>Requests (last 14 days)</h2>
-            <div className="chart-bars">
-              {MOCK_USAGE.map((val, i) => (
-                <div
-                  key={i}
-                  className={'chart-bar ' + (i === MOCK_USAGE.length - 1 ? 'today' : 'other')}
-                  style={{ height: `${(val / maxUsage) * 100}%` }}
-                  title={`${DAY_LABELS[i]}: ${val} requests`}
-                />
-              ))}
+            <div className="dash-section">
+              <div className="dash-section-header">
+                <span className="dash-section-tag">CHART</span>
+                <span className="dash-section-title">REQUESTS (14 DAYS)</span>
+              </div>
+              <div className="dash-chart">
+                <div className="dash-chart-yaxis">
+                  <span>{maxUsage}</span>
+                  <span>{Math.floor(maxUsage / 2)}</span>
+                  <span>0</span>
+                </div>
+                <div className="dash-chart-bars">
+                  {MOCK_USAGE.map((val, i) => (
+                    <div key={i} className="dash-chart-bar-col">
+                      <div
+                        className={`dash-chart-bar ${i === MOCK_USAGE.length - 1 ? 'today' : ''}`}
+                        style={{ height: `${(val / maxUsage) * 100}%` }}
+                        title={`${DAY_LABELS[i]}: ${val} requests`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="dash-chart-labels">
+                {[0, Math.floor(DAY_LABELS.length / 2), DAY_LABELS.length - 1].map((idx) => (
+                  <span key={idx}>{DAY_LABELS[idx]}</span>
+                ))}
+              </div>
             </div>
-            <div className="chart-labels">
-              <span>{DAY_LABELS[0]}</span>
-              <span>{DAY_LABELS[Math.floor(DAY_LABELS.length / 2)]}</span>
-              <span>{DAY_LABELS[DAY_LABELS.length - 1]}</span>
-            </div>
-          </div>
 
-          {/* Free tier status */}
-          <div className="chart-container">
-            <h2>Free tier usage</h2>
-            <p style={{color: 'var(--text2-dark)', fontSize: '0.85rem', marginBottom: '0.75rem'}}>
-              {remaining} of {dailyBudget} free requests remaining today
-            </p>
-            <div style={{
-              height: '8px',
-              background: 'rgba(255,255,255,0.06)',
-              borderRadius: '4px',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                height: '100%',
-                width: `${((dailyBudget - remaining) / dailyBudget) * 100}%`,
-                background: remaining > 100 ? 'var(--accent)' : 'var(--red)',
-                borderRadius: '4px',
-                transition: 'width 0.3s ease',
-              }} />
+            <div className="dash-section">
+              <div className="dash-section-header">
+                <span className="dash-section-tag">USAGE</span>
+                <span className="dash-section-title">FREE TIER</span>
+              </div>
+              <div className="dash-progress">
+                <div className="dash-progress-info">
+                  <span className="dash-progress-label">
+                    <span className="dash-progress-pct">
+                      {((dailyBudget - remaining) / dailyBudget * 100).toFixed(0)}%
+                    </span>
+                    {' '}USED TODAY
+                  </span>
+                  <span className="dash-progress-remaining">
+                    {remaining} / {dailyBudget} FREE
+                  </span>
+                </div>
+                <div className="dash-progress-track">
+                  <div
+                    className={`dash-progress-fill ${remaining > 100 ? 'ok' : 'low'}`}
+                    style={{ width: `${((dailyBudget - Math.max(0, remaining)) / dailyBudget) * 100}%` }}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </>
-      )}
 
-      {/* Quick links */}
-      <div className="chart-container">
-        <h2>Quick links</h2>
-        <div className="btn-group">
-          <Link to="/keys" className="btn btn-sm">Manage API Keys</Link>
-          <Link to="/docs" className="btn btn-sm">API Docs</Link>
-          <Link to="/pricing" className="btn btn-sm">Pricing</Link>
-        </div>
+            <div className="dash-section">
+              <div className="dash-section-header">
+                <span className="dash-section-tag">LINKS</span>
+                <span className="dash-section-title">QUICK ACTIONS</span>
+              </div>
+              <div className="dash-links">
+                <Link to="/keys" className="dash-link">
+                  <span className="dash-link-bracket">[</span>
+                  <span className="dash-link-text">MANAGE API KEYS</span>
+                  <span className="dash-link-bracket">]</span>
+                  <span className="dash-link-arrow">→</span>
+                </Link>
+                <Link to="/docs" className="dash-link">
+                  <span className="dash-link-bracket">[</span>
+                  <span className="dash-link-text">API DOCS</span>
+                  <span className="dash-link-bracket">]</span>
+                  <span className="dash-link-arrow">→</span>
+                </Link>
+                <Link to="/pricing" className="dash-link">
+                  <span className="dash-link-bracket">[</span>
+                  <span className="dash-link-text">PRICING</span>
+                  <span className="dash-link-bracket">]</span>
+                  <span className="dash-link-arrow">→</span>
+                </Link>
+              </div>
+            </div>
+          </>
+        )}
       </div>
-    </div>
+    </AppLayout>
   );
 }

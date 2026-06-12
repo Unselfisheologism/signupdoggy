@@ -1,0 +1,108 @@
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../auth';
+
+interface NavItem {
+  path: string;
+  label: string;
+}
+
+const defaultNav: NavItem[] = [
+  { path: '/', label: 'HOME' },
+  { path: '/docs', label: 'DOCS' },
+  { path: '/pricing', label: 'PRICING' },
+];
+
+const dashNav: NavItem[] = [
+  { path: '/dashboard', label: 'DASHBOARD' },
+  { path: '/keys', label: 'API KEYS' },
+  { path: '/docs', label: 'DOCS' },
+  { path: '/pricing', label: 'PRICING' },
+];
+
+export default function AppLayout({
+  children,
+  navItems,
+  title = 'signupdoggy.pages.dev',
+}: {
+  children: React.ReactNode;
+  navItems?: NavItem[];
+  title?: string;
+}) {
+  const { loading, session } = useAuth();
+  const location = useLocation();
+  const isLanding = location.pathname === '/';
+  const nav = navItems || (session && !isLanding ? dashNav : defaultNav);
+
+  return (
+    <div className="crt">
+      <div className="window" style={{ minHeight: '100dvh', margin: isLanding ? 'var(--space-lg) auto' : '0 auto' }}>
+        {/* Title Bar */}
+        <div className="window-bar">
+          <div className="window-dots">
+            <span className="window-dot window-dot--close" />
+            <span className="window-dot window-dot--min" />
+            <span className="window-dot window-dot--max" />
+          </div>
+          <div className="window-url">
+            <span className="lock">🔒</span>
+            <span className="url-text">{title}</span>
+          </div>
+          <div className="window-actions">
+            <span>−</span>
+            <span>□</span>
+            <span>×</span>
+          </div>
+        </div>
+
+        {/* Terminal Header / Nav */}
+        <div className="term-header">
+          <Link to="/" className="term-logo">
+            <span>SD</span>
+            <span className="highlight">/</span>
+            <span>signupdoggy</span>
+          </Link>
+          <span className="term-version">v2.1.0</span>
+          <nav className="term-nav">
+            {nav.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={location.pathname === item.path ? 'active' : ''}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {!loading && session && !isLanding ? (
+              <Link to="/" className="btn-nav">LOGOUT</Link>
+            ) : !loading && !session && !isLanding ? (
+              <Link to="/auth" className="btn-nav">SIGN IN</Link>
+            ) : null}
+          </nav>
+        </div>
+
+        {/* Page Content */}
+        <div className="window-body" style={isLanding ? {} : { padding: 'var(--space-xl) var(--space-lg)' }}>
+          {children}
+        </div>
+
+        {/* Footer (only on non-landing pages) */}
+        {!isLanding && (
+          <footer className="terminal-footer" style={{ borderTop: 'var(--border-thin) solid var(--border-dim)' }}>
+            <div className="status">
+              <span className="status-dot" />
+              <span>STATUS: OPERATIONAL</span>
+            </div>
+            <span className="section-divider">|</span>
+            <span>SIGNUPDOGGY v2.1.0 · 2026</span>
+            <span className="section-divider">|</span>
+            <div className="keybind">
+              <span>[<kbd>G</kbd>] <a href="https://github.com/Unselfisheologism/registerguardian" target="_blank" rel="noopener noreferrer">GitHub</a></span>
+              <span>[<kbd>D</kbd>] <a href="/docs">Docs</a></span>
+              <span>[<kbd>P</kbd>] <a href="/pricing">Pricing</a></span>
+            </div>
+          </footer>
+        )}
+      </div>
+    </div>
+  );
+}
