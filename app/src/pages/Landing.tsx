@@ -444,6 +444,11 @@ export default function Landing() {
               <span>[<kbd>P</kbd>] <a href="/pricing">Pricing</a></span>
               <span>[<kbd>G</kbd>] <a href="/auth">Get Started</a></span>
             </div>
+            <span className="section-divider">|</span>
+            <div className="keybind">
+              <span><Link to="/terms">TERMS</Link></span>
+              <span><Link to="/privacy">PRIVACY</Link></span>
+            </div>
           </footer>
         </div>
       </div>

@@ -7,6 +7,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import ApiKeys from './pages/ApiKeys';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -30,6 +32,8 @@ function AppRoutes() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="/keys" element={<RequireAuth><ApiKeys /></RequireAuth>} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
         </Routes>
       </main>
     </div>
