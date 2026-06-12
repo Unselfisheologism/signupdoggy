@@ -1,5 +1,6 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
+import { useEffect } from 'react';
 
 interface NavItem {
   path: string;
@@ -30,8 +31,22 @@ export default function AppLayout({
 }) {
   const { loading, session } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const isLanding = location.pathname === '/';
   const nav = navItems || (session && !isLanding ? dashNav : defaultNav);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      switch (e.key.toLocaleLowerCase()) {
+        case 'd': navigate('/docs'); break;
+        case 'p': navigate('/pricing'); break;
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [navigate]);
 
   return (
     <div className="crt">
@@ -96,7 +111,6 @@ export default function AppLayout({
             <span>SIGNUPDOGGY v2.1.0 · 2026</span>
             <span className="section-divider">|</span>
             <div className="keybind">
-              <span>[<kbd>G</kbd>] <a href="https://github.com/Unselfisheologism/registerguardian" target="_blank" rel="noopener noreferrer">GitHub</a></span>
               <span>[<kbd>D</kbd>] <a href="/docs">Docs</a></span>
               <span>[<kbd>P</kbd>] <a href="/pricing">Pricing</a></span>
             </div>

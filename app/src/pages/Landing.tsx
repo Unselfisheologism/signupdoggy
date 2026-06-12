@@ -157,7 +157,7 @@ const features = [
 ];
 
 const trustItems = [
-  'Stripe', 'GitHub', 'Vercel', 'Supabase', 'Linear',
+  'Stripe', 'Netflix', 'Vercel', 'Supabase', 'Linear',
   'Notion', 'Railway', 'Fly.io', 'PlanetScale', 'Neon',
 ];
 
@@ -186,6 +186,19 @@ export default function Landing() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      switch (e.key.toLocaleLowerCase()) {
+        case 'd': window.location.href = '/docs'; break;
+        case 'p': window.location.href = '/pricing'; break;
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
 
   return (
     <div className="crt">
@@ -424,7 +437,6 @@ export default function Landing() {
             <span>SIGNUPDOGGY v2.1.0 · 2026</span>
             <span className="section-divider">|</span>
             <div className="keybind">
-              <span>[<kbd>G</kbd>] <a href="https://github.com/Unselfisheologism/registerguardian" target="_blank" rel="noopener noreferrer">GitHub</a></span>
               <span>[<kbd>D</kbd>] <a href="/docs">Docs</a></span>
               <span>[<kbd>P</kbd>] <a href="/pricing">Pricing</a></span>
             </div>
