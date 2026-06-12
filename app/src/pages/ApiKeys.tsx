@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '../supabase';
 import AppLayout from '../components/AppLayout';
-
-interface ApiKey {
-  key: string;
-  user_id: string;
-  tier: string;
-  created: string;
-}
+import { listKeys, createKey, deleteKey, type ApiKey } from '../api';
 
 function KeyDisplay({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (key: string) => void }) {
   const [copied, setCopied] = useState(false);
@@ -24,9 +17,15 @@ function KeyDisplay({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (key: stri
           {apiKey.key}
         </div>
         <div className="key-meta">
-          <span className="key-tier">{apiKey.tier.toUpperCase()}</span>
+          <span className="key-tier">FREE TIER</span>
           <span className="key-sep">|</span>
           <span>CREATED {new Date(apiKey.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</span>
+          {apiKey.usage_today > 0 && (
+            <>
+              <span className="key-sep">|</span>
+              <span>{apiKey.usage_today} REQUEST{apiKey.usage_today !== 1 ? 'S' : ''} TODAY</span>
+            </>
+          )}
         </div>
       </div>
       <div className="key-actions">
@@ -52,58 +51,39 @@ export default function ApiKeys() {
 
   const loadKeys = async () => {
     try {
-      const { data, error: dbErr } = await supabase
-        .from('api_keys')
-        .select('*')
-        .order('created', { ascending: false });
-      if (dbErr) throw dbErr;
-      setKeys((data as ApiKey[]) || []);
-    } catch { setError('Could not load API keys.'); }
+      const { keys } = await listKeys();
+      setKeys(keys || []);
+    } catch (err: any) {
+      console.error('loadKeys failed:', err);
+      setError(err?.message || 'Could not load API keys.');
+    }
     setLoading(false);
   };
 
-  const createKey = async () => {
+  const handleCreateKey = async () => {
     setCreating(true);
     setError('');
     setNewKey(null);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      const raw = await fetch(
-        'https://signupdoggy-portal-api.jeffrinjames99.workers.dev/api/keys',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ user_id: user.id }),
-        }
-      );
-      if (!raw.ok) throw new Error('Failed to create key');
-      const result = await raw.json();
+      const result = await createKey();
       setNewKey(result.key);
       await loadKeys();
-    } catch (err: any) { setError(err.message || 'Failed to create key.'); }
+    } catch (err: any) {
+      console.error('createKey failed:', err);
+      setError(err?.message || 'Failed to create key.');
+    }
     setCreating(false);
   };
 
-  const deleteKey = async (key: string) => {
+  const handleDeleteKey = async (prefix: string) => {
     setError('');
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      await fetch(
-        `https://signupdoggy-portal-api.jeffrinjames99.workers.dev/api/keys/${key}`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-        }
-      );
+      await deleteKey(prefix);
       await loadKeys();
-    } catch { setError('Failed to delete key.'); }
+    } catch (err: any) {
+      console.error('deleteKey failed:', err);
+      setError(err?.message || 'Failed to delete key.');
+    }
   };
 
   return (
@@ -134,7 +114,7 @@ export default function ApiKeys() {
         <div className="keys-toolbar">
           <button
             className="btn-key btn-key--create"
-            onClick={createKey}
+            onClick={handleCreateKey}
             disabled={creating}
           >
             {creating ? '[CREATING...]' : '[CREATE NEW KEY]'}
@@ -153,7 +133,7 @@ export default function ApiKeys() {
         ) : (
           <div className="keys-list">
             {keys.map((k) => (
-              <KeyDisplay key={k.key} apiKey={k} onDelete={deleteKey} />
+              <KeyDisplay key={k.key} apiKey={k} onDelete={handleDeleteKey} />
             ))}
           </div>
         )}
