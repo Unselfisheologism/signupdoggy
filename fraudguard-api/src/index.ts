@@ -288,6 +288,67 @@ function isFounderEmail(email: string | null | undefined, env: Env): boolean {
   return founders.includes(email.toLowerCase());
 }
 
+// ─── In-memory caches for parsed KV lists ──────────────────────────────────────
+// Module-level state persists across requests in the same warm isolate.
+// 5-min TTL is plenty: the cron syncs hourly, and the manual sync endpoint
+// invalidates immediately. Without this, every /v1/check call would
+// JSON.parse a 3.7MB disposable-email array and 1.5MB phone array from
+// scratch — easily 100ms+ CPU per call, which on the free plan (10ms CPU
+// limit) is catastrophic and on paid plans still wastes real money.
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+let disposableEmailCache: { set: Set<string>; expiresAt: number } | null = null;
+let disposablePhoneCache: { set: Set<string>; expiresAt: number } | null = null;
+let torExitCache: { ips: string[]; expiresAt: number } | null = null;
+
+async function getDisposableEmailSet(env: Env): Promise<Set<string>> {
+  if (disposableEmailCache && disposableEmailCache.expiresAt > Date.now()) {
+    return disposableEmailCache.set;
+  }
+  const allData = await env.DISPOSABLE_EMAILS.get('_all');
+  if (!allData) return new Set();
+  try {
+    const arr = JSON.parse(allData);
+    const set = new Set<string>(Array.isArray(arr) ? arr : []);
+    disposableEmailCache = { set, expiresAt: Date.now() + CACHE_TTL_MS };
+    return set;
+  } catch {
+    return new Set();
+  }
+}
+
+async function getDisposablePhoneSet(env: Env): Promise<Set<string>> {
+  if (disposablePhoneCache && disposablePhoneCache.expiresAt > Date.now()) {
+    return disposablePhoneCache.set;
+  }
+  const allData = await env.DISPOSABLE_PHONE_NUMBERS.get('_all');
+  if (!allData) return new Set();
+  try {
+    const arr = JSON.parse(allData);
+    const set = new Set<string>(Array.isArray(arr) ? arr : []);
+    disposablePhoneCache = { set, expiresAt: Date.now() + CACHE_TTL_MS };
+    return set;
+  } catch {
+    return new Set();
+  }
+}
+
+async function getTorExitIps(env: Env): Promise<string[]> {
+  if (torExitCache && torExitCache.expiresAt > Date.now()) {
+    return torExitCache.ips;
+  }
+  const data = await env.TOR_EXIT_NODES.get('_all');
+  if (!data) return [];
+  try {
+    const arr = JSON.parse(data);
+    const ips = Array.isArray(arr) ? arr : [];
+    torExitCache = { ips, expiresAt: Date.now() + CACHE_TTL_MS };
+    return ips;
+  } catch {
+    return [];
+  }
+}
+
 // Returns the set of domains the founder has manually added to the
 // disposable-email blocklist. Stored in DISPOSABLE_EMAILS KV under
 // the "manual_overrides" key as a JSON array of domain strings.
@@ -303,6 +364,13 @@ async function getManualOverrides(env: Env): Promise<Set<string>> {
   } catch {
     return new Set();
   }
+}
+
+// Invalidate caches after a sync so the new data is immediately visible.
+function invalidateListCaches() {
+  disposableEmailCache = null;
+  disposablePhoneCache = null;
+  torExitCache = null;
 }
 
 function generateApiKey(): string {
@@ -342,17 +410,11 @@ function phoneMatchesMask(phone: string, candidate: string): boolean {
 
 async function checkDisposablePhone(env: Env, phone: string): Promise<boolean> {
   try {
-    const raw = await env.DISPOSABLE_PHONE_NUMBERS.get('_all');
-    if (!raw) return false;
-    const numbers: string[] = JSON.parse(raw);
+    const numbers = await getDisposablePhoneSet(env);
+    if (numbers.size === 0) return false;
     // iP1SMS format is plain digits (no +), so strip + for matching
     const normalized = normalizePhone(phone).replace(/^\+/, '');
-    // Binary search or Set would be faster but KV serves 118k numbers as one blob
-    // so we iterate — still < 10ms for 118k string comparisons
-    for (const num of numbers) {
-      if (normalized === num) return true;
-    }
-    return false;
+    return numbers.has(normalized);
   } catch {
     return false;
   }
@@ -538,30 +600,26 @@ app.post('/v1/check', async (c) => {
 
     // Check global disposable email list
     if (!isDisposable && normalizedDomain) {
-      const allData = await c.env.DISPOSABLE_EMAILS.get('_all');
-      if (allData) {
-        const domains: string[] = JSON.parse(allData);
-        const domainSet = new Set(domains);
+      const domainSet = await getDisposableEmailSet(c.env);
 
-        if (domainSet.has(normalizedDomain)) {
-          isDisposable = true;
-          emailRisk = 85;
-          blocked = true;
-          blockedReason = 'disposable_email';
-        }
+      if (domainSet.has(normalizedDomain)) {
+        isDisposable = true;
+        emailRisk = 85;
+        blocked = true;
+        blockedReason = 'disposable_email';
+      }
 
-        // Wildcard check
-        if (!isDisposable && normalizedDomain.includes('.')) {
-          const parts = normalizedDomain.split('.');
-          for (let i = 1; i < parts.length; i++) {
-            const parent = parts.slice(i).join('.');
-            if (domainSet.has(parent) || domainSet.has('*.' + parent)) {
-              isDisposable = true;
-              emailRisk = 85;
-              blocked = true;
-              blockedReason = 'disposable_email';
-              break;
-            }
+      // Wildcard check
+      if (!isDisposable && normalizedDomain.includes('.')) {
+        const parts = normalizedDomain.split('.');
+        for (let i = 1; i < parts.length; i++) {
+          const parent = parts.slice(i).join('.');
+          if (domainSet.has(parent) || domainSet.has('*.' + parent)) {
+            isDisposable = true;
+            emailRisk = 85;
+            blocked = true;
+            blockedReason = 'disposable_email';
+            break;
           }
         }
       }
@@ -598,16 +656,13 @@ app.post('/v1/check', async (c) => {
     let ipChecked = false;
 
     // Check Tor exit nodes
-    const allTorData = await c.env.TOR_EXIT_NODES.get('_all');
-    if (allTorData) {
-      const torIps: string[] = JSON.parse(allTorData);
-      if (torIps.includes(body.ip)) {
-        isTor = true;
-        ipRisk = 90;
-        blocked = true;
-        blockedReason = 'tor_exit';
-        ipChecked = true;
-      }
+    const torIps = await getTorExitIps(c.env);
+    if (torIps.length > 0 && torIps.includes(body.ip)) {
+      isTor = true;
+      ipRisk = 90;
+      blocked = true;
+      blockedReason = 'tor_exit';
+      ipChecked = true;
     }
 
     // Check hosting/VPN IP ranges (heuristic)
@@ -1243,6 +1298,7 @@ async function syncDisposableEmails(env: Env): Promise<string> {
   const domainsArray = Array.from(allDomains);
   await env.DISPOSABLE_EMAILS.put('_all', JSON.stringify(domainsArray));
   await env.SYNC_LOGS.put(`disposable:${getToday()}`, JSON.stringify({ total: domainsArray.length, perSource }));
+  invalidateListCaches();
   return `Synced ${domainsArray.length} disposable email domains (sources: ${JSON.stringify(perSource)})`;
 }
 
@@ -1262,6 +1318,7 @@ async function syncTorExitNodes(env: Env): Promise<string> {
 
     await env.TOR_EXIT_NODES.put('_all', JSON.stringify(ips));
     await env.SYNC_LOGS.put(`tor:${getToday()}`, `Synced ${ips.length} exit nodes`);
+    invalidateListCaches();
     return `Synced ${ips.length} Tor exit nodes`;
   } catch (e) {
     return `Tor sync failed: ${e instanceof Error ? e.message : 'unknown error'}`;
@@ -1316,6 +1373,7 @@ async function syncDisposablePhoneNumbers(env: Env): Promise<string> {
   const numbers = Array.from(allNumbers);
   await env.DISPOSABLE_PHONE_NUMBERS.put('_all', JSON.stringify(numbers));
   await env.SYNC_LOGS.put(`phone:${getToday()}`, JSON.stringify({ total: numbers.length, perSource }));
+  invalidateListCaches();
   return `Synced ${numbers.length} disposable phone numbers (sources: ${JSON.stringify(perSource)})`;
 }
 
