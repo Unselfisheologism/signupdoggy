@@ -1417,6 +1417,42 @@ code { font-family: var(--font-mono); }
   transform: translateX(3px);
   color: var(--accent);
 }
+.dash-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-2xl) var(--space-lg);
+  border: var(--border-thin) solid var(--border-dim);
+  background: var(--bg-card);
+  text-align: center;
+}
+.dash-empty-icon {
+  font-size: 32px;
+  color: var(--border-dim);
+  margin-bottom: var(--space-xs);
+}
+.dash-empty-text {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.dash-empty-sub {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  max-width: 420px;
+  margin-bottom: var(--space-md);
+}
+.dash-empty .btn-terminal {
+  margin-top: var(--space-sm);
+}
 
 /* ═══ API KEYS ═══ */
 .keys-toolbar {

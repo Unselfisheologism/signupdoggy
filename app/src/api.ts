@@ -4,6 +4,7 @@ export interface UserProfile { id: string; email: string; name: string; created:
 export interface ApiKey { key: string; created: string; usage_today: number }
 export interface UsageDay { date: string; requests: number; blocked: number; cost: number }
 export interface BillingMonth { month: string; requests: number; cost: number }
+export interface CreditBalance { balance: number; total_purchased: number; total_spent: number }
 
 async function authFetch(path: string, init?: RequestInit) {
   const { supabase } = await import('./supabase');
@@ -42,4 +43,8 @@ export async function getUsage() {
 
 export async function getBilling() {
   return authFetch('/api/billing') as Promise<{ months: BillingMonth[]; total_all_time: number }>;
+}
+
+export async function getCredits() {
+  return authFetch('/api/credits') as Promise<CreditBalance>;
 }
