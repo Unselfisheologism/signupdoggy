@@ -288,6 +288,23 @@ function isFounderEmail(email: string | null | undefined, env: Env): boolean {
   return founders.includes(email.toLowerCase());
 }
 
+// Returns the set of domains the founder has manually added to the
+// disposable-email blocklist. Stored in DISPOSABLE_EMAILS KV under
+// the "manual_overrides" key as a JSON array of domain strings.
+// Use wrangler to seed/update:
+//   npx wrangler kv:key put --binding DISPOSABLE_EMAILS \
+//     "manual_overrides" '["aratrin.com", "another.com"]'
+async function getManualOverrides(env: Env): Promise<Set<string>> {
+  const data = await env.DISPOSABLE_EMAILS.get('manual_overrides');
+  if (!data) return new Set();
+  try {
+    const arr = JSON.parse(data);
+    return new Set(Array.isArray(arr) ? arr.filter(d => typeof d === 'string') : []);
+  } catch {
+    return new Set();
+  }
+}
+
 function generateApiKey(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let key = 'sd_';
@@ -546,6 +563,20 @@ app.post('/v1/check', async (c) => {
               break;
             }
           }
+        }
+      }
+
+      // Check founder-curated manual override list (long-tail domains
+      // the public blocklists miss — e.g. aratrin.com from temp-mail.org).
+      // Seed via: npx wrangler kv:key put --binding DISPOSABLE_EMAILS \
+      //   "manual_overrides" '["aratrin.com", "another.com"]'
+      if (!isDisposable && normalizedDomain) {
+        const overrides = await getManualOverrides(c.env);
+        if (overrides.has(normalizedDomain)) {
+          isDisposable = true;
+          emailRisk = 85;
+          blocked = true;
+          blockedReason = 'disposable_email';
         }
       }
     }
