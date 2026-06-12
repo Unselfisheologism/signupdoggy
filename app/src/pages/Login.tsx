@@ -14,7 +14,10 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) throw error;
       if (!data.session) throw new Error('Login failed');
       navigate('/dashboard');
@@ -27,24 +30,42 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      <h1>Log in</h1>
-      <p className="sub">Welcome back to SignupDoggy</p>
-      {error && <div className="error-msg">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label>Email</label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" />
+      <div className="auth-card">
+        <h1>Log in</h1>
+        <p className="sub">Welcome back to SignupDoggy</p>
+        {error && <div className="error-msg">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+            />
+          </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              placeholder="••••••••"
+            />
+          </div>
+          <button
+            type="submit"
+            className="btn btn-primary btn-block"
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Log in'}
+          </button>
+        </form>
+        <div className="auth-link">
+          Don't have an account? <Link to="/signup">Sign up</Link>
         </div>
-        <div className="form-group">
-          <label>Password</label>
-          <input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
-        </div>
-        <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-          {loading ? 'Logging in...' : 'Log in'}
-        </button>
-      </form>
-      <div className="auth-link">
-        Don't have an account? <Link to="/signup">Sign up</Link>
       </div>
     </div>
   );

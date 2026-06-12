@@ -30,9 +30,38 @@ res = requests.post(
 data = res.json()
 print(data['recommendation'])  # "allow" | "review" | "block"`;
 
-  function copy(text: string) {
-    return `javascript:void(navigator.clipboard.writeText(\`${text.replace(/`/g, '\\`')}\`))`;
-  }
+  const endpoints = [
+    {
+      method: 'POST',
+      cls: 'post',
+      path: '/v1/check',
+      desc: 'Check an email address and/or IP address for fraud signals. Returns risk scores and a recommendation.',
+    },
+    {
+      method: 'POST',
+      cls: 'post',
+      path: '/v1/keys',
+      desc: 'Generate a new API key. No authentication required. Key is shown once.',
+    },
+    {
+      method: 'POST',
+      cls: 'post',
+      path: '/v1/blacklist',
+      desc: 'Add or remove emails/IPs from your personal blacklist. Requires API key auth.',
+    },
+    {
+      method: 'GET',
+      cls: 'get',
+      path: '/v1/stats',
+      desc: 'View today\'s usage: total requests, blocked counts, and estimated cost.',
+    },
+    {
+      method: 'GET',
+      cls: 'get',
+      path: '/openapi.json',
+      desc: 'Download the OpenAPI 3.0 specification for tooling and code generation.',
+    },
+  ];
 
   return (
     <div className="docs-page">
@@ -43,99 +72,204 @@ print(data['recommendation'])  # "allow" | "review" | "block"`;
       <p>Generate an API key and make your first check:</p>
 
       <h3>1. Get an API key</h3>
-      <pre>
-        <code>{curlKey}</code>
-        <button className="copy-btn" style={{float:'right'}} onClick={() => navigator.clipboard.writeText(curlKey)}>Copy</button>
-      </pre>
+      <div className="pre-group">
+        <pre>
+          <code>{curlKey}</code>
+          <button
+            className="copy-btn"
+            onClick={() => navigator.clipboard.writeText(curlKey)}
+          >
+            Copy
+          </button>
+        </pre>
+      </div>
 
       <h3>2. Check a signup</h3>
-      <pre>
-        <code>{curlCheck}</code>
-        <button className="copy-btn" style={{float:'right'}} onClick={() => navigator.clipboard.writeText(curlCheck)}>Copy</button>
-      </pre>
+      <div className="pre-group">
+        <pre>
+          <code>{curlCheck}</code>
+          <button
+            className="copy-btn"
+            onClick={() => navigator.clipboard.writeText(curlCheck)}
+          >
+            Copy
+          </button>
+        </pre>
+      </div>
 
       <h2>📡 API Endpoints</h2>
-
-      <div className="endpoint">
-        <span className="method">POST</span><code>/v1/check</code>
-        <p>Check an email address and/or IP address for fraud signals. Returns risk scores and a recommendation.</p>
-      </div>
-
-      <div className="endpoint">
-        <span className="method">POST</span><code>/v1/keys</code>
-        <p>Generate a new API key. No authentication required. Key is shown once.</p>
-      </div>
-
-      <div className="endpoint">
-        <span className="method">POST</span><code>/v1/blacklist</code>
-        <p>Add or remove emails/IPs from your personal blacklist. Requires API key auth.</p>
-      </div>
-
-      <div className="endpoint">
-        <span className="method">GET</span><code>/v1/stats</code>
-        <p>View today's usage: total requests, blocked counts, and estimated cost.</p>
-      </div>
-
-      <div className="endpoint">
-        <span className="method">GET</span><code>/openapi.json</code>
-        <p>Download the OpenAPI 3.0 specification for tooling and code generation.</p>
+      <div className="endpoint-group">
+        {endpoints.map((ep, i) => (
+          <div key={i} className="endpoint">
+            <span className={'method ' + ep.cls}>{ep.method}</span>
+            <code>{ep.path}</code>
+            <p>{ep.desc}</p>
+          </div>
+        ))}
       </div>
 
       <h2>📋 Authentication</h2>
-      <p>All endpoints except <code>/v1/keys</code> require an API key sent via the <code>x-api-key</code> header. Keys are 51-character strings starting with <code>sd_</code>.</p>
+      <p>
+        All endpoints except <code>/v1/keys</code> require an API key sent via
+        the <code>x-api-key</code> header. Keys are 51-character strings
+        starting with <code>sd_</code>.
+      </p>
 
       <h2>🔑 Request Body</h2>
       <table>
-        <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
-        <tr><td><code>email</code></td><td>string</td><td>No*</td><td>Email address to check for disposable domain</td></tr>
-        <tr><td><code>ip</code></td><td>string</td><td>No*</td><td>IP address to check for Tor/VPN/proxy</td></tr>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>email</code></td>
+            <td>string</td>
+            <td>No*</td>
+            <td>Email address to check for disposable domain</td>
+          </tr>
+          <tr>
+            <td><code>ip</code></td>
+            <td>string</td>
+            <td>No*</td>
+            <td>IP address to check for Tor/VPN/proxy</td>
+          </tr>
+        </tbody>
       </table>
       <p><em>* At least one of email or ip is required.</em></p>
 
       <h2>📤 Response</h2>
       <table>
-        <tr><th>Field</th><th>Type</th><th>Description</th></tr>
-        <tr><td><code>email.is_disposable</code></td><td>boolean</td><td>Whether the email domain is a known disposable provider</td></tr>
-        <tr><td><code>email.risk_score</code></td><td>0-100</td><td>Risk score specifically for the email check</td></tr>
-        <tr><td><code>ip.is_tor</code></td><td>boolean</td><td>Whether the IP is a known Tor exit node</td></tr>
-        <tr><td><code>ip.is_proxy</code></td><td>boolean</td><td>Whether the IP belongs to a hosting/VPN provider</td></tr>
-        <tr><td><code>overall_risk</code></td><td>string</td><td>low | medium | high</td></tr>
-        <tr><td><code>recommendation</code></td><td>string</td><td>allow | review | block</td></tr>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>email.is_disposable</code></td>
+            <td>boolean</td>
+            <td>Whether the email domain is a known disposable provider</td>
+          </tr>
+          <tr>
+            <td><code>email.risk_score</code></td>
+            <td>0–100</td>
+            <td>Risk score specifically for the email check</td>
+          </tr>
+          <tr>
+            <td><code>ip.is_tor</code></td>
+            <td>boolean</td>
+            <td>Whether the IP is a known Tor exit node</td>
+          </tr>
+          <tr>
+            <td><code>ip.is_proxy</code></td>
+            <td>boolean</td>
+            <td>Whether the IP belongs to a hosting/VPN provider</td>
+          </tr>
+          <tr>
+            <td><code>overall_risk</code></td>
+            <td>string</td>
+            <td>low | medium | high</td>
+          </tr>
+          <tr>
+            <td><code>recommendation</code></td>
+            <td>string</td>
+            <td>allow | review | block</td>
+          </tr>
+        </tbody>
       </table>
 
       <h2>📊 Response Headers</h2>
       <table>
-        <tr><th>Header</th><th>Description</th></tr>
-        <tr><td><code>X-Fraud-Blocked-Today</code></td><td>Total blocked requests today</td></tr>
-        <tr><td><code>X-Fraud-Blocked-Reason</code></td><td>Why this request was flagged</td></tr>
-        <tr><td><code>X-Estimated-Cost</code></td><td>Estimated cost of today's usage</td></tr>
+        <thead>
+          <tr>
+            <th>Header</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>X-Fraud-Blocked-Today</code></td>
+            <td>Total blocked requests today</td>
+          </tr>
+          <tr>
+            <td><code>X-Fraud-Blocked-Reason</code></td>
+            <td>Why this request was flagged</td>
+          </tr>
+          <tr>
+            <td><code>X-Estimated-Cost</code></td>
+            <td>Estimated cost of today's usage</td>
+          </tr>
+        </tbody>
       </table>
 
       <h2>🔢 HTTP Status Codes</h2>
       <table>
-        <tr><th>Code</th><th>Description</th></tr>
-        <tr><td>200</td><td>Success</td></tr>
-        <tr><td>201</td><td>Resource created (API key)</td></tr>
-        <tr><td>400</td><td>Bad request — check request body</td></tr>
-        <tr><td>401</td><td>Missing or invalid API key</td></tr>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>200</td>
+            <td>Success</td>
+          </tr>
+          <tr>
+            <td>201</td>
+            <td>Resource created (API key)</td>
+          </tr>
+          <tr>
+            <td>400</td>
+            <td>Bad request — check request body</td>
+          </tr>
+          <tr>
+            <td>401</td>
+            <td>Missing or invalid API key</td>
+          </tr>
+        </tbody>
       </table>
 
       <h2>💻 SDK Examples</h2>
 
       <h3>Node.js / TypeScript</h3>
-      <pre>
-        <code>{nodeExample}</code>
-        <button className="copy-btn" style={{float:'right'}} onClick={() => navigator.clipboard.writeText(nodeExample)}>Copy</button>
-      </pre>
+      <div className="pre-group">
+        <pre>
+          <code>{nodeExample}</code>
+          <button
+            className="copy-btn"
+            onClick={() => navigator.clipboard.writeText(nodeExample)}
+          >
+            Copy
+          </button>
+        </pre>
+      </div>
 
       <h3>Python</h3>
-      <pre>
-        <code>{pyExample}</code>
-        <button className="copy-btn" style={{float:'right'}} onClick={() => navigator.clipboard.writeText(pyExample)}>Copy</button>
-      </pre>
+      <div className="pre-group">
+        <pre>
+          <code>{pyExample}</code>
+          <button
+            className="copy-btn"
+            onClick={() => navigator.clipboard.writeText(pyExample)}
+          >
+            Copy
+          </button>
+        </pre>
+      </div>
 
       <div className="footer">
-        <p>🛡️ SignupDoggy API — Built on Cloudflare Workers. Powered by open data.</p>
+        <p>
+          🛡️ <span>SignupDoggy</span> API — Built on Cloudflare Workers.
+          Powered by open data.
+        </p>
       </div>
     </div>
   );

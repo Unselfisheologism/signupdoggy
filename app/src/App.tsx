@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth';
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
@@ -10,15 +10,13 @@ import ApiKeys from './pages/ApiKeys';
 
 function Navbar() {
   const { user, logout } = useAuth();
-  const location = useLocation();
-  const isLanding = location.pathname === '/';
-
-  if (isLanding) return null;
 
   return (
     <nav className="navbar">
       <div className="nav-inner">
-        <Link to="/" className="nav-logo">🛡️ SignupDoggy</Link>
+        <Link to="/" className="nav-logo">
+          <span className="logo-icon">SD</span> SignupDoggy
+        </Link>
         <div className="nav-links">
           <Link to="/pricing">Pricing</Link>
           <Link to="/docs">Docs</Link>
