@@ -75,9 +75,13 @@ export default function ApiKeys() {
     setCreating(false);
   };
 
-  const handleDeleteKey = async (prefix: string) => {
+  const handleDeleteKey = async (displayedKey: string) => {
     setError('');
     try {
+      // The display includes a trailing '...' for truncation, but the real
+      // key in KV contains no dots. The Worker's prefix-match only works
+      // against the actual key, so strip the ellipsis before sending.
+      const prefix = displayedKey.replace(/\.\.\.$/, '');
       await deleteKey(prefix);
       await loadKeys();
     } catch (err: any) {
