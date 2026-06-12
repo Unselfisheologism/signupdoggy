@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, Link } from 'react-router-dom';
+import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth';
 import Landing from './pages/Landing';
 import Docs from './pages/Docs';
@@ -8,14 +8,19 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import ApiKeys from './pages/ApiKeys';
 
+const DARK_ROUTES = ['/login', '/signup', '/dashboard', '/keys'];
+
 function Navbar() {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const isDark = DARK_ROUTES.includes(location.pathname);
 
   return (
-    <nav className="navbar">
+    <nav className={'navbar' + (isDark ? ' dark' : '')}>
       <div className="nav-inner">
         <Link to="/" className="nav-logo">
-          <span className="logo-icon">SD</span> SignupDoggy
+          <span className="logo-icon">SD</span>
+          SignupDoggy
         </Link>
         <div className="nav-links">
           <Link to="/pricing">Pricing</Link>
@@ -23,7 +28,7 @@ function Navbar() {
           {user ? (
             <>
               <Link to="/dashboard">Dashboard</Link>
-              <Link to="/keys">API Keys</Link>
+              <Link to="/keys">Keys</Link>
               <span className="nav-user">{user.email}</span>
               <button onClick={logout} className="btn btn-sm">Log out</button>
             </>
@@ -41,7 +46,7 @@ function Navbar() {
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="loading">Loading...</div>;
+  if (loading) return <div className="loading-screen dark"><div className="spinner" /></div>;
   if (!user) return <Navigate to="/login" replace />;
   return <>{children}</>;
 }

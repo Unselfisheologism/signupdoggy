@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 
@@ -9,62 +9,54 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  async function handleSubmit(e: FormEvent) {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      if (!data.session) throw new Error('Login failed');
+    const { error: authErr } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (authErr) {
+      setError(authErr.message);
+    } else {
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'Login failed');
-    } finally {
-      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>Log in</h1>
-        <p className="sub">Welcome back to SignupDoggy</p>
+        <h1>Welcome back</h1>
+        <p className="auth-sub">Log in to your SignupDoggy account</p>
         {error && <div className="error-msg">{error}</div>}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleLogin}>
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="email">Email</label>
             <input
+              id="email"
               type="email"
+              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="you@example.com"
             />
           </div>
           <div className="form-group">
-            <label>Password</label>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
               type="password"
+              placeholder="Your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="••••••••"
             />
           </div>
-          <button
-            type="submit"
-            className="btn btn-primary btn-block"
-            disabled={loading}
-          >
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
             {loading ? 'Logging in...' : 'Log in'}
           </button>
         </form>
         <div className="auth-link">
-          Don't have an account? <Link to="/signup">Sign up</Link>
+          No account? <Link to="/signup">Create one</Link>
         </div>
       </div>
     </div>

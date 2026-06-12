@@ -1,12 +1,28 @@
-export default function Docs() {
-  const curlCheck = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \\
+import { useState } from 'react';
+
+const curlCheck = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \\
   -H "x-api-key: sd_your_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'`;
 
-  const curlKey = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/keys`;
+const jsonResp = `{
+  "email": {
+    "is_disposable": true,
+    "domain": "tempmail.com",
+    "risk_score": 85
+  },
+  "ip": {
+    "is_tor": false,
+    "is_proxy": true,
+    "is_hosting": true,
+    "asn": "AS16509",
+    "risk_score": 72
+  },
+  "overall_risk": "high",
+  "recommendation": "block"
+}`;
 
-  const nodeExample = `const res = await fetch('https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check', {
+const nodeExample = `const res = await fetch('https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check', {
   method: 'POST',
   headers: {
     'x-api-key': 'sd_your_key_here',
@@ -18,9 +34,9 @@ export default function Docs() {
   }),
 });
 const data = await res.json();
-console.log(data.recommendation); // "allow" | "review" | "block"`;
+console.log(data.recommendation);`;
 
-  const pyExample = `import requests
+const pyExample = `import requests
 
 res = requests.post(
     'https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check',
@@ -28,94 +44,60 @@ res = requests.post(
     json={'email': 'user@example.com', 'ip': '1.2.3.4'}
 )
 data = res.json()
-print(data['recommendation'])  # "allow" | "review" | "block"`;
+print(data['recommendation'])`;
 
-  const endpoints = [
-    {
-      method: 'POST',
-      cls: 'post',
-      path: '/v1/check',
-      desc: 'Check an email address and/or IP address for fraud signals. Returns risk scores and a recommendation.',
-    },
-    {
-      method: 'POST',
-      cls: 'post',
-      path: '/v1/keys',
-      desc: 'Generate a new API key. No authentication required. Key is shown once.',
-    },
-    {
-      method: 'POST',
-      cls: 'post',
-      path: '/v1/blacklist',
-      desc: 'Add or remove emails/IPs from your personal blacklist. Requires API key auth.',
-    },
-    {
-      method: 'GET',
-      cls: 'get',
-      path: '/v1/stats',
-      desc: 'View today\'s usage: total requests, blocked counts, and estimated cost.',
-    },
-    {
-      method: 'GET',
-      cls: 'get',
-      path: '/openapi.json',
-      desc: 'Download the OpenAPI 3.0 specification for tooling and code generation.',
-    },
-  ];
+const blacklistCurl = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/blacklist \\
+  -H "x-api-key: sd_your_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{"type": "email", "value": "bad@actor.com"}'`;
+
+const statsCurl = `curl https://signupdoggy-api.jeffrinjames99.workers.dev/v1/stats \\
+  -H "x-api-key: sd_your_key_here"`;
+
+export default function Docs() {
+  const [tab, setTab] = useState<'curl' | 'node' | 'python'>('curl');
+  const codeMap = { curl: curlCheck, node: nodeExample, python: pyExample };
 
   return (
     <div className="docs-page">
-      <h1>📖 Documentation</h1>
-      <p>Get started in 5 minutes. No SDK install required — just an HTTP call.</p>
-
-      <h2>🚀 Quick Start</h2>
-      <p>Generate an API key and make your first check:</p>
-
-      <h3>1. Get an API key</h3>
-      <div className="pre-group">
-        <pre>
-          <code>{curlKey}</code>
-          <button
-            className="copy-btn"
-            onClick={() => navigator.clipboard.writeText(curlKey)}
-          >
-            Copy
-          </button>
-        </pre>
-      </div>
-
-      <h3>2. Check a signup</h3>
-      <div className="pre-group">
-        <pre>
-          <code>{curlCheck}</code>
-          <button
-            className="copy-btn"
-            onClick={() => navigator.clipboard.writeText(curlCheck)}
-          >
-            Copy
-          </button>
-        </pre>
-      </div>
-
-      <h2>📡 API Endpoints</h2>
-      <div className="endpoint-group">
-        {endpoints.map((ep, i) => (
-          <div key={i} className="endpoint">
-            <span className={'method ' + ep.cls}>{ep.method}</span>
-            <code>{ep.path}</code>
-            <p>{ep.desc}</p>
-          </div>
-        ))}
-      </div>
-
-      <h2>📋 Authentication</h2>
-      <p>
-        All endpoints except <code>/v1/keys</code> require an API key sent via
-        the <code>x-api-key</code> header. Keys are 51-character strings
-        starting with <code>sd_</code>.
+      <h1>API Reference</h1>
+      <p className="docs-lead">
+        SignupDoggy is a REST API. Authenticate with your API key, send us an
+        email or IP address, and get a fraud assessment back in under 50ms.
       </p>
 
-      <h2>🔑 Request Body</h2>
+      {/* Authentication */}
+      <h2>Authentication</h2>
+      <p>
+        Every request requires an API key sent via the <code>x-api-key</code>
+        header. You can create a key from the dashboard after signing up.
+      </p>
+      <pre>
+        <code>{'x-api-key: sd_your_key_here'}</code>
+        <button
+          className="copy-btn"
+          onClick={() => navigator.clipboard.writeText('x-api-key: sd_your_key_here')}
+        >Copy</button>
+      </pre>
+
+      {/* Endpoints */}
+      <h2>Endpoints</h2>
+
+      <h3>Check a signup</h3>
+      <div className="endpoint-group">
+        <div className="endpoint">
+          <span className="method post">POST</span>
+          <code>/v1/check</code>
+          <span className="endpoint-desc">Evaluate an email and/or IP address for fraud risk</span>
+        </div>
+      </div>
+
+      <p>
+        The main endpoint. Pass an email, an IP, or both. The API returns
+        risk scores for each signal plus an overall recommendation.
+      </p>
+
+      <h4>Request body</h4>
       <table>
         <thead>
           <tr>
@@ -130,19 +112,18 @@ print(data['recommendation'])  # "allow" | "review" | "block"`;
             <td><code>email</code></td>
             <td>string</td>
             <td>No*</td>
-            <td>Email address to check for disposable domain</td>
+            <td>Email address to check (required if IP is not provided)</td>
           </tr>
           <tr>
             <td><code>ip</code></td>
             <td>string</td>
             <td>No*</td>
-            <td>IP address to check for Tor/VPN/proxy</td>
+            <td>IP address to check (required if email is not provided)</td>
           </tr>
         </tbody>
       </table>
-      <p><em>* At least one of email or ip is required.</em></p>
 
-      <h2>📤 Response</h2>
+      <h4>Response</h4>
       <table>
         <thead>
           <tr>
@@ -158,9 +139,14 @@ print(data['recommendation'])  # "allow" | "review" | "block"`;
             <td>Whether the email domain is a known disposable provider</td>
           </tr>
           <tr>
+            <td><code>email.domain</code></td>
+            <td>string</td>
+            <td>The domain portion of the email address</td>
+          </tr>
+          <tr>
             <td><code>email.risk_score</code></td>
-            <td>0–100</td>
-            <td>Risk score specifically for the email check</td>
+            <td>number</td>
+            <td>0-100 score based on email signals</td>
           </tr>
           <tr>
             <td><code>ip.is_tor</code></td>
@@ -170,22 +156,123 @@ print(data['recommendation'])  # "allow" | "review" | "block"`;
           <tr>
             <td><code>ip.is_proxy</code></td>
             <td>boolean</td>
-            <td>Whether the IP belongs to a hosting/VPN provider</td>
+            <td>Whether the IP belongs to a VPN or proxy service</td>
+          </tr>
+          <tr>
+            <td><code>ip.is_hosting</code></td>
+            <td>boolean</td>
+            <td>Whether the IP is from a cloud hosting provider</td>
+          </tr>
+          <tr>
+            <td><code>ip.asn</code></td>
+            <td>string|null</td>
+            <td>ASN identifier if available</td>
+          </tr>
+          <tr>
+            <td><code>ip.risk_score</code></td>
+            <td>number</td>
+            <td>0-100 score based on IP signals</td>
           </tr>
           <tr>
             <td><code>overall_risk</code></td>
             <td>string</td>
-            <td>low | medium | high</td>
+            <td>low, medium, or high</td>
           </tr>
           <tr>
             <td><code>recommendation</code></td>
             <td>string</td>
-            <td>allow | review | block</td>
+            <td>allow, review, or block</td>
           </tr>
         </tbody>
       </table>
 
-      <h2>📊 Response Headers</h2>
+      <div className="code-showcase">
+        <div className="code-tabs">
+          <span className={'code-tab' + (tab === 'curl' ? ' active' : '')} onClick={() => setTab('curl')}>cURL</span>
+          <span className={'code-tab' + (tab === 'node' ? ' active' : '')} onClick={() => setTab('node')}>Node.js</span>
+          <span className={'code-tab' + (tab === 'python' ? ' active' : '')} onClick={() => setTab('python')}>Python</span>
+        </div>
+        <div className="pre-group">
+          <pre><code>{codeMap[tab]}</code></pre>
+          <button
+            className="copy-btn"
+            onClick={() => navigator.clipboard.writeText(codeMap[tab])}
+          >Copy</button>
+        </div>
+        {tab === 'curl' && (
+          <div className="pre-group">
+            <pre><code>{jsonResp}</code></pre>
+            <button
+              className="copy-btn"
+              onClick={() => navigator.clipboard.writeText(jsonResp)}
+            >Copy</button>
+          </div>
+        )}
+      </div>
+
+      {/* Blacklist */}
+      <h2>Custom Blacklists</h2>
+
+      <h3>Add a blacklist entry</h3>
+      <div className="endpoint-group">
+        <div className="endpoint">
+          <span className="method post">POST</span>
+          <code>/v1/blacklist</code>
+          <span className="endpoint-desc">Add an email or IP to your personal blacklist</span>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Field</th>
+            <th>Type</th>
+            <th>Required</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>type</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>email or ip</td>
+          </tr>
+          <tr>
+            <td><code>value</code></td>
+            <td>string</td>
+            <td>Yes</td>
+            <td>The email address or IP to block</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="pre-group">
+        <pre><code>{blacklistCurl}</code></pre>
+        <button className="copy-btn" onClick={() => navigator.clipboard.writeText(blacklistCurl)}>Copy</button>
+      </div>
+
+      <h3>Get stats</h3>
+      <div className="endpoint-group">
+        <div className="endpoint">
+          <span className="method get">GET</span>
+          <code>/v1/stats</code>
+          <span className="endpoint-desc">View usage statistics and remaining free tier quota</span>
+        </div>
+      </div>
+
+      <div className="pre-group">
+        <pre><code>{statsCurl}</code></pre>
+        <button className="copy-btn" onClick={() => navigator.clipboard.writeText(statsCurl)}>Copy</button>
+      </div>
+
+      {/* Rate limits */}
+      <h2>Rate Limits</h2>
+      <p>
+        Free tier accounts are limited to 1,000 requests per day. Paid
+        accounts have no daily cap. Rate limit status is returned in the
+        response headers of every <code>/v1/check</code> request:
+      </p>
       <table>
         <thead>
           <tr>
@@ -195,82 +282,48 @@ print(data['recommendation'])  # "allow" | "review" | "block"`;
         </thead>
         <tbody>
           <tr>
+            <td><code>X-RateLimit-Limit</code></td>
+            <td>Your daily request limit</td>
+          </tr>
+          <tr>
+            <td><code>X-RateLimit-Remaining</code></td>
+            <td>Requests remaining for today</td>
+          </tr>
+          <tr>
             <td><code>X-Fraud-Blocked-Today</code></td>
-            <td>Total blocked requests today</td>
-          </tr>
-          <tr>
-            <td><code>X-Fraud-Blocked-Reason</code></td>
-            <td>Why this request was flagged</td>
-          </tr>
-          <tr>
-            <td><code>X-Estimated-Cost</code></td>
-            <td>Estimated cost of today's usage</td>
+            <td>Number of requests blocked by fraud detection today</td>
           </tr>
         </tbody>
       </table>
 
-      <h2>🔢 HTTP Status Codes</h2>
+      {/* Errors */}
+      <h2>Errors</h2>
       <table>
         <thead>
           <tr>
-            <th>Code</th>
-            <th>Description</th>
+            <th>Status</th>
+            <th>Meaning</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>200</td>
-            <td>Success</td>
+            <td><code>400</code></td>
+            <td>Bad request. Missing or invalid parameters.</td>
           </tr>
           <tr>
-            <td>201</td>
-            <td>Resource created (API key)</td>
+            <td><code>401</code></td>
+            <td>Unauthorized. Missing or invalid API key.</td>
           </tr>
           <tr>
-            <td>400</td>
-            <td>Bad request — check request body</td>
+            <td><code>429</code></td>
+            <td>Rate limit exceeded for free tier.</td>
           </tr>
           <tr>
-            <td>401</td>
-            <td>Missing or invalid API key</td>
+            <td><code>500</code></td>
+            <td>Internal server error. Check back soon.</td>
           </tr>
         </tbody>
       </table>
-
-      <h2>💻 SDK Examples</h2>
-
-      <h3>Node.js / TypeScript</h3>
-      <div className="pre-group">
-        <pre>
-          <code>{nodeExample}</code>
-          <button
-            className="copy-btn"
-            onClick={() => navigator.clipboard.writeText(nodeExample)}
-          >
-            Copy
-          </button>
-        </pre>
-      </div>
-
-      <h3>Python</h3>
-      <div className="pre-group">
-        <pre>
-          <code>{pyExample}</code>
-          <button
-            className="copy-btn"
-            onClick={() => navigator.clipboard.writeText(pyExample)}
-          >
-            Copy
-          </button>
-        </pre>
-      </div>
-
-      <div className="footer">
-        <p>
-          🛡️ <span>SignupDoggy</span> API — Built on Cloudflare Workers.
-          Powered by open data.
-        </p>
-      </div>
     </div>
   );
 }
