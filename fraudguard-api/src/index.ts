@@ -431,18 +431,28 @@ function decodeHtmlEntities(s: string): string {
 async function crawlProviderDomains(slug: string): Promise<Set<string>> {
   const domains = new Set<string>();
   let page = 1;
+  let consecutiveFailures = 0;
+  const MAX_CONSECUTIVE_FAILURES = 3;
+
   while (page < 1500) { // safety cap
-    let html: string;
-    try {
-      const resp = await fetch(
-        `https://deviceandbrowserinfo.com/data/emails/providers/details/${slug}?page=${page}`,
-        { cf: { cacheTtl: 0 } }
-      );
-      if (!resp.ok) break;
-      html = await resp.text();
-    } catch {
-      break;
+    const result = await fetchWithRetry(
+      `https://deviceandbrowserinfo.com/data/emails/providers/details/${slug}?page=${page}`
+    );
+    if (!result) {
+      // All retries exhausted on this page. If the upstream is rate-limiting
+      // us mid-crawl, give up on the rest of this provider rather than
+      // burning 1500 page-loads for nothing. Bail after 3 consecutive failures.
+      consecutiveFailures++;
+      if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+        console.warn(`[per-provider] ${slug} bailing after ${MAX_CONSECUTIVE_FAILURES} consecutive page failures (page ${page})`);
+        break;
+      }
+      page++;
+      continue;
     }
+    consecutiveFailures = 0;
+    const html = result.text;
+
     const re = /href="\/data\/emails\/domain\/details\/([^"]+)"/g;
     let m: RegExpExecArray | null;
     let added = 0;
@@ -1384,6 +1394,51 @@ data = check_signup('sd_your_key_here', email='user@example.com', ip='1.2.3.4')<
   return c.html(html);
 });
 
+// ─── Shared helpers ────────────────────────────────────────────────────────────
+
+// Fetch with exponential backoff on 429/5xx. Returns null on permanent
+// failure (caller decides whether to skip or fail). Logs every attempt
+// failure so transient issues show up in `wrangler tail` instead of
+// silently disappearing.
+async function fetchWithRetry(
+  url: string,
+  options: { maxAttempts?: number; baseDelayMs?: number } = {}
+): Promise<{ text: string; status: number; attempts: number } | null> {
+  const maxAttempts = options.maxAttempts ?? 3;
+  const baseDelayMs = options.baseDelayMs ?? 200;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const resp = await fetch(url, { cf: { cacheTtl: 0 } });
+      if (resp.ok) {
+        const text = await resp.text();
+        return { text, status: resp.status, attempts: attempt };
+      }
+      if (attempt < maxAttempts && (resp.status === 429 || resp.status >= 500)) {
+        await new Promise(r => setTimeout(r, baseDelayMs * attempt));
+        continue;
+      }
+      // Non-retryable status, or out of attempts
+      console.error(`[fetch] ${url} -> HTTP ${resp.status} after ${attempt} attempt(s)`);
+      return null;
+    } catch (e: any) {
+      console.error(`[fetch] ${url} -> error: ${e?.message || 'unknown'} (attempt ${attempt}/${maxAttempts})`);
+      if (attempt < maxAttempts) {
+        await new Promise(r => setTimeout(r, baseDelayMs * attempt));
+        continue;
+      }
+      return null;
+    }
+  }
+  return null;
+}
+
+interface SourceStats {
+  fetched: number;
+  accepted: number;
+  status: string;
+}
+
 // ─── GET /__cron/run — Cron Sync Handler ───────────────────────────────────────
 
 async function syncDisposableEmails(env: Env): Promise<string> {
@@ -1400,38 +1455,53 @@ async function syncDisposableEmails(env: Env): Promise<string> {
   ];
 
   const allDomains = new Set<string>();
-  const perSource: Record<string, number> = {};
+  const perSource: Record<string, SourceStats> = {};
 
   for (const { url, format } of sources) {
-    try {
-      const resp = await fetch(url, { cf: { cacheTtl: 0 } });
-      if (!resp.ok) continue;
-      const text = await resp.text();
-      let count = 0;
+    const hostname = new URL(url).hostname;
+    let stats: SourceStats = { fetched: 0, accepted: 0, status: 'ok' };
 
+    const result = await fetchWithRetry(url);
+    if (!result) {
+      // All retries exhausted — record the failure visibly (was previously silent)
+      stats.status = 'fetch_failed';
+      perSource[hostname] = stats;
+      continue;
+    }
+
+    const text = result.text;
+
+    try {
       if (format === 'conf') {
-        for (const line of text.split('\n')) {
+        const lines = text.split('\n');
+        stats.fetched = lines.length;
+        for (const line of lines) {
           const trimmed = line.trim();
           if (trimmed && !trimmed.startsWith('#')) {
             allDomains.add(trimmed.toLowerCase());
-            count++;
+            stats.accepted++;
           }
         }
       } else {
-        try {
-          const arr = JSON.parse(text);
-          if (Array.isArray(arr)) {
-            for (const d of arr) {
-              if (typeof d === 'string') {
-                allDomains.add(d.toLowerCase());
-                count++;
-              }
+        const arr = JSON.parse(text);
+        stats.fetched = Array.isArray(arr) ? arr.length : 0;
+        if (Array.isArray(arr)) {
+          for (const d of arr) {
+            if (typeof d === 'string') {
+              allDomains.add(d.toLowerCase());
+              stats.accepted++;
             }
           }
-        } catch { /* skip malformed json */ }
+        } else {
+          stats.status = 'parse_error_not_array';
+        }
       }
-      perSource[new URL(url).hostname] = count;
-    } catch { /* skip failed source */ }
+    } catch (e: any) {
+      stats.status = `parse_error: ${e?.message || 'unknown'}`;
+      console.error(`[email-sync] ${url} parse failed:`, e);
+    }
+
+    perSource[hostname] = stats;
   }
 
   // Per-provider crawl: the only source that catches addy.io and similar gaps
@@ -1443,7 +1513,11 @@ async function syncDisposableEmails(env: Env): Promise<string> {
       perProviderAdded++;
     }
   }
-  perSource[`perprovider${perProvider.fromCache ? ':cached' : ''}`] = perProvider.total;
+  perSource[`perprovider${perProvider.fromCache ? ':cached' : ''}`] = {
+    fetched: perProvider.total,
+    accepted: perProviderAdded,
+    status: perProvider.fromCache ? 'cache_hit' : 'fresh_crawl',
+  };
 
   const domainsArray = Array.from(allDomains);
   await env.DISPOSABLE_EMAILS.put('_all', JSON.stringify(domainsArray));
@@ -1490,77 +1564,51 @@ async function syncDisposablePhoneNumbers(env: Env): Promise<string> {
   ];
 
   const allNumbers = new Set<string>();
-  const perSource: Record<string, { fetched: number; accepted: number; status: string }> = {};
+  const perSource: Record<string, SourceStats> = {};
 
   for (const url of sources) {
     const hostname = new URL(url).hostname;
-    let fetched = 0;
-    let accepted = 0;
-    let status = 'ok';
+    const stats: SourceStats = { fetched: 0, accepted: 0, status: 'ok' };
 
-    // Retry on transient errors (429 / 5xx) — the email sync right before
-    // this can exhaust the upstream's rate-limit budget.
-    const MAX_ATTEMPTS = 3;
-    let text: string | null = null;
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      try {
-        const resp = await fetch(url, { cf: { cacheTtl: 0 } });
-        if (resp.ok) {
-          text = await resp.text();
-          break;
-        }
-        status = `HTTP ${resp.status}`;
-        if (attempt < MAX_ATTEMPTS && (resp.status === 429 || resp.status >= 500)) {
-          // Brief backoff before retry (200ms * attempt)
-          await new Promise(r => setTimeout(r, 200 * attempt));
-          continue;
-        }
-      } catch (e: any) {
-        status = `error: ${e?.message || 'unknown'}`;
-        if (attempt < MAX_ATTEMPTS) {
-          await new Promise(r => setTimeout(r, 200 * attempt));
-          continue;
-        }
-      }
-    }
-
-    if (text === null) {
-      // All retries exhausted — record the failure visibly (was previously silent)
-      perSource[hostname] = { fetched: 0, accepted: 0, status };
-      console.error(`[phone-sync] ${url} failed after ${MAX_ATTEMPTS} attempts: ${status}`);
+    const result = await fetchWithRetry(url);
+    if (!result) {
+      stats.status = 'fetch_failed';
+      perSource[hostname] = stats;
       continue;
     }
 
     try {
       if (url.includes('deviceandbrowserinfo.com')) {
         // Plain JSON array of E.164-style numeric strings
-        const arr = JSON.parse(text);
-        fetched = Array.isArray(arr) ? arr.length : 0;
+        const arr = JSON.parse(result.text);
+        stats.fetched = Array.isArray(arr) ? arr.length : 0;
         if (Array.isArray(arr)) {
           for (const n of arr) {
             if (typeof n === 'string' && /^\d{5,15}$/.test(n)) {
               allNumbers.add(n);
-              accepted++;
+              stats.accepted++;
             }
           }
+        } else {
+          stats.status = 'parse_error_not_array';
         }
       } else {
         // iP1SMS format: JSON object { "1234567890": "carrier name" }
-        const obj = JSON.parse(text) as Record<string, string>;
-        fetched = Object.keys(obj).length;
+        const obj = JSON.parse(result.text) as Record<string, string>;
+        stats.fetched = Object.keys(obj).length;
         for (const k of Object.keys(obj)) {
           if (/^\d{5,15}$/.test(k)) {
             allNumbers.add(k);
-            accepted++;
+            stats.accepted++;
           }
         }
       }
     } catch (e: any) {
-      status = `parse_error: ${e?.message || 'unknown'}`;
+      stats.status = `parse_error: ${e?.message || 'unknown'}`;
       console.error(`[phone-sync] ${url} parse failed:`, e);
     }
 
-    perSource[hostname] = { fetched, accepted, status };
+    perSource[hostname] = stats;
   }
 
   const numbers = Array.from(allNumbers);
