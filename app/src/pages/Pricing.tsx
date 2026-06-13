@@ -3,7 +3,7 @@ import AppLayout from '../components/AppLayout';
 
 export default function Pricing() {
   return (
-    <AppLayout title="pricing.signupdoggy.pages.dev">
+    <AppLayout>
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./pricing --list

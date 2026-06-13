@@ -2,7 +2,7 @@ import AppLayout from '../components/AppLayout';
 
 export default function Terms() {
   return (
-    <AppLayout title="terms.signupdoggy.pages.dev">
+    <AppLayout>
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./terms --read

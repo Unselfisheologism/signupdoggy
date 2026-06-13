@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { motion, useInView } from 'motion/react';
+import { ArrowRightIcon, PromptIcon } from '../components/icons';
 
 // ── Types ──
 type CodeTab = 'curl' | 'node' | 'python';
@@ -204,25 +205,7 @@ export default function Landing() {
 
   return (
     <div className="crt">
-      {/* ── macOS Window Chrome ── */}
       <div className="window">
-        {/* Title Bar */}
-        <div className="window-bar">
-          <div className="window-dots">
-            <span className="window-dot window-dot--close" />
-            <span className="window-dot window-dot--min" />
-            <span className="window-dot window-dot--max" />
-          </div>
-          <div className="window-url">
-            <span className="lock">🔒</span>
-            <span className="url-text">signupdoggy.pages.dev</span>
-          </div>
-          <div className="window-actions">
-            <span>−</span>
-            <span>□</span>
-            <span>×</span>
-          </div>
-        </div>
 
         {/* ── Terminal Header / Nav ── */}
         <div className="term-header">
@@ -239,7 +222,7 @@ export default function Landing() {
             {!loading && session ? (
               <Link to="/dashboard" className="btn-nav">DASHBOARD</Link>
             ) : (
-              <Link to="/auth" className="btn-nav">GET STARTED →</Link>
+              <Link to="/auth" className="btn-nav">GET STARTED <ArrowRightIcon style={{ verticalAlign: '-2px', marginLeft: 4 }} /></Link>
             )}
           </nav>
         </div>
@@ -330,7 +313,7 @@ export default function Landing() {
               </button>
               {codeContent[activeTab].map((l, i) => (
                 <span key={i} className={`term-line ${l.indent ? 'indent' : ''}`}>
-                  {l.prompt && <span className="prompt-symbol">❯ </span>}
+                  {l.prompt && <span className="prompt-symbol"><PromptIcon style={{ display: 'block' }} /></span>}
                   {l.cmd && <span className="cmd">{l.line}</span>}
                   {l.key && <span className="key">{l.line}</span>}
                   {l.res && <span className="res">{l.line}</span>}

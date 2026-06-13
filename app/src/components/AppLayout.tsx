@@ -23,11 +23,9 @@ const dashNav: NavItem[] = [
 export default function AppLayout({
   children,
   navItems,
-  title = 'signupdoggy.pages.dev',
 }: {
   children: React.ReactNode;
   navItems?: NavItem[];
-  title?: string;
 }) {
   const { loading, session, logout } = useAuth();
   const location = useLocation();
@@ -61,23 +59,6 @@ export default function AppLayout({
   return (
     <div className="crt">
       <div className="window" style={{ minHeight: '100dvh', margin: isLanding ? 'var(--space-lg) auto' : '0 auto' }}>
-        {/* Title Bar */}
-        <div className="window-bar">
-          <div className="window-dots">
-            <span className="window-dot window-dot--close" />
-            <span className="window-dot window-dot--min" />
-            <span className="window-dot window-dot--max" />
-          </div>
-          <div className="window-url">
-            <span className="lock">🔒</span>
-            <span className="url-text">{title}</span>
-          </div>
-          <div className="window-actions">
-            <span>−</span>
-            <span>□</span>
-            <span>×</span>
-          </div>
-        </div>
 
         {/* Terminal Header / Nav */}
         <div className="term-header">

@@ -118,7 +118,7 @@ export default function Docs() {
   };
 
   return (
-    <AppLayout title="docs.signupdoggy.pages.dev">
+    <AppLayout>
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./docs --api-reference

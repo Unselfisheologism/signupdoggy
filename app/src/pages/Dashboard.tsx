@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth';
 import AppLayout from '../components/AppLayout';
 import { getUsage, listKeys, type UsageDay } from '../api';
+import { ArrowRightIcon } from '../components/icons';
 
 const FREE_TIER_DAILY = 1000;
 
@@ -60,7 +61,7 @@ export default function Dashboard() {
   const maxUsage = Math.max(1, ...chartDays.map(d => d.requests));
 
   return (
-    <AppLayout title="dashboard.signupdoggy.pages.dev">
+    <AppLayout>
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./dashboard --user={name}
@@ -178,19 +179,19 @@ export default function Dashboard() {
                   <span className="dash-link-bracket">[</span>
                   <span className="dash-link-text">MANAGE API KEYS</span>
                   <span className="dash-link-bracket">]</span>
-                  <span className="dash-link-arrow">→</span>
+                  <ArrowRightIcon className="dash-link-arrow" />
                 </Link>
                 <Link to="/docs" className="dash-link">
                   <span className="dash-link-bracket">[</span>
                   <span className="dash-link-text">API DOCS</span>
                   <span className="dash-link-bracket">]</span>
-                  <span className="dash-link-arrow">→</span>
+                  <ArrowRightIcon className="dash-link-arrow" />
                 </Link>
                 <Link to="/pricing" className="dash-link">
                   <span className="dash-link-bracket">[</span>
                   <span className="dash-link-text">PRICING</span>
                   <span className="dash-link-bracket">]</span>
-                  <span className="dash-link-arrow">→</span>
+                  <ArrowRightIcon className="dash-link-arrow" />
                 </Link>
               </div>
             </div>

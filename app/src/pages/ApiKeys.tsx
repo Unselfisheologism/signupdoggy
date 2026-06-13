@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AppLayout from '../components/AppLayout';
 import { listKeys, createKey, deleteKey, type ApiKey } from '../api';
+import { WarnIcon } from '../components/icons';
 
 function KeyDisplay({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (key: string) => void }) {
   const [copied, setCopied] = useState(false);
@@ -91,7 +92,7 @@ export default function ApiKeys() {
   };
 
   return (
-    <AppLayout title="keys.signupdoggy.pages.dev">
+    <AppLayout>
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./keys --list
@@ -103,7 +104,7 @@ export default function ApiKeys() {
         {newKey && (
           <div className="new-key-box">
             <div className="new-key-warn">
-              ⚠ SAVE THIS KEY. IT WILL NOT BE SHOWN AGAIN.
+              <WarnIcon style={{ verticalAlign: '-2px', marginRight: 6 }} /> SAVE THIS KEY. IT WILL NOT BE SHOWN AGAIN.
             </div>
             <div className="key-display-box">{newKey}</div>
             <button

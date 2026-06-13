@@ -4,6 +4,7 @@ import { supabase } from '../supabase';
 import { useAuth } from '../auth';
 import AppLayout from '../components/AppLayout';
 import { GoogleIcon } from '../components/OAuthIcons';
+import { ArrowRightIcon } from '../components/icons';
 
 // Keep the SDK provider keys in one place so we can grep them later.
 type Provider = 'google';
@@ -52,7 +53,7 @@ export default function Auth() {
   };
 
   return (
-    <AppLayout title="auth.signupdoggy.pages.dev">
+    <AppLayout>
       <div className="page-content" style={{ maxWidth: 480, margin: '0 auto' }}>
         <div className="term-banner" style={{ marginBottom: 'var(--space-xl)' }}>
           <span className="banner-prompt">$</span> ./auth
@@ -103,7 +104,7 @@ export default function Auth() {
               <span className="auth-chooser-title">CREATE ACCOUNT</span>
               <span className="auth-chooser-desc">Start free. No credit card. 1,000 requests/day on the house.</span>
               <span className="auth-chooser-cta">
-                <span className="prompt">$</span> ./create-account →
+                <span className="prompt">$</span> ./create-account <ArrowRightIcon style={{ verticalAlign: '-2px', marginLeft: 2 }} />
               </span>
             </Link>
 
@@ -112,7 +113,7 @@ export default function Auth() {
               <span className="auth-chooser-title">LOG IN</span>
               <span className="auth-chooser-desc">Already have an account? Pick up where you left off.</span>
               <span className="auth-chooser-cta">
-                <span className="prompt">&gt;</span> ./login →
+                <span className="prompt">&gt;</span> ./login <ArrowRightIcon style={{ verticalAlign: '-2px', marginLeft: 2 }} />
               </span>
             </Link>
           </div>

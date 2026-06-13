@@ -28,7 +28,7 @@ export default function Signup() {
   };
 
   return (
-    <AppLayout title="signup.signupdoggy.pages.dev">
+    <AppLayout>
       <div className="page-content" style={{ maxWidth: 440, margin: '0 auto' }}>
         <div className="term-banner" style={{ marginBottom: 'var(--space-xl)' }}>
           <span className="banner-prompt">$</span> ./signup --free-tier
