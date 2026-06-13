@@ -1238,11 +1238,8 @@ code { font-family: var(--font-mono); }
 }
 .oauth-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-sm);
-}
-@media (max-width: 480px) {
-  .oauth-grid { grid-template-columns: 1fr; }
 }
 .oauth-btn {
   display: flex;

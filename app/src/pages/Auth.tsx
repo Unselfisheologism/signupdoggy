@@ -3,16 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../supabase';
 import { useAuth } from '../auth';
 import AppLayout from '../components/AppLayout';
-import {
-  GoogleIcon,
-  GithubIcon,
-  DiscordIcon,
-  XIcon,
-  FacebookIcon,
-} from '../components/OAuthIcons';
+import { GoogleIcon } from '../components/OAuthIcons';
 
 // Keep the SDK provider keys in one place so we can grep them later.
-type Provider = 'google' | 'github' | 'discord' | 'twitter' | 'facebook';
+type Provider = 'google';
 
 interface ProviderMeta {
   id: Provider;
@@ -22,11 +16,7 @@ interface ProviderMeta {
 }
 
 const providers: ProviderMeta[] = [
-  { id: 'google',   label: 'GOOGLE',   cmd: 'google',   icon: <GoogleIcon /> },
-  { id: 'github',   label: 'GITHUB',   cmd: 'github',   icon: <GithubIcon /> },
-  { id: 'discord',  label: 'DISCORD',  cmd: 'discord',  icon: <DiscordIcon /> },
-  { id: 'twitter',  label: 'X / TWITTER (OAUTH 2.0)', cmd: 'twitter', icon: <XIcon /> },
-  { id: 'facebook', label: 'FACEBOOK', cmd: 'facebook', icon: <FacebookIcon /> },
+  { id: 'google', label: 'GOOGLE', cmd: 'google', icon: <GoogleIcon /> },
 ];
 
 export default function Auth() {
