@@ -355,15 +355,29 @@ async function getTorExitIps(env: Env): Promise<string[]> {
 // Use wrangler to seed/update:
 //   npx wrangler kv:key put --binding DISPOSABLE_EMAILS \
 //     "manual_overrides" '["aratrin.com", "another.com"]'
+// Cached in memory for 1 min (founder edits are rare, but the read
+// happens on every /v1/check otherwise).
+let manualOverridesCache: { set: Set<string>; expiresAt: number } | null = null;
+const MANUAL_OVERRIDES_TTL_MS = 60 * 1000;
+
 async function getManualOverrides(env: Env): Promise<Set<string>> {
-  const data = await env.DISPOSABLE_EMAILS.get('manual_overrides');
-  if (!data) return new Set();
-  try {
-    const arr = JSON.parse(data);
-    return new Set(Array.isArray(arr) ? arr.filter(d => typeof d === 'string') : []);
-  } catch {
-    return new Set();
+  if (manualOverridesCache && manualOverridesCache.expiresAt > Date.now()) {
+    return manualOverridesCache.set;
   }
+  const data = await env.DISPOSABLE_EMAILS.get('manual_overrides');
+  let set: Set<string>;
+  if (!data) {
+    set = new Set();
+  } else {
+    try {
+      const arr = JSON.parse(data);
+      set = new Set(Array.isArray(arr) ? arr.filter(d => typeof d === 'string') : []);
+    } catch {
+      set = new Set();
+    }
+  }
+  manualOverridesCache = { set, expiresAt: Date.now() + MANUAL_OVERRIDES_TTL_MS };
+  return set;
 }
 
 // Invalidate caches after a sync so the new data is immediately visible.
@@ -371,6 +385,129 @@ function invalidateListCaches() {
   disposableEmailCache = null;
   disposablePhoneCache = null;
   torExitCache = null;
+}
+
+// ─── Per-provider crawler ──────────────────────────────────────────────────────
+// deviceandbrowserinfo.com's bulk API (/api/emails/disposable) is missing
+// chunks of data — most notably addy.io's full 740-domain set. The per-
+// provider detail pages contain the same data plus those gaps. This crawler
+// fetches the providers index, then walks every per-provider page, dedupes
+// across providers, and returns a single Set.
+//
+// Cost: ~175 providers × ~5 pages each = ~900 HTTP requests on first run.
+// We KV-cache the merged result for 24h so subsequent syncs are instant.
+
+interface PerProviderCrawlResult {
+  domains: Set<string>;
+  total: number;
+  fromCache: boolean;
+  providersScanned: number;
+  durationMs: number;
+}
+
+const PER_PROVIDER_CACHE_KEY = 'perprovider:cache';
+const PER_PROVIDER_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+function parseProviderSlugs(html: string): string[] {
+  // Each provider has 2 anchors to its detail page; dedupe.
+  const re = /href="\/data\/emails\/providers\/details\/([^"]+)"/g;
+  const slugs = new Set<string>();
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(html)) !== null) {
+    slugs.add(m[1]);
+  }
+  return Array.from(slugs);
+}
+
+function decodeHtmlEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+async function crawlProviderDomains(slug: string): Promise<Set<string>> {
+  const domains = new Set<string>();
+  let page = 1;
+  while (page < 1500) { // safety cap
+    let html: string;
+    try {
+      const resp = await fetch(
+        `https://deviceandbrowserinfo.com/data/emails/providers/details/${slug}?page=${page}`,
+        { cf: { cacheTtl: 0 } }
+      );
+      if (!resp.ok) break;
+      html = await resp.text();
+    } catch {
+      break;
+    }
+    const re = /href="\/data\/emails\/domain\/details\/([^"]+)"/g;
+    let m: RegExpExecArray | null;
+    let added = 0;
+    while ((m = re.exec(html)) !== null) {
+      const decoded = decodeHtmlEntities(m[1]);
+      if (decoded && !domains.has(decoded)) {
+        domains.add(decoded.toLowerCase());
+        added++;
+      }
+    }
+    if (added === 0) break; // empty page or all duplicates (end of pagination)
+    page++;
+  }
+  return domains;
+}
+
+async function crawlAllPerProviderDomains(env: Env): Promise<PerProviderCrawlResult> {
+  const start = Date.now();
+
+  // 24h KV cache: most syncs within a day skip the entire crawl
+  const cached = await env.SYNC_LOGS.get(PER_PROVIDER_CACHE_KEY);
+  if (cached) {
+    try {
+      const parsed = JSON.parse(cached);
+      if (Date.now() - parsed.fetchedAt < PER_PROVIDER_CACHE_TTL_MS && Array.isArray(parsed.domains)) {
+        return {
+          domains: new Set(parsed.domains),
+          total: parsed.domains.length,
+          fromCache: true,
+          providersScanned: parsed.providersScanned || 0,
+          durationMs: 0,
+        };
+      }
+    } catch { /* fall through to fresh crawl */ }
+  }
+
+  // Fresh crawl: providers index -> per-provider pages in parallel batches
+  const indexResp = await fetch('https://deviceandbrowserinfo.com/data/emails/providers', { cf: { cacheTtl: 0 } });
+  if (!indexResp.ok) {
+    return { domains: new Set(), total: 0, fromCache: false, providersScanned: 0, durationMs: Date.now() - start };
+  }
+  const slugs = parseProviderSlugs(await indexResp.text());
+
+  const allDomains = new Set<string>();
+  const BATCH_SIZE = 8;
+  for (let i = 0; i < slugs.length; i += BATCH_SIZE) {
+    const batch = slugs.slice(i, i + BATCH_SIZE);
+    const results = await Promise.all(batch.map(slug => crawlProviderDomains(slug)));
+    for (const s of results) for (const d of s) allDomains.add(d);
+  }
+
+  // Persist for next sync
+  await env.SYNC_LOGS.put(PER_PROVIDER_CACHE_KEY, JSON.stringify({
+    fetchedAt: Date.now(),
+    providersScanned: slugs.length,
+    domains: Array.from(allDomains),
+  }));
+
+  return {
+    domains: allDomains,
+    total: allDomains.size,
+    fromCache: false,
+    providersScanned: slugs.length,
+    durationMs: Date.now() - start,
+  };
 }
 
 function generateApiKey(): string {
@@ -1254,6 +1391,8 @@ async function syncDisposableEmails(env: Env): Promise<string> {
   // domains (aratrin.com, 30k+ entries from temp-mail.org rotations, etc.) that
   // the public GitHub blocklists miss. Secondary: the two community-maintained
   // GitHub lists, kept for extra coverage. Set dedupes.
+  // Tertiary: per-provider pages — the bulk API is missing chunks (e.g. addy.io
+  // has 740 domains, 0 in bulk). Crawled in parallel batches with 24h KV cache.
   const sources: { url: string; format: 'json-array' | 'conf' }[] = [
     { url: 'https://deviceandbrowserinfo.com/api/emails/disposable', format: 'json-array' },
     { url: 'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf', format: 'conf' },
@@ -1295,11 +1434,27 @@ async function syncDisposableEmails(env: Env): Promise<string> {
     } catch { /* skip failed source */ }
   }
 
+  // Per-provider crawl: the only source that catches addy.io and similar gaps
+  const perProvider = await crawlAllPerProviderDomains(env);
+  let perProviderAdded = 0;
+  for (const d of perProvider.domains) {
+    if (!allDomains.has(d)) {
+      allDomains.add(d);
+      perProviderAdded++;
+    }
+  }
+  perSource[`perprovider${perProvider.fromCache ? ':cached' : ''}`] = perProvider.total;
+
   const domainsArray = Array.from(allDomains);
   await env.DISPOSABLE_EMAILS.put('_all', JSON.stringify(domainsArray));
-  await env.SYNC_LOGS.put(`disposable:${getToday()}`, JSON.stringify({ total: domainsArray.length, perSource }));
+  await env.SYNC_LOGS.put(`disposable:${getToday()}`, JSON.stringify({
+    total: domainsArray.length,
+    perSource,
+    perProviderAdded,
+    perProviderProvidersScanned: perProvider.providersScanned,
+  }));
   invalidateListCaches();
-  return `Synced ${domainsArray.length} disposable email domains (sources: ${JSON.stringify(perSource)})`;
+  return `Synced ${domainsArray.length} disposable email domains (perProvider added ${perProviderAdded} new in ${perProvider.durationMs}ms; sources: ${JSON.stringify(perSource)})`;
 }
 
 async function syncTorExitNodes(env: Env): Promise<string> {
