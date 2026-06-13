@@ -18,7 +18,7 @@ function KeyDisplay({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (key: stri
           {apiKey.key}
         </div>
         <div className="key-meta">
-          <span className="key-tier">FREE TIER</span>
+          <span className="key-tier">PAY-AS-YOU-GO</span>
           <span className="key-sep">|</span>
           <span>CREATED {new Date(apiKey.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</span>
           {apiKey.usage_today > 0 && (

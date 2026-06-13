@@ -69,7 +69,7 @@ export default function Privacy() {
         <ul className="docs-p" style={{ paddingLeft: '1.5em', listStyle: 'none' }}>
           <li>▸ <strong>CLOUDFLARE</strong> — HOSTS THE API AND THE DASHBOARD (DATA MAY BE PROCESSED AT THE CLOUDFLARE EDGE LOCATION NEAREST THE REQUEST)</li>
           <li>▸ <strong>SUPABASE</strong> — STORES ACCOUNT DATA, API KEYS, AND USAGE RECORDS (POSTGRES DATABASE)</li>
-          <li>▸ <strong>DODO PAYMENTS</strong> — PROCESSES PAYMENTS WHEN YOU EXCEED THE FREE TIER; DODO RECEIVES BILLING METADATA ONLY</li>
+          <li>▸ <strong>DODO PAYMENTS</strong> — PROCESSES YOUR ONE-TIME CREDIT PURCHASES. NO SUBSCRIPTION, NO RECURRING BILLING. DODO RECEIVES BILLING METADATA ONLY.</li>
           <li>▸ <strong>RESEND</strong> — DELIVERS TRANSACTIONAL EMAIL (VERIFICATION, BILLING ALERTS)</li>
         </ul>
 

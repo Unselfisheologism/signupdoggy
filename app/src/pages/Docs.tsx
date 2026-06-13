@@ -1,32 +1,30 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
 
-const curlCheck = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \\
-  -H "x-api-key: sd_your_key_here" \\
+const curlCheck = `curl -X POST https://api.signupdoggy.dev/v1/check \\
+  -H "x-api-key: $SIGNUPDOGGY_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'`;
 
 const jsonResp = `{
-  "email": {
-    "is_disposable": true,
-    "domain": "tempmail.com",
-    "risk_score": 85
+  "recommendation": "block",
+  "risk_score": 0.97,
+  "latency_ms": 38,
+  "signals": {
+    "disposable_email": true,
+    "vpn_or_proxy": true,
+    "tor_exit_node": true,
+    "role_based": false
   },
-  "ip": {
-    "is_tor": false,
-    "is_proxy": true,
-    "is_hosting": true,
-    "asn": "AS16509",
-    "risk_score": 72
-  },
-  "overall_risk": "high",
-  "recommendation": "block"
+  "email": { "domain": "10minutemail.com", "risk_score": 95 },
+  "ip": { "asn": "AS9009", "risk_score": 88 }
 }`;
 
-const nodeExample = `const res = await fetch('https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check', {
+const nodeExample = `const res = await fetch('https://api.signupdoggy.dev/v1/check', {
   method: 'POST',
   headers: {
-    'x-api-key': 'sd_your_key_here',
+    'x-api-key': process.env.SIGNUPDOGGY_KEY,
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
@@ -35,25 +33,26 @@ const nodeExample = `const res = await fetch('https://signupdoggy-api.jeffrinjam
   }),
 });
 const data = await res.json();
-console.log(data.recommendation);`;
+if (data.risk_score > 0.7) return block(data);`;
 
 const pyExample = `import requests
 
 res = requests.post(
-    'https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check',
-    headers={'x-api-key': 'sd_your_key_here'},
+    'https://api.signupdoggy.dev/v1/check',
+    headers={'x-api-key': os.environ['SIGNUPDOGGY_KEY']},
     json={'email': 'user@example.com', 'ip': '1.2.3.4'}
 )
 data = res.json()
-print(data['recommendation'])`;
+if data['risk_score'] > 0.7:
+    return block_user(data)`;
 
-const blacklistCurl = `curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/blacklist \\
-  -H "x-api-key: sd_your_key_here" \\
+const blacklistCurl = `curl -X POST https://api.signupdoggy.dev/v1/blacklist \\
+  -H "x-api-key: $SIGNUPDOGGY_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"type": "email", "value": "bad@actor.com"}'`;
 
-const statsCurl = `curl https://signupdoggy-api.jeffrinjames99.workers.dev/v1/stats \\
-  -H "x-api-key: sd_your_key_here"`;
+const statsCurl = `curl https://api.signupdoggy.dev/v1/stats \\
+  -H "x-api-key: $SIGNUPDOGGY_KEY"`;
 
 function CodeBlock({ code, label }: { code: string; label?: string }) {
   const [copied, setCopied] = useState(false);
@@ -112,7 +111,7 @@ export default function Docs() {
   const codeMap = { curl: curlCheck, node: nodeExample, python: pyExample };
   const [sdkCopied, setSdkCopied] = useState(false);
   const handleSdkCopy = () => {
-    navigator.clipboard.writeText('x-api-key: sd_your_key_here');
+    navigator.clipboard.writeText('x-api-key: $SIGNUPDOGGY_KEY');
     setSdkCopied(true);
     setTimeout(() => setSdkCopied(false), 2000);
   };
@@ -122,59 +121,51 @@ export default function Docs() {
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./docs --api-reference
-          <span className="banner-status">● REST API</span>
+          <span className="banner-status">● REST API · 40MS P95</span>
         </div>
 
         <h1 className="docs-h1">API REFERENCE</h1>
         <p className="docs-lead">
-          SIGNUPDOGGY IS A REST API. AUTHENTICATE WITH YOUR API KEY, SEND US AN
-          EMAIL OR IP ADDRESS, AND GET A FRAUD ASSESSMENT BACK IN UNDER 50MS.
+          ONE ENDPOINT. ONE API KEY. ONE DECISION: ALLOW · REVIEW · BLOCK.
         </p>
 
-        {/* Authentication */}
         <h2 className="docs-h2"># AUTHENTICATION</h2>
         <p className="docs-p">
-          EVERY REQUEST REQUIRES AN API KEY SENT VIA THE <code>X-API-KEY</code> HEADER.
-          CREATE A KEY FROM THE DASHBOARD AFTER SIGNING UP.
+          PASS YOUR API KEY IN THE <code>X-API-KEY</code> HEADER. CREATE A KEY FROM THE DASHBOARD AFTER BUYING CREDITS.
         </p>
         <div className="docs-code-block">
-          <pre className="docs-code-pre"><code>{'x-api-key: sd_your_key_here'}</code></pre>
+          <pre className="docs-code-pre"><code>{'x-api-key: $SIGNUPDOGGY_KEY'}</code></pre>
           <button className="docs-copy-btn" onClick={handleSdkCopy}>
             [{sdkCopied ? 'COPIED' : 'COPY'}]
           </button>
         </div>
 
-        {/* Endpoints */}
         <h2 className="docs-h2"># ENDPOINTS</h2>
 
-        <h3 className="docs-h3">## CHECK A SIGNUP</h3>
-        <Endpoint method="POST" path="/v1/check" desc="EVALUATE AN EMAIL AND/OR IP ADDRESS FOR FRAUD RISK" />
+        <h3 className="docs-h3">CHECK A SIGNUP</h3>
+        <Endpoint method="POST" path="/v1/check" desc="EVALUATE EMAIL + IP IN ONE CALL" />
         <p className="docs-p">
-          THE MAIN ENDPOINT. PASS AN EMAIL, AN IP, OR BOTH. THE API RETURNS
-          RISK SCORES FOR EACH SIGNAL PLUS AN OVERALL RECOMMENDATION.
+          PASS AN EMAIL, AN IP, OR BOTH. RETURN A 0–1 RISK SCORE PLUS PER-SIGNAL BREAKDOWN.
         </p>
 
         <h4 className="docs-h4">REQUEST BODY</h4>
         <FieldTable rows={[
-          ['email', 'string', 'NO*', 'EMAIL TO CHECK (REQUIRED IF NO IP)'],
-          ['ip', 'string', 'NO*', 'IP ADDRESS TO CHECK (REQUIRED IF NO EMAIL)'],
+          ['email', 'string', 'NO*', 'EMAIL TO CHECK'],
+          ['ip', 'string', 'NO*', 'IP ADDRESS TO CHECK'],
+          ['phone', 'string', 'NO', 'PHONE NUMBER TO CHECK'],
         ]} />
 
         <h4 className="docs-h4">RESPONSE</h4>
         <FieldTable rows={[
-          ['email.is_disposable', 'boolean', 'WHETHER EMAIL DOMAIN IS DISPOSABLE'],
-          ['email.domain', 'string', 'DOMAIN PORTION OF THE EMAIL'],
-          ['email.risk_score', 'number', '0-100 SCORE FROM EMAIL SIGNALS'],
-          ['ip.is_tor', 'boolean', 'WHETHER IP IS A TOR EXIT NODE'],
-          ['ip.is_proxy', 'boolean', 'WHETHER IP IS VPN/PROXY'],
-          ['ip.is_hosting', 'boolean', 'WHETHER IP IS CLOUD HOSTING'],
-          ['ip.asn', 'string|null', 'ASN IDENTIFIER'],
-          ['ip.risk_score', 'number', '0-100 SCORE FROM IP SIGNALS'],
-          ['overall_risk', 'string', 'LOW / MEDIUM / HIGH'],
-          ['recommendation', 'string', 'ALLOW / REVIEW / BLOCK'],
+          ['recommendation', '"allow"|"review"|"block"', 'DECISION'],
+          ['risk_score', '0–1', 'OVERALL RISK'],
+          ['latency_ms', 'number', 'TIME TAKEN'],
+          ['signals.disposable_email', 'boolean', 'DISPOSABLE DOMAIN?'],
+          ['signals.vpn_or_proxy', 'boolean', 'VPN / PROXY?'],
+          ['signals.tor_exit_node', 'boolean', 'TOR EXIT?'],
+          ['signals.role_based', 'boolean', 'ADMIN@ / INFO@ / ETC'],
         ]} />
 
-        {/* Code Tabs */}
         <div className="docs-code-tabs">
           <div className="docs-tab-bar">
             {(['curl', 'node', 'python'] as const).map(t => (
@@ -191,39 +182,35 @@ export default function Docs() {
           {tab === 'curl' && <CodeBlock code={jsonResp} label="EXAMPLE RESPONSE" />}
         </div>
 
-        {/* Blacklists */}
         <h2 className="docs-h2"># CUSTOM BLACKLISTS</h2>
-        <h3 className="docs-h3">## ADD A BLACKLIST ENTRY</h3>
-        <Endpoint method="POST" path="/v1/blacklist" desc="ADD EMAIL/IP TO YOUR PERSONAL BLACKLIST" />
+        <h3 className="docs-h3">ADD A BLACKLIST ENTRY</h3>
+        <Endpoint method="POST" path="/v1/blacklist" desc="ADD EMAIL OR IP TO YOUR ACCOUNT BLACKLIST" />
         <FieldTable rows={[
-          ['type', 'string', 'YES', 'email OR ip'],
+          ['type', 'string', 'YES', '"email" OR "ip"'],
           ['value', 'string', 'YES', 'THE VALUE TO BLOCK'],
         ]} />
         <CodeBlock code={blacklistCurl} label="CURL" />
 
-        <h3 className="docs-h3">## GET STATS</h3>
-        <Endpoint method="GET" path="/v1/stats" desc="VIEW USAGE + REMAINING FREE QUOTA" />
+        <h2 className="docs-h2"># USAGE</h2>
+        <h3 className="docs-h3">GET USAGE + REMAINING CREDITS</h3>
+        <Endpoint method="GET" path="/v1/stats" desc="CHECK CREDITS, USAGE, AND LIMITS" />
         <CodeBlock code={statsCurl} label="CURL" />
 
-        {/* Rate Limits */}
-        <h2 className="docs-h2"># RATE LIMITS</h2>
+        <h2 className="docs-h2"># PRICING INLINE</h2>
         <p className="docs-p">
-          FREE TIER: 1,000 REQUESTS/DAY. PAID: NO DAILY CAP. RATE LIMIT STATUS
-          IS RETURNED IN RESPONSE HEADERS.
+          <strong>$0.01 PER REQUEST</strong> AFTER YOUR CREDITS RUN OUT. CREDITS NEVER EXPIRE. NO MONTHLY FEE. NO SALES CALL.
         </p>
-        <FieldTable headers={['FIELD', 'DESCRIPTION']} rows={[
-          ['X-RateLimit-Limit', 'YOUR DAILY REQUEST LIMIT'],
-          ['X-RateLimit-Remaining', 'REQUESTS REMAINING TODAY'],
-          ['X-Fraud-Blocked-Today', 'BLOCKED REQUESTS TODAY'],
-        ]} />
+        <p className="docs-p">
+          <Link to="/pricing">SEE THE THREE SIZES →</Link>
+        </p>
 
-        {/* Errors */}
         <h2 className="docs-h2"># ERRORS</h2>
         <FieldTable headers={['STATUS', 'MEANING']} rows={[
-          ['400', 'BAD REQUEST. MISSING/INVALID PARAMETERS.'],
-          ['401', 'UNAUTHORIZED. MISSING/INVALID API KEY.'],
-          ['429', 'RATE LIMIT EXCEEDED.'],
-          ['500', 'INTERNAL SERVER ERROR.'],
+          ['400', 'BAD REQUEST. MISSING OR INVALID PARAMETERS.'],
+          ['401', 'UNAUTHORIZED. MISSING OR INVALID API KEY.'],
+          ['402', 'OUT OF CREDITS. BUY MORE.'],
+          ['429', 'RATE LIMITED. BACK OFF.'],
+          ['500', 'INTERNAL ERROR. EMAIL JEFFRINJAMES99@GMAIL.COM.'],
         ]} />
       </div>
     </AppLayout>

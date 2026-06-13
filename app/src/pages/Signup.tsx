@@ -1,7 +1,13 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../supabase';
 import AppLayout from '../components/AppLayout';
+
+const packMap: Record<string, string> = {
+  solo: 'starter',
+  pro: 'growth',
+  scale: 'pro',
+};
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -9,6 +15,10 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = params.get('next');
+  const pack = params.get('pack');
+  const packInternal = pack ? (packMap[pack] ?? null) : null;
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,20 +33,28 @@ export default function Signup() {
       options: { emailRedirectTo: window.location.origin },
     });
     setLoading(false);
-    if (authErr) { setError(authErr.message); }
-    else { navigate('/dashboard'); }
+    if (authErr) { setError(authErr.message); return; }
+    if (next === 'checkout' && packInternal) {
+      navigate(`/checkout?pack=${packInternal}`, { replace: true });
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
     <AppLayout>
       <div className="page-content" style={{ maxWidth: 440, margin: '0 auto' }}>
         <div className="term-banner" style={{ marginBottom: 'var(--space-xl)' }}>
-          <span className="banner-prompt">$</span> ./signup --free-tier
+          <span className="banner-prompt">$</span> {next === 'checkout' && pack ? `./signup --pack=${pack}` : './signup'}
         </div>
 
         <div className="auth-form-wrap">
           <h1 className="auth-form-title">CREATE YOUR ACCOUNT</h1>
-          <p className="auth-form-sub">START WITH 1,000 FREE REQUESTS PER DAY</p>
+          <p className="auth-form-sub">
+            {next === 'checkout' && pack
+              ? `30 SECONDS. THEN YOU BUY ${String(pack).toUpperCase()}.`
+              : '30 SECONDS. THEN YOU BUY CREDITS.'}
+          </p>
 
           {error && <div className="error-msg retro-error">! {error}</div>}
 
@@ -78,7 +96,7 @@ export default function Signup() {
 
           <div className="auth-form-footer">
             <span className="auth-form-divider">──</span>
-            <span>ALREADY HAVE ONE? <Link to="/login" className="auth-form-link">LOG IN</Link></span>
+            <span>ALREADY HAVE ONE? <Link to={`/login${next === 'checkout' && pack ? `?next=checkout&pack=${pack}` : ''}`} className="auth-form-link">LOG IN</Link></span>
             <span className="auth-form-divider">──</span>
           </div>
         </div>

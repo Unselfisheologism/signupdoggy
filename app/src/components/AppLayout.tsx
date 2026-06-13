@@ -5,19 +5,20 @@ import { useEffect } from 'react';
 interface NavItem {
   path: string;
   label: string;
+  accent?: boolean;
 }
 
 const defaultNav: NavItem[] = [
   { path: '/', label: 'HOME' },
   { path: '/docs', label: 'DOCS' },
-  { path: '/pricing', label: 'PRICING' },
+  { path: '/pricing', label: 'PRICING', accent: true },
 ];
 
 const dashNav: NavItem[] = [
   { path: '/dashboard', label: 'DASHBOARD' },
   { path: '/keys', label: 'API KEYS' },
   { path: '/docs', label: 'DOCS' },
-  { path: '/pricing', label: 'PRICING' },
+  { path: '/pricing', label: 'PRICING', accent: true },
 ];
 
 export default function AppLayout({
@@ -35,9 +36,6 @@ export default function AppLayout({
 
   const handleLogout = async () => {
     await logout();
-    // signOut() resolves and clears the Supabase session + storage; the local
-    // user/session state is reset by logout() itself, so RequireAuth won't
-    // bounce us back. Send the user to the landing page.
     navigate('/', { replace: true });
   };
 
@@ -48,13 +46,12 @@ export default function AppLayout({
       switch (e.key.toLocaleLowerCase()) {
         case 'd': navigate('/docs'); break;
         case 'p': navigate('/pricing'); break;
-        case 'f': navigate('/#features'); break;
-        case 'g': navigate('/auth'); break;
+        case 'g': navigate(session ? '/dashboard' : '/auth'); break;
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [navigate]);
+  }, [navigate, session]);
 
   return (
     <div className="crt">
@@ -73,7 +70,10 @@ export default function AppLayout({
               <Link
                 key={item.path}
                 to={item.path}
-                className={location.pathname === item.path ? 'active' : ''}
+                className={[
+                  location.pathname === item.path ? 'active' : '',
+                  item.accent ? 'term-pricing-link' : '',
+                ].filter(Boolean).join(' ')}
               >
                 {item.label}
               </Link>
@@ -88,7 +88,7 @@ export default function AppLayout({
                 LOGOUT
               </button>
             ) : !loading && !session && !isLanding ? (
-              <Link to="/auth" className="btn-nav">SIGN IN</Link>
+              <Link to="/auth" className="btn-nav">GET MY API KEY</Link>
             ) : null}
           </nav>
         </div>
@@ -98,26 +98,33 @@ export default function AppLayout({
           {children}
         </div>
 
-        {/* Footer (only on non-landing pages) */}
+        {/* Footer */}
         {!isLanding && (
-          <footer className="terminal-footer" style={{ borderTop: 'var(--border-thin) solid var(--border-dim)' }}>
-            <div className="status">
-              <span className="status-dot" />
-              <span>STATUS: OPERATIONAL</span>
+          <footer className="terminal-footer terminal-footer--share">
+            <div className="footer-quote">
+              <span className="footer-quote-mark">“</span>
+              Built in Mumbai. Catches fakes globally. <span className="footer-quote-mark close">”</span>
             </div>
-            <span className="section-divider">|</span>
-            <span>SIGNUPDOGGY v2.1.0 · 2026</span>
-            <span className="section-divider">|</span>
-            <div className="keybind">
-              <span>[<kbd>F</kbd>] <a href="/#features">Features</a></span>
-              <span>[<kbd>D</kbd>] <a href="/docs">Docs</a></span>
-              <span>[<kbd>P</kbd>] <a href="/pricing">Pricing</a></span>
-              <span>[<kbd>G</kbd>] <a href="/auth">Get Started</a></span>
+            <div className="footer-row">
+              <div className="status">
+                <span className="status-dot" />
+                <span>STATUS: OPERATIONAL</span>
+              </div>
+              <span className="section-divider">|</span>
+              <div className="keybind">
+                <span>[<kbd>D</kbd>] DOCS</span>
+                <span>[<kbd>P</kbd>] PRICING</span>
+                <span>[<kbd>G</kbd>] GET MY API KEY</span>
+              </div>
+              <span className="section-divider">|</span>
+              <div className="keybind">
+                <span><Link to="/terms">TERMS</Link></span>
+                <span><Link to="/privacy">PRIVACY</Link></span>
+                <span><a href="mailto:jeffrinjames99@gmail.com">jeffrinjames99@gmail.com</a></span>
+              </div>
             </div>
-            <span className="section-divider">|</span>
-            <div className="keybind">
-              <span><Link to="/terms">TERMS</Link></span>
-              <span><Link to="/privacy">PRIVACY</Link></span>
+            <div className="footer-credit">
+              $ ./whoami → jeffrin-james, mumbai, india, indie hacker
             </div>
           </footer>
         )}
