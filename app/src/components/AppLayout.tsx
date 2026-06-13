@@ -29,11 +29,19 @@ export default function AppLayout({
   navItems?: NavItem[];
   title?: string;
 }) {
-  const { loading, session } = useAuth();
+  const { loading, session, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const isLanding = location.pathname === '/';
   const nav = navItems || (session && !isLanding ? dashNav : defaultNav);
+
+  const handleLogout = async () => {
+    await logout();
+    // signOut() resolves and clears the Supabase session + storage; the local
+    // user/session state is reset by logout() itself, so RequireAuth won't
+    // bounce us back. Send the user to the landing page.
+    navigate('/', { replace: true });
+  };
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -90,7 +98,14 @@ export default function AppLayout({
               </Link>
             ))}
             {!loading && session && !isLanding ? (
-              <Link to="/" className="btn-nav">LOGOUT</Link>
+              <button
+                type="button"
+                className="btn-nav"
+                onClick={handleLogout}
+                aria-label="Log out of your account"
+              >
+                LOGOUT
+              </button>
             ) : !loading && !session && !isLanding ? (
               <Link to="/auth" className="btn-nav">SIGN IN</Link>
             ) : null}

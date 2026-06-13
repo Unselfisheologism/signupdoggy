@@ -295,14 +295,22 @@ code { font-family: var(--font-mono); }
   background: rgba(232, 112, 64, 0.06);
 }
 
-.term-nav a.btn-nav {
+.term-nav a.btn-nav,
+.term-nav button.btn-nav {
   color: var(--bg);
   background: var(--accent);
   border-color: var(--accent);
   font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 6px 14px;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.15s;
 }
-
-.term-nav a.btn-nav:hover {
+.term-nav a.btn-nav:hover,
+.term-nav button.btn-nav:hover {
   background: #d06030;
   border-color: #d06030;
 }
