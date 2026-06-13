@@ -1490,39 +1490,77 @@ async function syncDisposablePhoneNumbers(env: Env): Promise<string> {
   ];
 
   const allNumbers = new Set<string>();
-  const perSource: Record<string, number> = {};
+  const perSource: Record<string, { fetched: number; accepted: number; status: string }> = {};
 
   for (const url of sources) {
-    try {
-      const resp = await fetch(url, { cf: { cacheTtl: 0 } });
-      if (!resp.ok) continue;
-      const text = await resp.text();
-      let count = 0;
-      const hostname = new URL(url).hostname;
+    const hostname = new URL(url).hostname;
+    let fetched = 0;
+    let accepted = 0;
+    let status = 'ok';
 
+    // Retry on transient errors (429 / 5xx) — the email sync right before
+    // this can exhaust the upstream's rate-limit budget.
+    const MAX_ATTEMPTS = 3;
+    let text: string | null = null;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const resp = await fetch(url, { cf: { cacheTtl: 0 } });
+        if (resp.ok) {
+          text = await resp.text();
+          break;
+        }
+        status = `HTTP ${resp.status}`;
+        if (attempt < MAX_ATTEMPTS && (resp.status === 429 || resp.status >= 500)) {
+          // Brief backoff before retry (200ms * attempt)
+          await new Promise(r => setTimeout(r, 200 * attempt));
+          continue;
+        }
+      } catch (e: any) {
+        status = `error: ${e?.message || 'unknown'}`;
+        if (attempt < MAX_ATTEMPTS) {
+          await new Promise(r => setTimeout(r, 200 * attempt));
+          continue;
+        }
+      }
+    }
+
+    if (text === null) {
+      // All retries exhausted — record the failure visibly (was previously silent)
+      perSource[hostname] = { fetched: 0, accepted: 0, status };
+      console.error(`[phone-sync] ${url} failed after ${MAX_ATTEMPTS} attempts: ${status}`);
+      continue;
+    }
+
+    try {
       if (url.includes('deviceandbrowserinfo.com')) {
         // Plain JSON array of E.164-style numeric strings
         const arr = JSON.parse(text);
+        fetched = Array.isArray(arr) ? arr.length : 0;
         if (Array.isArray(arr)) {
           for (const n of arr) {
             if (typeof n === 'string' && /^\d{5,15}$/.test(n)) {
               allNumbers.add(n);
-              count++;
+              accepted++;
             }
           }
         }
       } else {
         // iP1SMS format: JSON object { "1234567890": "carrier name" }
         const obj = JSON.parse(text) as Record<string, string>;
+        fetched = Object.keys(obj).length;
         for (const k of Object.keys(obj)) {
           if (/^\d{5,15}$/.test(k)) {
             allNumbers.add(k);
-            count++;
+            accepted++;
           }
         }
       }
-      perSource[hostname] = count;
-    } catch { /* skip failed source */ }
+    } catch (e: any) {
+      status = `parse_error: ${e?.message || 'unknown'}`;
+      console.error(`[phone-sync] ${url} parse failed:`, e);
+    }
+
+    perSource[hostname] = { fetched, accepted, status };
   }
 
   const numbers = Array.from(allNumbers);
