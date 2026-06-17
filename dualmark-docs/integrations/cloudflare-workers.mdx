@@ -1,0 +1,107 @@
+---
+title: Cloudflare Workers
+description: Wrap any upstream Worker with createAEOWorker for edge negotiation.
+---
+
+`@dualmark/cloudflare` is a higher-order Worker. Pass it your existing Worker (or, for a static site, a thin wrapper around `env.ASSETS`), and it adds AI bot detection, markdown serving, header injection, and Analytics Engine telemetry.
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+</Tabs>
+
+## Static site (Astro / SvelteKit static / etc.)
+
+```ts title="worker.ts"
+import { createAEOWorker } from "@dualmark/cloudflare";
+
+const upstream = {
+  async fetch(request: Request, env, _ctx) {
+    return env.ASSETS.fetch(request);
+  },
+};
+
+export default createAEOWorker({
+  upstream,
+  trailingSlash: "never",
+  enableLinkHeader: true,
+  analytics: { binding: "AI_AGENT_ANALYTICS" },
+});
+```
+
+```jsonc title="wrangler.jsonc"
+{
+  "name": "my-site",
+  "main": "./worker.ts",
+  "compatibility_date": "2026-05-04",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "analytics_engine_datasets": [
+    { "binding": "AI_AGENT_ANALYTICS", "dataset": "ai_events" }
+  ]
+}
+```
+
+<Callout type="warn">
+  `run_worker_first: true` is **required**. Without it, the Cloudflare runtime serves matching assets directly and skips the Worker — meaning negotiation never runs.
+</Callout>
+
+## Wrapping an existing SSR Worker
+
+```ts title="worker.ts"
+import upstream from "./dist/_worker.js/index.js";
+import { createAEOWorker } from "@dualmark/cloudflare";
+
+export default createAEOWorker({
+  upstream,
+  redirects: {
+    internal: { "/old-path": "/new-path" },
+    external: { "/login": "https://app.example.com" },
+  },
+  hooks: {
+    onAIRequest: (info) => console.log(`${info.botName} hit ${info.pathname}`),
+    onMiss: (info) => console.warn(`miss: ${info.pathname}`),
+  },
+});
+```
+
+## Verify
+
+The example at `examples/astro-cloudflare-full` scores a perfect **125/125** under `wrangler dev` — the same setup Dodo Payments runs in production (and where they saw a [5× lift in AI agent traffic](https://dualmark.dev/#case-study) over 2 months):
+
+```bash
+wrangler dev
+# new terminal:
+bunx @dualmark/cli verify http://localhost:8787/blog/your-post
+```
+
+## What it does
+
+1. **Trailing slash enforcement** — configurable: `never` (default), `always`, `preserve`
+2. **AI bot detection** — via UA, against the registry of [24 known crawlers](/docs/spec/ai-bot-detection)
+3. **Content negotiation** — via Accept header, RFC 7231 §5.3.2 compliant
+4. **Markdown serving** — pre-built `.md` from `env.ASSETS` with full AEO headers
+5. **Internal redirects** — routes to target's `.md` with `X-Redirect-From` / `X-Redirect-To`
+6. **External redirects** — returns markdown notice with target link
+7. **406 fallback** — when neither HTML nor markdown is acceptable
+8. **Link header injection** — `<…>; rel="alternate"; type="text/markdown"` on HTML responses
+9. **Analytics Engine** — hit/miss, bot, country, tokens, UA
+10. **Pass-through** — falls through to upstream Worker for everything else

@@ -1,0 +1,114 @@
+---
+title: "@dualmark/cloudflare"
+description: Cloudflare Workers edge adapter — wraps any upstream Worker.
+---
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+</Tabs>
+
+## `createAEOWorker(options)`
+
+```ts
+import { createAEOWorker } from "@dualmark/cloudflare";
+
+export default createAEOWorker({
+  upstream: existingWorker,
+  trailingSlash: "never",
+  enableLinkHeader: true,
+
+  redirects: {
+    internal: { "/old": "/new" },
+    external: { "/login": "https://app.example.com" },
+  },
+
+  skip: {
+    prefixes: ["/admin", "/api/"],
+    extensions: [".js", ".css", ".png"],
+  },
+
+  analytics: { binding: "AI_AGENT_ANALYTICS" },
+
+  headers: { cacheControl: "public, max-age=3600" },
+
+  hooks: {
+    onAIRequest: (info) => console.log(info.botName, info.pathname),
+    onMiss: (info) => console.warn("miss:", info.pathname),
+  },
+});
+```
+
+## Options
+
+| Option | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `upstream` | `UpstreamWorker` | required | Your existing Worker (or shim) |
+| `trailingSlash` | `"never" \| "always" \| "preserve"` | `"never"` | Redirect policy |
+| `enableLinkHeader` | `boolean` | `true` | Inject `Link rel="alternate"` on HTML |
+| `redirects.internal` | `Record<string, string>` | `{}` | Path → path |
+| `redirects.external` | `Record<string, string>` | `{}` | Path → URL |
+| `skip.prefixes` | `string[]` | `["/admin", "/api/", "/_"]` | Skip negotiation entirely |
+| `skip.extensions` | `string[]` | common assets | Skip negotiation for these extensions |
+| `analytics.binding` | `string` | `undefined` | Analytics Engine binding name |
+| `headers.cacheControl` | `string` | `"public, max-age=3600"` | For markdown responses |
+| `hooks.onAIRequest` | `(info) => void` | `undefined` | Called on every AI hit |
+| `hooks.onMiss` | `(info) => void` | `undefined` | Called when no markdown found |
+
+## Types
+
+```ts
+interface AIRequestInfo {
+  url: URL;
+  botName: string | null;
+  botVendor: string | null;
+  acceptHeader: string;
+  pathname: string;
+  cacheStatus: "hit" | "miss";
+  tokens: number;
+}
+
+interface MissInfo {
+  url: URL;
+  botName: string | null;
+  pathname: string;
+  acceptHeader: string;
+}
+```
+
+## Wrangler config
+
+<Callout type="warn">
+  `assets.run_worker_first: true` is **required** when serving static assets via the ASSETS binding. Without it, the runtime serves matching files directly and skips your Worker.
+</Callout>
+
+```jsonc
+{
+  "name": "my-site",
+  "main": "./worker.ts",
+  "compatibility_date": "2026-05-04",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  "analytics_engine_datasets": [
+    { "binding": "AI_AGENT_ANALYTICS", "dataset": "ai_events" }
+  ]
+}
+```

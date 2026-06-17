@@ -1,0 +1,142 @@
+---
+title: Overview
+description: AEO Specification v1.0 — proposed convention. Scope, terminology, status, section index.
+---
+
+**Status:** Proposed convention (May 2026)
+**Editors:** The Dualmark Working Group (Dodo Payments)
+**Repository:** https://github.com/dodopayments/dualmark
+
+This specification defines a set of HTTP conventions for serving content to AI agents (LLM-powered search engines, training crawlers, and user-action retrieval bots) alongside conventional HTML for human browsers.
+
+The specification is **independent of any framework**. Anyone can implement it in any language. The reference implementation is the [`@dualmark/*`](/docs/packages/core) packages.
+
+## 0. Status of this Document
+
+This document is a **proposed convention**, not an official Internet Standard. It has not been reviewed or adopted by the IETF, W3C, WHATWG, or any other recognized standards body. There is no AI/AEO working group at the time of writing.
+
+**What is universally accepted** (the foundations this spec builds on):
+
+- HTTP content negotiation via the `Accept` header — [RFC 7231 §5.3.2](https://www.rfc-editor.org/rfc/rfc7231#section-5.3.2), an IETF Internet Standard
+- HTTP `Vary` and `Link` headers — [RFC 7234](https://www.rfc-editor.org/rfc/rfc7234), [RFC 8288](https://www.rfc-editor.org/rfc/rfc8288), IETF Standards Track
+- The `text/markdown` media type — [RFC 7763](https://www.rfc-editor.org/rfc/rfc7763), IETF Informational
+- `noindex` directive in `X-Robots-Tag` — de-facto since Google introduced it in 2007
+
+**What this spec adds on top** (not standardized anywhere):
+
+- The `<page>.md` twin URL convention (a pattern several sites have independently adopted; not a registered URI scheme)
+- The `X-Markdown-Tokens`, `X-AEO-Version` response headers (custom, prefixed `X-` per [RFC 6648](https://www.rfc-editor.org/rfc/rfc6648) deprecation guidance — these may move to standard headers in a future revision)
+- The conformance scoring model (Basic / Standard / Advanced thresholds — purely this spec's editorial choice)
+- The AI Agent Registry (we curate it; vendors publish their own UA patterns separately and we aggregate)
+
+**Sibling proposals in the same problem space:**
+
+- [llms.txt](https://llmstxt.org/) — Jeremy Howard / Answer.AI, September 2024. Proposes a single `/llms.txt` index file. Adopted by Mintlify, Anthropic, ~5,000 sites. We extend rather than replace this proposal — see [llms-txt-extensions.md](/docs/spec/llms-txt-extensions).
+- Various vendor-specific markdown export patterns (Anthropic docs, Cloudflare docs, Mintlify-hosted sites). Each implements roughly the same idea with subtly different conventions.
+
+**Path forward.** We expect this space will eventually be standardized — most likely via an IETF working group on AI-agent content negotiation, or as a W3C community group. When (or if) an official spec emerges, this document will either:
+
+1. Map cleanly onto the official spec (likely, since we built on RFC primitives), or
+2. Be marked Deprecated with a migration guide.
+
+In the meantime, implementing this spec gets you working AEO infrastructure today, with strong forward-compatibility because the foundation (RFC 7231 content negotiation) will not change.
+
+## 1. Scope
+
+This specification defines:
+
+1. HTTP content negotiation between text/html and text/markdown
+2. A required header set (`Content-Type`, `X-Markdown-Tokens`, `X-Robots-Tag`, `Vary`)
+3. A discovery mechanism via the `Link rel="alternate"` header
+4. An AI agent registry (canonical UA patterns + vendor mapping)
+5. Conformance testing levels and a public test suite
+
+This specification does NOT define:
+
+- HTML structure or semantics
+- Markdown dialect or extensions (use CommonMark or GitHub-Flavored Markdown)
+- AI-specific schemas (JSON-LD, llms.txt are addressed in [extensions](/docs/spec/llms-txt-extensions))
+- Authentication, rate limiting, or business logic
+
+## 2. Terminology
+
+The keywords MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY in this document are to be interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
+
+- **AI Agent**: an automated client identifying as one of the User-Agent patterns listed in [§5: AI Agent Registry](/docs/spec/ai-bot-detection), or a client sending an `Accept` header that prefers `text/markdown`.
+- **Markdown Twin**: the markdown representation of an HTML page. By convention, served at `<url>.md` (e.g. `/blog/hello.md` for `/blog/hello`).
+- **Conformant Server**: a server that implements §3 (content negotiation) + §4 (response headers) + §6 (discovery) at the Basic conformance level (see [conformance.md](/docs/spec/conformance)).
+
+## 3. Content Negotiation
+
+See [content-negotiation.md](/docs/spec/content-negotiation).
+
+A conformant server:
+
+- **MUST** honor `Accept: text/markdown` by serving the markdown twin
+- **MUST** honor `Accept: text/html` (and the implicit default) by serving HTML
+- **MUST** set `Vary: Accept` on any response whose representation depends on the `Accept` header
+- **SHOULD** return `406 Not Acceptable` if neither `text/html` nor `text/markdown` (nor a wildcard) is acceptable
+- **MAY** also serve markdown when the `User-Agent` matches an entry in the [AI Agent Registry](/docs/spec/ai-bot-detection)
+
+## 4. Required Response Headers
+
+See [headers.md](/docs/spec/headers).
+
+On every markdown twin response (including `4xx` markdown error pages), a conformant server:
+
+- **MUST** set `Content-Type: text/markdown; charset=utf-8`
+- **MUST** set `X-Markdown-Tokens: <integer>` with an estimated token count of the body
+- **MUST** set `X-Robots-Tag` to a value containing `noindex` to prevent duplicate indexing
+- **MUST** set `Vary: Accept`
+- **SHOULD** set `X-Content-Type-Options: nosniff`
+- **SHOULD** set `X-AEO-Version: 1.0` to advertise the implemented spec version
+
+## 5. AI Agent Registry
+
+See [ai-bot-detection.md](/docs/spec/ai-bot-detection).
+
+The registry is normative for purposes of detection but extensible by implementations. The registry SHOULD be considered a living document; a conformant server MAY maintain its own extensions.
+
+## 6. Discovery
+
+See [discovery.md](/docs/spec/discovery).
+
+A conformant server:
+
+- **MUST** advertise the markdown twin via `Link: <url.md>; rel="alternate"; type="text/markdown"` on every HTML response that has a markdown twin
+- **MAY** publish an `llms.txt` file at the root path describing the site's AI-relevant content
+- **MAY** include `.md` URLs in `sitemap.xml`
+
+## 7. Conformance
+
+See [conformance.md](/docs/spec/conformance).
+
+Three levels are defined: Basic, Standard, Advanced. The reference test runner is [`@dualmark/cli`](/docs/packages/cli) — `dualmark verify <url>`.
+
+## 8. Security Considerations
+
+- The `noindex` directive prevents AI-friendly markdown twins from being indexed as duplicate pages by traditional search engines.
+- Content negotiation introduces no new attack surface beyond standard HTTP. Caches that key on URL alone (without honoring `Vary: Accept`) MAY serve the wrong representation; a conformant server MUST set `Vary: Accept`.
+- The `X-Markdown-Tokens` value is informational and MUST NOT be relied upon for billing or authorization.
+
+## 9. IANA Considerations
+
+This specification reserves no media types. `text/markdown` is registered in [RFC 7763](https://www.rfc-editor.org/rfc/rfc7763).
+
+## 10. Versioning & Stability
+
+This is **AEO Spec v1.0**. Future revisions follow semver:
+
+- Patch (1.0.x) — clarifications, errata
+- Minor (1.x.0) — backward-compatible additions
+- Major (x.0.0) — breaking changes
+
+Implementations advertise their target version via `X-AEO-Version`.
+
+## 11. References
+
+- [RFC 7231 §5.3.2: HTTP Content Negotiation](https://www.rfc-editor.org/rfc/rfc7231#section-5.3.2)
+- [RFC 7232: HTTP Conditional Requests](https://www.rfc-editor.org/rfc/rfc7232)
+- [RFC 7763: text/markdown media type](https://www.rfc-editor.org/rfc/rfc7763)
+- [RFC 8288: Web Linking](https://www.rfc-editor.org/rfc/rfc8288)
+- [llms.txt proposal](https://llmstxt.org)

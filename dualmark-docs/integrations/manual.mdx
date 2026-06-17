@@ -1,0 +1,49 @@
+---
+title: Any framework (manual)
+description: Implement Dualmark from scratch in any framework using @dualmark/core.
+---
+
+`@dualmark/core` is framework-agnostic — works in any runtime that has the standard `Request`/`Response` (Cloudflare, Bun, Deno, Node 18+, browsers).
+
+## Minimal handler
+
+```ts
+import { negotiateFormat, detectAIBot, markdownResponse } from "@dualmark/core";
+
+export async function handle(request: Request): Promise<Response> {
+  const accept = request.headers.get("accept") ?? "";
+  const ua = request.headers.get("user-agent") ?? "";
+  const bot = detectAIBot(ua);
+  const fmt = negotiateFormat(accept);
+
+  if (fmt === null && accept) {
+    return new Response("Not Acceptable", { status: 406, headers: { Vary: "Accept" } });
+  }
+
+  if (bot.isBot || fmt === "markdown") {
+    return markdownResponse("# Hello\n\nThis is the markdown twin.", {
+      cacheControl: "public, max-age=3600",
+    });
+  }
+
+  const html = "<html><body>Hello</body></html>";
+  const md = "/hello.md";
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      Link: `<${md}>; rel="alternate"; type="text/markdown"`,
+      Vary: "Accept",
+    },
+  });
+}
+```
+
+## Implementing in another language
+
+The [AEO Spec](/docs/spec/overview) is the source of truth. Any server in any language can be a conformant Dualmark implementation:
+
+1. Read [content-negotiation](/docs/spec/content-negotiation) for the negotiation algorithm
+2. Use the [headers](/docs/spec/headers) contract to build markdown responses
+3. Detect bots via the UA patterns in [ai-bot-detection](/docs/spec/ai-bot-detection)
+4. Provide [discovery](/docs/spec/discovery) signals (`Link rel=alternate`, `llms.txt`, `.md` URLs)
+5. Run [`dualmark verify`](/docs/conformance/cli) against your implementation

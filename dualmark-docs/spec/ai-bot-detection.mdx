@@ -1,0 +1,66 @@
+---
+title: AI bot registry
+description: The canonical list of AI crawler User-Agent patterns.
+---
+
+This document is normative for purposes of canonical detection patterns; informative for vendor metadata.
+
+## Detection Method
+
+A server matching by User-Agent SHOULD use case-insensitive substring matching against the `uaPattern` field. Implementations MAY use regular expressions instead.
+
+## Registry (v1.0)
+
+| name | uaPattern | vendor | purpose | docs |
+|---|---|---|---|---|
+| GPTBot | `GPTBot` | OpenAI | training | https://platform.openai.com/docs/gptbot |
+| ChatGPT-User | `ChatGPT-User` | OpenAI | user-action | https://platform.openai.com/docs/bots |
+| OAI-SearchBot | `OAI-SearchBot` | OpenAI | search | https://platform.openai.com/docs/bots |
+| ClaudeBot | `ClaudeBot` | Anthropic | training | https://support.anthropic.com/en/articles/8896518 |
+| Anthropic-ai | `Anthropic-ai` | Anthropic | training | — |
+| Claude-Web | `Claude-Web` | Anthropic | user-action | — |
+| Claude-SearchBot | `Claude-SearchBot` | Anthropic | search | https://support.anthropic.com/en/articles/8896518 |
+| Claude-User | `Claude-User` | Anthropic | user-action | https://support.anthropic.com/en/articles/8896518 |
+| PerplexityBot | `PerplexityBot` | Perplexity | search | https://docs.perplexity.ai/guides/bots |
+| Perplexity-User | `Perplexity-User` | Perplexity | user-action | https://docs.perplexity.ai/guides/bots |
+| Google-Extended | `Google-Extended` | Google | training | https://developers.google.com/search/docs/crawling-indexing/google-extended |
+| Applebot-Extended | `Applebot-Extended` | Apple | training | https://support.apple.com/en-us/119829 |
+| cohere-ai | `cohere-ai` | Cohere | training | — |
+| CCBot | `CCBot` | Common Crawl | training | https://commoncrawl.org/ccbot |
+| Bytespider | `Bytespider` | ByteDance | training | — |
+| DeepSeekBot | `DeepSeekBot` | DeepSeek | training | — |
+| Amazonbot | `Amazonbot` | Amazon | training | https://developer.amazon.com/amazonbot |
+| YouBot | `YouBot` | You.com | search | — |
+| Diffbot | `Diffbot` | Diffbot | training | — |
+| ImagesiftBot | `ImagesiftBot` | ImageSift | training | — |
+| Omgilibot | `Omgilibot` | Webz.io | training | — |
+| DuckAssistBot | `DuckAssistBot` | DuckDuckGo | search | — |
+| Meta-ExternalAgent | `meta-externalagent` | Meta | training | — |
+| Meta-ExternalFetcher | `meta-externalfetcher` | Meta | user-action | — |
+
+## Purpose Categories
+
+| purpose | meaning |
+|---|---|
+| `training` | Crawler that ingests content for model training |
+| `search` | Crawler that fetches content to answer a real-time user search query (search-grounded RAG) |
+| `user-action` | Bot triggered by an explicit user action (e.g. ChatGPT browse-on-behalf-of-user) |
+| `unknown` | Unclassified |
+
+## Canonical JSON
+
+The reference implementation publishes the registry as `AI_BOTS` in [`@dualmark/core`](/docs/packages/core/src/bots.ts). Implementations MAY consume this directly, mirror it, or maintain their own extensions.
+
+## Submitting a New Entry
+
+To propose a new bot for inclusion:
+
+1. Open a PR against `packages/core/src/bots.ts` and this document
+2. Provide: canonical UA pattern, vendor, purpose, and a public docs URL or User-Agent string sample
+3. Vendors that publish official documentation linking to their crawler will be prioritized
+
+## Limitations
+
+- UA strings can be spoofed. Implementations MUST NOT use UA detection for security or authorization decisions.
+- The registry is a snapshot at the time of publication. New AI crawlers appear regularly; consult the latest version of the registry rather than relying on a hard-coded list.
+- Some vendors (e.g. Anthropic, Google) operate multiple bots with overlapping purposes. The `purpose` field reflects the primary documented use.

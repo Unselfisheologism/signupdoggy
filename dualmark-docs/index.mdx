@@ -1,0 +1,78 @@
+---
+title: Documentation
+description: A markdown twin for every page on your site — so AI agents read what humans see, and cite you instead of your competitors.
+icon: House
+---
+
+import {
+  Rocket,
+  Gauge,
+  Lightbulb,
+  BookText,
+  Wrench,
+  Box,
+  ArrowLeftRight,
+  Terminal,
+  Package,
+  ShieldCheck,
+  Scale,
+} from "lucide-react";
+import { AstroLogo, NextLogo, CloudflareLogo } from "@/components/brand-logos";
+
+<div className="my-6 aspect-video w-full overflow-hidden rounded-[var(--radius-card)] shadow-lg shadow-black/20">
+  <iframe
+    src="https://www.youtube-nocookie.com/embed/7kmDiohehvw?rel=0"
+    title="Dualmark — AEO infrastructure for marketing sites"
+    loading="lazy"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerPolicy="strict-origin-when-cross-origin"
+    allowFullScreen
+    className="block h-full w-full border-0"
+  />
+</div>
+
+**Dualmark** gives every page on your site a markdown twin for AI agents alongside its HTML for humans. Same URL, two formats, picked by HTTP content negotiation.
+
+Built and battle-tested at [Dodo Payments](https://dodopayments.com).
+
+## Start here
+
+<Cards>
+  <Card icon={<Rocket />} title="Quickstart" href="/docs/quickstart" description="Pick your stack — Astro, Next.js, Cloudflare, or any framework. Up and running in under 2 minutes." />
+  <Card icon={<Gauge />} title="Score your site" href="/play" description="Free AI agent readiness check. Get a 0–125 score against the AEO Spec." />
+  <Card icon={<Lightbulb />} title="Core concepts" href="/docs/concepts" description="How content negotiation, the markdown twin pattern, and AI bot detection work." />
+  <Card icon={<BookText />} title="AEO Spec v1.0" href="/docs/spec/overview" description="The public spec any server can implement — RFC-2119 compliant, language-neutral." />
+</Cards>
+
+## Pick your stack
+
+<Cards>
+  <Card icon={<AstroLogo />} title="Astro" href="/docs/integrations/astro" description="Zero-config integration. Auto-generates .md endpoints, middleware, and llms.txt." />
+  <Card icon={<NextLogo />} title="Next.js" href="/docs/integrations/nextjs" description="One-line install for Next.js 15 App Router. Auto middleware + route handlers." />
+  <Card icon={<CloudflareLogo />} title="Cloudflare Workers" href="/docs/integrations/cloudflare-workers" description="Edge adapter that wraps any upstream Worker. Transparent to your existing site." />
+  <Card icon={<Wrench />} title="Any framework" href="/docs/integrations/manual" description="Implement the spec yourself in 50 lines. The contract is public." />
+</Cards>
+
+## Packages
+
+<Cards>
+  <Card icon={<Box />} title="@dualmark/core" href="/docs/packages/core" description="Framework-agnostic primitives — content negotiation, AI-bot detection, markdown responses." />
+  <Card icon={<ArrowLeftRight />} title="@dualmark/converters" href="/docs/packages/converters" description="Production-tested page-type converters — blog, glossary, integration, pricing, changelog, and more." />
+  <Card icon={<AstroLogo />} title="@dualmark/astro" href="/docs/packages/astro" description="Astro 5 integration with auto-generated routes and llms.txt." />
+  <Card icon={<NextLogo />} title="@dualmark/nextjs" href="/docs/packages/nextjs" description="Next.js 15 App Router adapter — withDualmark, middleware factory, route handler factory." />
+  <Card icon={<CloudflareLogo />} title="@dualmark/cloudflare" href="/docs/packages/cloudflare" description="Workers edge adapter with hooks for analytics and transformations." />
+  <Card icon={<Terminal />} title="@dualmark/cli" href="/docs/packages/cli" description="Conformance test runner. Drop into CI to fail builds below threshold." />
+</Cards>
+
+
+
+## Conformance
+
+<Cards>
+  <Card icon={<Terminal />} title="The verify CLI" href="/docs/conformance/cli" description="Run dualmark verify against any URL. Get a per-check report and exit code." />
+  <Card icon={<Scale />} title="Scoring & levels" href="/docs/conformance/scoring" description="What each check is worth. Basic / Standard / Advanced thresholds explained." />
+</Cards>
+
+## Status
+
+Pre-1.0. APIs may change in patch releases. The [AEO Spec](/docs/spec/overview) is authoritative — framework code follows.

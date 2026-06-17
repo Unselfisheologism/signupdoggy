@@ -1,0 +1,107 @@
+---
+title: Content negotiation
+description: RFC 7231 §5.3.2 — how Dualmark picks HTML vs markdown.
+---
+
+This document is normative.
+
+## 1. Accept Header Parsing
+
+A conformant server MUST parse the `Accept` request header per [RFC 7231 §5.3.2](https://www.rfc-editor.org/rfc/rfc7231#section-5.3.2):
+
+- Multiple media ranges separated by commas
+- Optional `q` parameter (quality value) in range [0, 1]
+- Wildcards: `*/*` and `type/*`
+- Quality factor is sorted descending; ties broken by specificity (most-specific first)
+
+## 2. Format Negotiation Algorithm
+
+Given a parsed Accept header and a set of available formats `F = {html, markdown}`, the server MUST compute the negotiated format as follows:
+
+1. If the Accept header is empty or absent, return `html` (the default).
+2. For each format `f ∈ F`, find the highest q-value media range that matches `f`.
+3. If no media range matches and no wildcard exists, return `null` (which translates to a `406` response).
+4. Otherwise, return the format with the highest matched q-value. If two formats tie on q-value, the implementation MAY choose either; the reference implementation prefers `html` on ties.
+
+A conformant server MAY register additional formats via an extensible mechanism. The negotiation algorithm MUST extend naturally to N formats.
+
+## 3. The Vary Header
+
+A conformant server MUST set `Vary: Accept` on every response whose representation depends on the `Accept` header (i.e. every page that has both an HTML and markdown form).
+
+When `Vary` already contains other tokens, `Accept` MUST be appended (comma-separated) without duplication. Token comparison is case-insensitive.
+
+## 4. 406 Not Acceptable
+
+If the server determines no acceptable format exists (no q-value > 0 for any supported format and no wildcard), it MUST respond with `406 Not Acceptable`.
+
+The 406 response:
+
+- MUST set `Vary: Accept`
+- SHOULD include a body listing supported types (e.g. `text/plain` body: `"Not Acceptable\n\nSupported types: text/html, text/markdown\n"`)
+- MUST NOT use a 4xx markdown response to fall back implicitly to `text/markdown`
+
+## 5. Implicit Markdown for AI Agents
+
+A conformant server MAY also serve markdown when the request `User-Agent` matches an entry in the [AI Agent Registry](/docs/spec/ai-bot-detection). This is an OPTIONAL extension to RFC 7231 negotiation; servers that choose to do this:
+
+- MUST still respect explicit `Accept: text/html` from a bot UA (i.e. UA detection MUST NOT override an explicit `Accept`)
+- SHOULD set `Vary: User-Agent, Accept` (in addition to other Vary tokens) when UA-based negotiation is in effect
+
+## 6. Canonical Markdown URL
+
+By convention, the markdown twin of an HTML URL is served at `<url>.md`:
+
+- `/about` → `/about.md`
+- `/blog/hello/` → `/blog/hello.md` (trailing slash stripped)
+- `/` → `/index.md`
+
+A conformant server MUST honor `Accept: text/markdown` on the canonical HTML URL AND serve the same body when the `.md` URL is requested directly. The two URLs are equivalent representations.
+
+## 7. Worked Examples
+
+### 7.1 Browser request
+
+```http
+GET /blog/hello HTTP/1.1
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+```
+
+→ Server returns `200 OK` with `Content-Type: text/html; charset=utf-8`. HTML response includes `Link: </blog/hello.md>; rel="alternate"; type="text/markdown"` and `Vary: Accept`.
+
+### 7.2 AI agent (UA-based)
+
+```http
+GET /blog/hello HTTP/1.1
+User-Agent: Mozilla/5.0 (compatible; GPTBot/1.0; +https://openai.com/gptbot)
+Accept: */*
+```
+
+→ Server returns `200 OK` with `Content-Type: text/markdown; charset=utf-8`, `X-Markdown-Tokens`, `X-Robots-Tag: noindex`, `Vary: Accept`.
+
+### 7.3 Explicit markdown request
+
+```http
+GET /blog/hello HTTP/1.1
+Accept: text/markdown
+```
+
+→ Same as 7.2 (markdown response).
+
+### 7.4 406 case
+
+```http
+GET /blog/hello HTTP/1.1
+Accept: image/png
+```
+
+→ Server returns `406 Not Acceptable` with `Vary: Accept` and a body listing supported types.
+
+### 7.5 Tied preference
+
+```http
+GET /blog/hello HTTP/1.1
+Accept: text/html;q=0.5, text/markdown;q=0.5
+```
+
+→ Server returns HTML (reference implementation prefers HTML on ties; other implementations MAY choose markdown).

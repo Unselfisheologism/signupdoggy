@@ -1,0 +1,61 @@
+---
+title: Core concepts
+description: How Dualmark works under the hood.
+---
+
+## The three layers
+
+```
+┌─────────────────────────────────────────┐
+│ Spec (AEO Spec v1.0)                    │
+│   The public contract                   │
+│                                         │
+│   ↓ implemented by                      │
+│                                         │
+│ Framework (@dualmark/core + adapters)   │
+│   The reference implementation          │
+│                                         │
+│   ↓ verified by                         │
+│                                         │
+│ Conformance (@dualmark/cli)             │
+│   The score                             │
+└─────────────────────────────────────────┘
+```
+
+The **spec** is independent of any framework or language. The **framework packages** are one implementation. The **CLI** lets you verify *any* implementation against the spec — including non-Dualmark ones.
+
+## Content negotiation
+
+Dualmark uses [RFC 7231 §5.3.2](https://datatracker.ietf.org/doc/html/rfc7231#section-5.3.2) HTTP content negotiation. The same URL serves different bodies based on the request:
+
+| Signal | Behavior |
+| --- | --- |
+| `Accept: text/markdown` | Serve markdown |
+| `Accept: text/html` (or `*/*`) | Serve HTML |
+| `User-Agent: GPTBot` (or any [registered bot](/docs/spec/ai-bot-detection)) | Serve markdown regardless of Accept |
+| `Accept` excludes both html+markdown | Return `406 Not Acceptable` |
+| Direct path `/foo.md` | Serve markdown |
+
+HTML responses always include a `Link: <…>; rel="alternate"; type="text/markdown"` header pointing to the markdown twin, so well-behaved AI clients can opt in without UA sniffing.
+
+## The `.md` URL
+
+Every page also has a directly-addressable markdown URL: append `.md`. This works without sending special headers — good for `curl`, archive tools, link-followers, and anyone pasting URLs into ChatGPT.
+
+## llms.txt
+
+Dualmark auto-generates [llms.txt](https://llmstxt.org) — a site-root file that lists structured links to your content for AI consumers, like `robots.txt` for crawlers but for *understanding*.
+
+## Spec headers
+
+Markdown responses set:
+
+- `Content-Type: text/markdown; charset=utf-8`
+- `X-Robots-Tag: noindex` — markdown twin shouldn't index in search
+- `X-Markdown-Tokens: <integer>` — estimated token count for budget planning
+- `X-AEO-Version: 1.0` — spec version
+- `X-Content-Type-Options: nosniff`
+- `Vary: Accept`
+- `Cache-Control: <configurable>`
+
+See [spec/headers](/docs/spec/headers) for the full normative reference.

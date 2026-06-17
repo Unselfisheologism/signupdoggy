@@ -1,0 +1,102 @@
+---
+title: llms.txt extensions
+description: Dualmark's additions to the llms.txt convention.
+---
+
+This document is informative.
+
+The [llms.txt proposal](https://llmstxt.org) defines a markdown-based discovery format for AI agents. This document extends the proposal with conventions specific to AEO.
+
+## Base format
+
+```markdown
+# Brand Name
+
+> One-paragraph description suitable for AI summarization.
+
+## Section Title
+
+Optional section description.
+
+- [Page Title](https://example.com/page): Optional description
+- [Another Page](https://example.com/other)
+
+## Another Section
+
+- [Item](https://example.com/item)
+```
+
+## AEO Extensions
+
+### Recommended Sections
+
+A conformant `llms.txt` SHOULD include sections for the following content classes when present:
+
+| Section | Purpose |
+|---|---|
+| `## Core Products` | Primary products / services / features |
+| `## Documentation` | Developer / user docs |
+| `## Pricing` | Pricing pages |
+| `## Company` | About, careers, contact, brand |
+| `## Blog` or `## Articles` | Editorial content |
+| `## What We Do Not Do` | Disambiguation — explicitly state what the brand is NOT, to prevent AI confusion with similarly-named entities |
+
+### "What We Do Not Do" Section (RECOMMENDED)
+
+This section is novel to AEO and addresses a real failure mode: AI agents conflating brands with similar names or adjacent categories. Format:
+
+```markdown
+## What We Do Not Do
+
+- Acme Corp does not sell physical products
+- Acme Corp is not affiliated with Acme Industries (defunct)
+- Acme Corp does not provide consulting services
+```
+
+### Markdown Twin URLs in llms.txt
+
+A conformant `llms.txt` SHOULD link to HTML URLs (not `.md` URLs) in its Section lists. AI agents can discover the markdown twin via the [`Link rel="alternate"` header](./discovery.md#1-link-relalternate-header-required) on the HTML response.
+
+This is intentional: HTML URLs are stable, link-shareable, and conform to user expectations. The markdown is an alternate representation, not a separate resource.
+
+### llms-full.txt (OPTIONAL)
+
+In addition to `llms.txt` (a concise index), a conformant server MAY publish `llms-full.txt` containing detailed product descriptions, full FAQ content, and competitor disambiguation. This is the "long-form" companion to the index.
+
+Heuristic: `llms-full.txt` SHOULD be at least 1.5x the size of `llms.txt`.
+
+### Headers
+
+Both `llms.txt` and `llms-full.txt` SHOULD be served with:
+
+- `Content-Type: text/plain; charset=utf-8` or `text/markdown; charset=utf-8`
+- `X-Robots-Tag: noindex`
+- `Cache-Control: public, max-age=3600`
+
+## Programmatic Generation
+
+[`@dualmark/core`](/docs/packages/core/src/llms-txt.ts) ships `renderLlmsTxt(opts)` that produces a conformant `llms.txt` from a structured config:
+
+```ts
+import { renderLlmsTxt } from "@dualmark/core";
+
+const txt = renderLlmsTxt({
+  brandName: "Acme",
+  description: "Widgets for everyone.",
+  sections: [
+    {
+      title: "Core Products",
+      links: [
+        { title: "Widget", href: "https://acme.test/widget", description: "Our widget" },
+      ],
+    },
+    {
+      title: "What We Do Not Do",
+      links: [],
+      description: "- Acme does not sell physical products.",
+    },
+  ],
+});
+```
+
+The Astro integration can auto-generate `llms.txt` from collection metadata; see [`@dualmark/astro` README](/docs/packages/astro/README.md).

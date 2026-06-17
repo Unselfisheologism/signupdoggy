@@ -1,0 +1,4 @@
+{
+  "title": "AEO Spec v1.0",
+  "pages": ["overview", "content-negotiation", "headers", "ai-bot-detection", "discovery", "llms-txt-extensions", "conformance"]
+}

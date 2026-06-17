@@ -1,0 +1,19 @@
+{
+  "pages": [
+    "index",
+    "---[Rocket]Get started---",
+    "quickstart",
+    "concepts",
+    "custom-tokenizer",
+    "---[CirclePlay]CI & automation---",
+    "ci",
+    "---[Plug]Integrate---",
+    "...integrations",
+    "---[Package]API reference---",
+    "...packages",
+    "---[ShieldCheck]Conformance---",
+    "...conformance",
+    "---[BookText]Spec---",
+    "...spec"
+  ]
+}

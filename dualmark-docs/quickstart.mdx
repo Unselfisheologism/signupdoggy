@@ -1,0 +1,575 @@
+---
+title: Quickstart
+description: Get a fully dual-marked site running in under 2 minutes — pick your framework.
+---
+
+Dualmark works in any framework that speaks `Request` / `Response`. First-class adapters ship for Astro, Next.js, SvelteKit, Cloudflare Workers, Deno, and Vercel; everything else uses `@dualmark/core` directly.
+
+Pick your stack below — every tab is a complete, self-contained install.
+
+<Tabs items={["Astro", "Next.js", "SvelteKit", "Cloudflare Workers", "Deno", "Vercel", "Any framework"]}>
+
+<Tab value="Astro">
+
+<Steps>
+
+<Step>
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+## Configure
+
+Add Dualmark to your Astro config.
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+import dualmark from "@dualmark/astro";
+
+export default defineConfig({
+  site: "https://example.com",
+  integrations: [
+    dualmark({
+      siteUrl: "https://example.com",
+      collections: {
+        blog: { converter: "blog" },
+      },
+      llmsTxt: { enabled: true },
+    }),
+  ],
+});
+```
+
+</Step>
+
+<Step>
+
+## Build & verify
+
+```bash
+bun run build
+bun run dev
+# in another terminal:
+bunx @dualmark/cli verify http://localhost:4321/blog/your-post
+```
+
+Every blog post now has a markdown twin at `/blog/<slug>.md`, an `llms.txt` is auto-generated, and middleware injects `Link: <…>; rel="alternate"; type="text/markdown"` on every HTML response.
+
+Expect **Score 80/80** under `astro dev`, or **125/125** with full negotiation (see [Cloudflare](/docs/integrations/cloudflare-workers)).
+
+</Step>
+
+</Steps>
+
+→ [Full Astro reference](/docs/integrations/astro)
+
+</Tab>
+
+<Tab value="Next.js">
+
+<Steps>
+
+<Step>
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+## Wire up `next.config.mjs`
+
+```js title="next.config.mjs"
+import { withDualmark } from "@dualmark/nextjs";
+
+/** @type {import('next').NextConfig} */
+const nextConfig = { reactStrictMode: true };
+
+export default withDualmark(nextConfig, {
+  siteUrl: "https://example.com",
+});
+```
+
+</Step>
+
+<Step>
+
+## Add the proxy & route handler
+
+```ts title="proxy.ts (or middleware.ts on Next ≤15)"
+import { createDualmarkMiddleware } from "@dualmark/nextjs";
+
+export default createDualmarkMiddleware({ siteUrl: "https://example.com" });
+
+export const config = {
+  matcher: [
+    {
+      source: "/((?!_next/|favicon.ico|md/).*)",
+      missing: [{ type: "header", key: "next-router-prefetch" }],
+    },
+  ],
+};
+```
+
+```ts title="app/md/[...path]/route.ts"
+import { createDualmarkRouteHandler } from "@dualmark/nextjs";
+import { POSTS } from "@/lib/posts";
+
+const handler = createDualmarkRouteHandler({
+  siteUrl: "https://example.com",
+  collections: {
+    posts: {
+      converter: "blog",
+      getEntries: () => POSTS.map((p) => ({ id: p.slug, data: p, body: p.body })),
+    },
+  },
+});
+
+export const dynamic = "force-static";
+export const GET = handler.GET;
+export const generateStaticParams = handler.generateStaticParams;
+```
+
+</Step>
+
+<Step>
+
+## Build & verify
+
+```bash
+bun run dev
+# new terminal:
+bunx @dualmark/cli verify http://localhost:3000/posts/your-post
+```
+
+Expect **120/125** under `next dev` (Standard conformance).
+
+</Step>
+
+</Steps>
+
+→ [Full Next.js reference](/docs/integrations/nextjs)
+
+</Tab>
+
+<Tab value="SvelteKit">
+
+<Steps>
+
+<Step>
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/sveltekit @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/sveltekit @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/sveltekit @dualmark/core @dualmark/converters
+```
+</Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+## Add the Vite plugin
+
+```ts title="vite.config.ts"
+import { sveltekit } from "@sveltejs/kit/vite";
+import { defineConfig } from "vite";
+import dualmark from "@dualmark/sveltekit";
+import dualmarkConfig from "./src/dualmark.config";
+
+export default defineConfig({
+  plugins: [dualmark(dualmarkConfig), sveltekit()],
+});
+```
+
+</Step>
+
+<Step>
+
+## Add the handle hook
+
+```ts title="src/hooks.server.ts"
+import { createDualmarkHandle } from "@dualmark/sveltekit";
+import dualmarkConfig from "./dualmark.config";
+
+export const handle = createDualmarkHandle(dualmarkConfig);
+```
+
+</Step>
+
+<Step>
+
+## Build & verify
+
+```bash
+bun run dev
+# new terminal:
+bunx @dualmark/cli verify http://localhost:5173/your-post
+```
+
+Expect **125/125** under `vite dev` — full negotiation.
+
+</Step>
+
+</Steps>
+
+→ [Full SvelteKit reference](/docs/integrations/sveltekit)
+
+</Tab>
+
+<Tab value="Cloudflare Workers">
+
+<Steps>
+
+<Step>
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/cloudflare @dualmark/core
+```
+</Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+## Wrap your Worker
+
+```ts title="worker.ts"
+import { createAEOWorker } from "@dualmark/cloudflare";
+
+const upstream = {
+  async fetch(request: Request, env, _ctx) {
+    return env.ASSETS.fetch(request);
+  },
+};
+
+export default createAEOWorker({
+  upstream,
+  trailingSlash: "never",
+  enableLinkHeader: true,
+  analytics: { binding: "AI_AGENT_ANALYTICS" },
+});
+```
+
+```jsonc title="wrangler.jsonc"
+{
+  "name": "my-site",
+  "main": "./worker.ts",
+  "compatibility_date": "2026-05-04",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  }
+}
+```
+
+<Callout type="warn">
+  `run_worker_first: true` is **required**. Without it, Cloudflare serves matching assets directly and skips the Worker — negotiation never runs.
+</Callout>
+
+</Step>
+
+<Step>
+
+## Deploy & verify
+
+```bash
+bunx wrangler dev
+# new terminal:
+bunx @dualmark/cli verify http://localhost:8787/your-page
+```
+
+Expect **125/125** — full Advanced conformance, with edge bot detection at single-digit-ms TTFB.
+
+</Step>
+
+</Steps>
+
+→ [Full Cloudflare reference](/docs/integrations/cloudflare-workers)
+
+</Tab>
+
+<Tab value="Deno">
+
+<Steps>
+
+<Step>
+
+## Install
+
+```jsonc title="deno.json"
+{
+  "imports": {
+    "@dualmark/deno": "npm:@dualmark/deno",
+    "@dualmark/core": "npm:@dualmark/core"
+  }
+}
+```
+
+</Step>
+
+<Step>
+
+## Wrap your handler
+
+```ts title="main.ts"
+import { createAEOHandler } from "@dualmark/deno";
+import myApp from "./app.ts";
+
+Deno.serve(createAEOHandler({ upstream: myApp.fetch }));
+```
+
+</Step>
+
+<Step>
+
+## Run & verify
+
+```bash
+deno run -A main.ts
+# new terminal:
+bunx @dualmark/cli verify http://localhost:8000/your-page
+```
+
+Expect **125/125** under `deno run` — full negotiation.
+
+</Step>
+
+</Steps>
+
+→ [Full Deno reference](/docs/integrations/deno)
+
+</Tab>
+
+<Tab value="Vercel">
+
+<Steps>
+
+<Step>
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/vercel @dualmark/core
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/vercel @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/vercel @dualmark/core
+```
+</Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+## Add the edge middleware
+
+Serve your pre-built `.md` twins (e.g. `public/posts/hello.md`) to AI bots at the edge.
+
+```ts title="proxy.ts"
+import { NextResponse } from "next/server";
+import { createAEOMiddleware } from "@dualmark/vercel";
+
+export default createAEOMiddleware({
+  upstream: async () => NextResponse.next(),
+  fetchAsset: async (url, init) => fetch(url.toString(), init),
+});
+
+export const config = { matcher: ["/((?!_next/|favicon.ico).*)"] };
+```
+
+</Step>
+
+<Step>
+
+## Build & verify
+
+```bash
+bun run dev
+# new terminal:
+bunx @dualmark/cli verify http://localhost:3000/posts/your-post
+```
+
+Expect **120/125** under `next dev` (`html.vary` is a known Next.js limitation).
+
+</Step>
+
+</Steps>
+
+→ [Full Vercel reference](/docs/integrations/vercel)
+
+</Tab>
+
+<Tab value="Any framework">
+
+For Remix, Nuxt, Hono, Express, raw Node, Bun — anything with the Fetch API — use `@dualmark/core` directly.
+
+<Steps>
+
+<Step>
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/core
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/core
+```
+</Tab>
+</Tabs>
+
+</Step>
+
+<Step>
+
+## Minimal handler
+
+```ts
+import { negotiateFormat, detectAIBot, markdownResponse } from "@dualmark/core";
+
+export async function handle(request: Request): Promise<Response> {
+  const accept = request.headers.get("accept") ?? "";
+  const ua = request.headers.get("user-agent") ?? "";
+  const bot = detectAIBot(ua);
+  const fmt = negotiateFormat(accept);
+
+  if (fmt === null && accept) {
+    return new Response("Not Acceptable", {
+      status: 406,
+      headers: { Vary: "Accept" },
+    });
+  }
+
+  if (bot.isBot || fmt === "markdown") {
+    return markdownResponse("# Hello\n\nThis is the markdown twin.", {
+      cacheControl: "public, max-age=3600",
+    });
+  }
+
+  return new Response("<html><body>Hello</body></html>", {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      Link: `</hello.md>; rel="alternate"; type="text/markdown"`,
+      Vary: "Accept",
+    },
+  });
+}
+```
+
+</Step>
+
+<Step>
+
+## Verify
+
+```bash
+bunx @dualmark/cli verify http://localhost:3000/your-page
+```
+
+The [AEO Spec](/docs/spec/overview) is the source of truth — implementable in any language, conformance-tested by the same CLI.
+
+</Step>
+
+</Steps>
+
+→ [Full manual reference](/docs/integrations/manual)
+
+</Tab>
+
+</Tabs>
+
+## Next steps
+
+<Cards>
+  <Card title="Core concepts" href="/docs/concepts">How content negotiation, the markdown twin, and AI bot detection fit together.</Card>
+  <Card title="Score your site" href="/play">Free 0–125 readiness check against the AEO Spec.</Card>
+  <Card title="The AEO Spec" href="/docs/spec/overview">Implement Dualmark in any language — RFC-2119 compliant.</Card>
+  <Card title="Conformance & CI" href="/docs/conformance/cli">Drop `dualmark verify` into CI to prevent regressions.</Card>
+</Cards>

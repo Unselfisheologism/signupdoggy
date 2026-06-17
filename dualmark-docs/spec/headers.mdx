@@ -1,0 +1,81 @@
+---
+title: Response headers
+description: Required and recommended response headers for markdown twins.
+---
+
+This document is normative.
+
+## Required Response Headers
+
+| Header | Direction | Purpose |
+|---|---|---|
+| `Accept: text/markdown` | Request | Client requests markdown format |
+| `Content-Type: text/markdown; charset=utf-8` | Response | Server delivers markdown |
+| `Vary: Accept` | Response | Cache key includes Accept |
+| `X-Markdown-Tokens: <integer>` | Response | Estimated token count of body |
+| `X-Robots-Tag: noindex` | Response | Markdown twins SHOULD NOT be indexed as pages |
+| `X-Content-Type-Options: nosniff` | Response | Prevent MIME sniffing (recommended) |
+| `Link: <url.md>; rel="alternate"; type="text/markdown"` | Response | HTML response advertises markdown twin |
+| `X-AEO-Version: 1.0` | Response | Spec version this server implements (recommended) |
+| `X-Redirect-From: <path>` | Response | Markdown response was redirected from this path (optional) |
+| `X-Redirect-To: <path-or-url>` | Response | Markdown response was redirected to this target (optional) |
+
+## Header semantics
+
+### Content-Type
+
+MUST be exactly `text/markdown; charset=utf-8` for markdown responses. Variations like `text/markdown` (no charset) are non-conformant — the charset parameter is required to ensure consistent UTF-8 interpretation by AI agents.
+
+### X-Markdown-Tokens
+
+MUST be a base-10 integer ≥ 0 representing an estimated token count of the response body. The estimation method is implementation-defined but SHOULD use a method that approximates LLM tokenization (e.g. whitespace-split is acceptable; tiktoken is more accurate).
+
+This header is informational. Clients MAY use it to budget context window usage. Clients MUST NOT rely on it for billing or authorization.
+
+### X-Robots-Tag
+
+MUST contain the directive `noindex` to prevent traditional search engines from indexing markdown twins as duplicate pages. Multiple directives are permitted (e.g. `noindex, nofollow`).
+
+### Vary
+
+MUST contain `Accept` (comma-separated, case-insensitive). MAY contain additional tokens (`User-Agent`, etc.) when applicable.
+
+### X-Content-Type-Options
+
+SHOULD be `nosniff` to prevent browsers and intermediaries from MIME-sniffing the body.
+
+### Link
+
+MUST be set on the HTML response of every page that has a markdown twin, with the form:
+
+```
+Link: <ABSOLUTE-OR-RELATIVE-URL>; rel="alternate"; type="text/markdown"
+```
+
+Multiple `Link` values MAY be present (comma-separated within a single header value, OR multiple `Link` header instances per RFC 8288). A conformant server appends the markdown alternate without removing existing values.
+
+### X-AEO-Version
+
+A SHOULD-level header indicating the AEO Spec version implemented by the server. Format: `<MAJOR>.<MINOR>` (e.g. `1.0`). Used by conformance test runners and analytics.
+
+### X-Redirect-From / X-Redirect-To
+
+OPTIONAL. When a markdown response was served as the result of an internal or external redirect lookup (rather than as the canonical .md for the requested URL), these headers expose the redirect chain for observability. Internal redirects produce a path; external redirects produce an absolute URL.
+
+## Cache-Control
+
+A conformant server MAY set `Cache-Control` per its policy. The reference implementation defaults to `public, max-age=3600`. Servers SHOULD set `Cache-Control: public` on markdown twins to allow CDN caching with the `Vary: Accept` key.
+
+## CORS
+
+A conformant server MAY set `Access-Control-Allow-Origin` per its policy. Markdown twins MAY be served with `Access-Control-Allow-Origin: *` to allow programmatic fetch from arbitrary origins (e.g. browser-based AI tools). This is OPTIONAL and out of scope for this version of the spec.
+
+## 4xx / 5xx Responses
+
+Error responses MAY be served as markdown when the request prefers markdown. A conformant server SHOULD return:
+
+- `406 Not Acceptable` when neither HTML nor markdown is acceptable (see [content-negotiation.md §4](/docs/spec/content-negotiation))
+- `404 Not Found` when no markdown twin exists for the requested URL
+- `5xx` responses MAY be served as either format
+
+When error responses are served as markdown, the `X-Markdown-Tokens`, `X-Robots-Tag`, and `Vary` headers MUST still be set.

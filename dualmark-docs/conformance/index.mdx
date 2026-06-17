@@ -1,0 +1,23 @@
+---
+title: Overview
+description: Verify your site against the AEO Spec v1.0. Run the CLI, hit the threshold, ship the badge.
+---
+
+Dualmark conformance is **deterministic, scored, and CI-runnable**. Every page in your site can be verified against the AEO Spec v1.0 and assigned a 0–125 score.
+
+## Two ways in
+
+<Cards>
+  <Card title="The verify CLI" href="/docs/conformance/cli" description="Install @dualmark/cli, run `dualmark verify <url>` against any page, get a per-check report. Drop into CI to fail builds below threshold." />
+  <Card title="Scoring & levels" href="/docs/conformance/scoring" description="What each check is worth. How Basic / Standard / Advanced thresholds map to AI-agent readiness." />
+</Cards>
+
+## What conformance gets you
+
+- **Predictable AI agent behavior**. ChatGPT, Claude, and Perplexity all expect the same things. The spec captures them.
+- **Catch regressions in CI**. `dualmark verify` returns an exit code — wire it into GitHub Actions and never ship a broken markdown twin.
+- **A score you can put on your site**. Standard or Advanced means you've done the work.
+
+## Try it without installing
+
+Use the [free playground](/play) to score any URL right now. Same engine as the CLI, no setup.

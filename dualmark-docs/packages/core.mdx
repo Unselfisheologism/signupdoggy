@@ -1,0 +1,148 @@
+---
+title: "@dualmark/core"
+description: Framework-agnostic primitives for AEO infrastructure.
+---
+
+Zero runtime dependencies. ESM + CJS. Strict TypeScript.
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/core
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/core
+```
+</Tab>
+</Tabs>
+
+## Content negotiation
+
+```ts
+import { parseAcceptHeader, negotiateFormat } from "@dualmark/core";
+```
+
+### `parseAcceptHeader(accept: string): ParsedMediaType[]`
+
+Parses an `Accept` header per RFC 7231 §5.3.2, returning entries sorted by quality factor.
+
+### `negotiateFormat(accept: string): "html" | "markdown" | null`
+
+Picks the best response format. Returns `null` when neither HTML nor markdown is acceptable (caller should respond `406`).
+
+## AI bot detection
+
+```ts
+import { AI_BOTS, detectAIBot } from "@dualmark/core";
+```
+
+### `detectAIBot(userAgent: string): AIBotInfo`
+
+Returns `{ isBot, name, vendor, purpose, entry }`. The registry covers 24 known crawlers across OpenAI, Anthropic, Google, Perplexity, Common Crawl, and more — see [spec/ai-bot-detection](/docs/spec/ai-bot-detection).
+
+### `AI_BOTS: AIBotEntry[]`
+
+The full registry, exported for inspection or extension.
+
+## Markdown response
+
+```ts
+import { markdownResponse, injectMarkdownAlternateLink } from "@dualmark/core";
+```
+
+### `markdownResponse(body, options?): Response`
+
+Builds a `Response` with all required AEO headers (`Content-Type`, `X-Markdown-Tokens`, `X-Robots-Tag`, `Vary`, `X-AEO-Version`, `X-Content-Type-Options`, `Cache-Control`).
+
+```ts
+markdownResponse("# Hello", {
+  cacheControl: "public, max-age=3600",
+  noindex: true,
+  redirectFrom: "/old",
+  redirectTo: "/new",
+  extraHeaders: { "X-Custom": "value" },
+});
+```
+
+### `injectMarkdownAlternateLink(response, htmlPath, mdPath): Response`
+
+Returns a new `Response` with the `Link rel="alternate"; type="text/markdown"` header appended.
+
+## Path utilities
+
+```ts
+import { toMarkdownPath, toMarkdownUrl } from "@dualmark/core";
+
+toMarkdownPath("/blog/post");           // → "/blog/post.md"
+toMarkdownPath("/");                    // → "/index.md"
+toMarkdownPath("/blog/post.md");        // → "/blog/post.md"  (idempotent)
+
+toMarkdownUrl("https://x.com/blog?q=1"); // → "https://x.com/blog.md?q=1"
+```
+
+Both helpers are idempotent on already-`.md` inputs.
+
+## Token estimation
+
+```ts
+import { estimateTokens, setTokenEstimator, resetTokenEstimator } from "@dualmark/core";
+```
+
+### `estimateTokens(text, options?): number`
+
+Returns the estimated token count. By default uses a whitespace-split word counter.
+
+```ts
+estimateTokens("hello world");                        // → 2  (default)
+estimateTokens("hello world", { tokenizer: t => t.length }); // → 11  (custom)
+```
+
+### `setTokenEstimator(fn)` / `resetTokenEstimator()`
+
+Set or reset the global default estimator. The inline `tokenizer` option always takes precedence.
+
+See [Custom tokenizer](/docs/custom-tokenizer) for js-tiktoken setup.
+
+## Text utilities
+
+```ts
+import { normalizeUnicode, cleanBody, slugToTitle, fmtDate, joinLines } from "@dualmark/core";
+```
+
+For writing markdown converters by hand. See source for signatures.
+
+## Composition helpers
+
+```ts
+import { listingToMarkdown, renderRelatedLinks, renderFAQSection } from "@dualmark/core";
+```
+
+Common markdown patterns: collection listings, related-links blocks, FAQ rendering.
+
+## llms.txt
+
+```ts
+import { renderLlmsTxt } from "@dualmark/core";
+
+const body = renderLlmsTxt({
+  brandName: "Acme",
+  description: "Acme's docs.",
+  sections: [
+    { title: "Pages", links: [{ title: "Home", href: "/" }] },
+  ],
+});
+```
+
+## Constant
+
+```ts
+import { AEO_SPEC_VERSION } from "@dualmark/core";
+// → "1.0"
+```

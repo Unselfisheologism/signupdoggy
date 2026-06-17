@@ -1,0 +1,120 @@
+---
+title: Conformance
+description: Basic, Standard, and Advanced conformance levels.
+---
+
+This document is normative.
+
+## Conformance Levels
+
+Three levels are defined: **Basic**, **Standard**, **Advanced**. A site claiming conformance MUST satisfy all checks at the claimed level and all checks at lower levels.
+
+### Basic
+
+A Basic conformant server:
+
+- MUST serve a markdown twin at `<url>.md` for every HTML page that has one
+- MUST set `Content-Type: text/markdown; charset=utf-8` on markdown responses
+- MUST set `X-Markdown-Tokens` with a positive integer
+- MUST set `X-Robots-Tag` containing `noindex` on markdown responses
+- MUST set `Vary: Accept` on markdown responses
+- MUST return a non-empty markdown body
+
+### Standard
+
+A Standard conformant server satisfies all Basic requirements PLUS:
+
+- MUST honor `Accept: text/markdown` on the canonical HTML URL by serving the markdown twin
+- MUST advertise the markdown twin via `Link rel="alternate" type="text/markdown"` on HTML responses
+- MUST return `406 Not Acceptable` when no acceptable representation exists
+- SHOULD set `Vary: Accept` on HTML responses
+
+### Advanced
+
+An Advanced conformant server satisfies all Standard requirements PLUS:
+
+- MUST detect AI agent User-Agents from the [AI Agent Registry](/docs/spec/ai-bot-detection) and serve markdown to them by default
+- MUST set `X-AEO-Version` advertising the implemented spec version
+- SHOULD set `X-Content-Type-Options: nosniff`
+- SHOULD publish `/llms.txt` per the [llms.txt extensions](/docs/spec/llms-txt-extensions)
+- SHOULD include `.md` URLs in sitemap.xml OR publish `/sitemap.md`
+
+## Test Suite
+
+The reference test runner is [`@dualmark/cli`](/docs/packages/cli):
+
+```bash
+dualmark verify https://example.com/blog/hello
+```
+
+For machine consumers, `dualmark verify <url> --json` SHOULD emit the following AEO Spec v1.0 reference JSON shape:
+
+```json
+{
+  "url": "https://example.com/blog/hello",
+  "markdownUrl": "https://example.com/blog/hello.md",
+  "score": 95,
+  "max": 100,
+  "level": "advanced",
+  "skippedNegotiation": false,
+  "durationMs": 123,
+  "checks": [
+    {
+      "id": "md.fetch",
+      "points": 20,
+      "max": 20,
+      "passed": true,
+      "message": "OK"
+    }
+  ]
+}
+```
+
+Where `level` is one of `none`, `basic`, `standard`, `advanced`, `skippedNegotiation` indicates whether negotiation checks were skipped, and `checks[].points` SHOULD be `0` for failed checks.
+
+The runner produces a weighted score out of 100 (or 80 with `--skip-negotiation`). The score MUST be calculated as:
+
+```
+score = sum(weight for each passed check) / sum(weight for all applicable checks) * 100
+```
+
+A site is considered conformant at a given level when:
+
+| Level | Threshold |
+|---|---|
+| Basic | ≥ 60% |
+| Standard | ≥ 80% |
+| Advanced | ≥ 95% |
+
+## Check Catalogue
+
+| ID | Description | Severity | Weight | Level |
+|---|---|---|---|---|
+| `md.fetch` | Markdown twin reachable (2xx) | required | 20 | Basic |
+| `md.contentType` | `text/markdown; charset=utf-8` | required | 10 | Basic |
+| `md.tokensHeader` | `X-Markdown-Tokens` integer ≥ 1 | required | 10 | Basic |
+| `md.noindex` | `X-Robots-Tag` contains `noindex` | required | 10 | Basic |
+| `md.vary` | `Vary` contains `Accept` | required | 10 | Basic |
+| `md.body` | Non-empty markdown body | required | 10 | Basic |
+| `md.aeoVersion` | `X-AEO-Version` advertised | recommended | 5 | Advanced |
+| `md.nosniff` | `X-Content-Type-Options: nosniff` | recommended | 5 | Advanced |
+| `html.reachable` | HTML URL reachable (2xx) | required | 5 | Standard |
+| `html.linkAlternate` | HTML response has `Link rel="alternate"` | required | 10 | Standard |
+| `html.vary` | HTML response `Vary: Accept` | recommended | 5 | Standard |
+| `negotiation.botUa` | GPTBot UA receives markdown | recommended | 10 | Advanced |
+| `negotiation.acceptHeader` | `Accept: text/markdown` receives markdown | required | 10 | Standard |
+| `negotiation.notAcceptable` | Accept that excludes both → 406 | recommended | 5 | Advanced |
+
+## Independent Reimplementation
+
+To verify a server conforms without relying on `@dualmark/cli`, the spec can be implemented in any language. A reference 50-line implementation in (any language) is in [the spec test suite](https://github.com/dodopayments/dualmark/tree/main/spec/conformance-tests) (forthcoming).
+
+## Reporting Conformance
+
+A site MAY display a conformance badge:
+
+```
+[![AEO Conformant](https://dualmark.dev/badge/standard.svg)](https://dualmark.dev/spec)
+```
+
+Badges are SHOULD-level claims. The authoritative measurement is the score from `dualmark verify`.

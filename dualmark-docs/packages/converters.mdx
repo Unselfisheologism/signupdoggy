@@ -1,0 +1,118 @@
+---
+title: "@dualmark/converters"
+description: Production-tested markdown converter factories.
+---
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/converters @dualmark/core
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/converters @dualmark/core
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/converters @dualmark/core
+```
+</Tab>
+</Tabs>
+
+Each factory takes a config object and returns `(entry: CollectionEntry<Data>) => string`.
+
+## Available converters
+
+| Factory | Domain |
+| --- | --- |
+| `apiReferenceConverter` | API References (with `fromOpenAPI` helper) |
+| `blogConverter` | Blog posts |
+| `caseStudyConverter` | Case studies (with stats + customer quote) |
+| `changelogConverter` | Release notes (Keep-a-Changelog grouping) |
+| `compareConverter` | Comparison pages (us vs. competitor table) |
+| `docsConverter` | Documentation pages |
+| `featureConverter` | Feature/product pages with siblings, FAQ, problem/solution |
+| `glossaryConverter` | Glossary terms (with learn-more + canonical-blog) |
+| `integrationConverter` | Marketplace / app integration listings (vendor, categories, capabilities) |
+| `legalConverter` | Legal pages |
+| `pricingConverter` | Pricing tables with tier highlights and CTAs |
+| `pseoConverter` | Programmatic SEO pages with facts + related-link groups |
+| `statusPageConverter` | Public status / uptime pages (components + incidents) |
+| `toolConverter` | Standalone tools |
+| `videoConverter` | Video pages |
+
+## Common shape
+
+```ts
+import { blogConverter } from "@dualmark/converters";
+
+const convert = blogConverter({
+  siteUrl: "https://example.com",
+  basePath: "/blog",
+  categoryBasePath: "/blog/category",
+  brandFooter: "## About\n\nWe build widgets.",
+});
+
+const md = convert({
+  id: "first-post",
+  data: {
+    title: "Hello",
+    description: "First post",
+    publishedDate: new Date("2026-05-05"),
+    author: "Alice",
+    category: "announcements",
+  },
+  body: "Long-form content.",
+});
+```
+
+### OpenAPI helper
+
+Note that OpenAPI YAML must be parsed into a JavaScript object before calling `fromOpenAPI()`.
+
+```ts
+import { fromOpenAPI, apiReferenceConverter } from "@dualmark/converters";
+import { parse } from "yaml";
+
+const spec = parse(yamlString); // You must provide a parsed JS object
+const entry = fromOpenAPI(spec, "getPetById");
+const md = apiReferenceConverter({ siteUrl: "https://example.com" })(entry);
+```
+
+## All factories accept
+
+```ts
+interface BaseConverterConfig {
+  siteUrl: string;        // required, used for absolute URLs
+  brandFooter?: string;   // appended to every output
+}
+```
+
+Plus factory-specific options. See package source for full signatures — each is one small file at `packages/converters/src/<name>.ts`.
+
+## Wiring into Astro
+
+When using the Astro integration, refer to converters by name:
+
+```ts
+dualmark({
+  collections: {
+    blog: { converter: "blog" },
+    glossary: { converter: "glossary" },
+    features: { converter: "feature" },
+    pricing: { converter: "pricing" },
+  },
+});
+```
+
+Or pass a custom function for one-off needs:
+
+```ts
+collections: {
+  releases: {
+    converter: (entry) => `# ${entry.data.version}\n\n${entry.body}`,
+  },
+}
+```

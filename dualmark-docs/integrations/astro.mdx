@@ -1,0 +1,123 @@
+---
+title: Astro
+description: Add Dualmark to an Astro 5 site with one integration.
+---
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/astro @dualmark/core @dualmark/converters
+```
+</Tab>
+</Tabs>
+
+## Minimal config
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+import dualmark from "@dualmark/astro";
+
+export default defineConfig({
+  site: "https://example.com",
+  integrations: [
+    dualmark({
+      siteUrl: "https://example.com",
+      collections: {
+        blog: { converter: "blog" },
+      },
+      llmsTxt: { enabled: true },
+    }),
+  ],
+});
+```
+
+This auto-generates:
+
+- `/blog/<slug>.md` for every entry in your `blog` collection
+- `/blog.md` listing
+- `/llms.txt`
+- A middleware that adds `Link rel="alternate"` to every HTML response
+
+## Full config
+
+```js title="astro.config.mjs"
+dualmark({
+  siteUrl: "https://example.com",
+
+  collections: {
+    blog: {
+      converter: "blog",
+      slugStrategy: "single",
+      listingMetadata: {
+        title: "Blog",
+        description: "All blog posts.",
+      },
+    },
+    glossary: { converter: "glossary" },
+    docs: {
+      converter: (entry) => `# ${entry.data.title}\n\n${entry.body}`,
+    },
+  },
+
+  staticPages: [
+    { pattern: "/", render: () => "# Home\n\nWelcome." },
+    { pattern: "/about", render: () => "# About" },
+  ],
+
+  parameterizedRoutes: [
+    {
+      pattern: "/tax/[country]",
+      getStaticPaths: async () => [{ params: { country: "us" } }, { params: { country: "uk" } }],
+      render: ({ country }) => `# Tax: ${country.toUpperCase()}\n\n...`,
+    },
+  ],
+
+  llmsTxt: {
+    enabled: true,
+    brandName: "Acme",
+    description: "Acme's docs and blog.",
+    sections: [
+      {
+        title: "Pages",
+        links: [
+          { title: "Home", href: "https://example.com/" },
+          { title: "Blog", href: "https://example.com/blog" },
+        ],
+      },
+    ],
+  },
+
+  middleware: { injectLinkHeader: true },
+
+  cacheControl: "public, max-age=3600",
+  noindex: true,
+});
+```
+
+## Available converters
+
+`converter: "blog" | "case-study" | "changelog" | "compare" | "docs" | "feature" | "glossary" | "integration" | "legal" | "pricing" | "pseo" | "status-page" | "tool" | "video"` — see [@dualmark/converters](/docs/packages/converters).
+
+You can also pass a custom function: `converter: (entry) => string`.
+
+## Verify
+
+```bash
+bun run dev
+# new terminal:
+bunx @dualmark/cli verify http://localhost:4321/blog/your-post
+```
+
+The example at `examples/astro-blog` scores **80/80** with `--skip-negotiation` under `astro dev`.

@@ -1,0 +1,43 @@
+---
+title: Scoring & levels
+description: How dualmark verify weighs checks and assigns conformance levels.
+---
+
+## Check weights
+
+The `dualmark verify` CLI runs 14 checks, weighted by importance:
+
+| Check | Weight | Required? |
+| --- | --- | --- |
+| `md.fetch` | 20 | ✅ |
+| `md.contentType` | 10 | ✅ |
+| `md.tokensHeader` | 10 | ✅ |
+| `md.noindex` | 10 | ✅ |
+| `md.vary` | 10 | ✅ |
+| `md.body` | 10 | ✅ |
+| `md.aeoVersion` | 5 | ⚠️ recommended |
+| `md.nosniff` | 5 | ⚠️ recommended |
+| `html.reachable` | 5 | ✅ |
+| `html.linkAlternate` | 10 | ✅ |
+| `html.vary` | 5 | ⚠️ recommended |
+| `negotiation.botUa` | 10 | ⚠️ recommended |
+| `negotiation.acceptHeader` | 10 | ✅ |
+| `negotiation.notAcceptable` | 5 | ⚠️ recommended |
+
+**Maximum**: 125 points.
+
+## Conformance levels
+
+The AEO Spec defines three conformance levels matching CLI scores:
+
+| Level | Score | What it means |
+| --- | --- | --- |
+| **Basic** | ≥ 60% (75/125) | Markdown twin reachable, basic headers present |
+| **Standard** | ≥ 80% (100/125) | Full headers, Link alternate, Accept negotiation |
+| **Advanced** | ≥ 95% (119/125) | Bot UA negotiation, 406 fallback, all recommended checks |
+
+See [spec/conformance](/docs/spec/conformance) for the normative definitions.
+
+## Exit code
+
+The CLI exits `0` when **all required** (✅) checks pass, regardless of recommended ones. So a Standard-level implementation can pass CI even without optional headers.

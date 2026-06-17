@@ -1,0 +1,210 @@
+---
+title: Next.js
+description: Drop Dualmark into a Next.js App Router site with @dualmark/nextjs.
+---
+
+`@dualmark/nextjs` is a first-class adapter for the Next.js App Router — same one-line install as `@dualmark/astro`. It ships:
+
+- `withDualmark(nextConfig, options)` for `next.config.mjs`
+- `createDualmarkMiddleware(options)` for `proxy.ts` (or `middleware.ts` on Next ≤15)
+- `createDualmarkRouteHandler(options)` for the markdown twin route handler
+- `createLlmsTxtHandler(options)` for `/llms.txt`
+
+The reference example at `examples/nextjs-app-router` scores **120/125** under `next dev`.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ proxy.ts (createDualmarkMiddleware)                         │
+│   - if path ends in .md     → rewrite to /md/<path>        │
+│   - if AI bot UA OR Accept: text/markdown                   │
+│       → rewrite to /md/<path>                               │
+│   - if Accept rules out html+md → 406                       │
+│   - else (HTML) → next() + Link rel=alternate header        │
+└─────────────────────────────────────────────────────────────┘
+
+app/
+├── ...your existing pages
+├── md/[...path]/route.ts     ← createDualmarkRouteHandler
+│                                (markdown twin handler; never
+│                                 reached directly, only via
+│                                 proxy rewrite)
+└── llms.txt/route.ts         ← createLlmsTxtHandler
+```
+
+> **Why the `/md/` indirection?** Next.js's route type generator and static prerender can't currently express dotted segments like `[slug].md`. A separate `md/` namespace + proxy rewrite is the cleanest pattern that preserves negotiation for both `Accept: text/markdown` and direct `.md` URLs while staying type-safe. Customizable via `internalNamespace`.
+
+## Install
+
+<Tabs items={["bun", "npm", "yarn"]}>
+<Tab value="bun">
+```bash
+bun add @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="npm">
+```bash
+npm install @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
+<Tab value="yarn">
+```bash
+yarn add @dualmark/nextjs @dualmark/core @dualmark/converters
+```
+</Tab>
+</Tabs>
+
+## next.config.mjs
+
+```js title="next.config.mjs"
+import { withDualmark } from "@dualmark/nextjs";
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+};
+
+export default withDualmark(nextConfig, {
+  siteUrl: "https://example.com",
+});
+```
+
+`withDualmark` adds `@dualmark/core`, `@dualmark/converters`, and `@dualmark/nextjs` to your `transpilePackages` and validates the config at boot.
+
+## proxy.ts
+
+```ts title="proxy.ts"
+import { createDualmarkMiddleware } from "@dualmark/nextjs";
+
+export default createDualmarkMiddleware({
+  siteUrl: "https://example.com",
+});
+
+export const config = {
+  matcher: [
+    {
+      source: "/((?!_next/|favicon.ico|md/).*)",
+      missing: [{ type: "header", key: "next-router-prefetch" }],
+    },
+  ],
+};
+```
+
+_On Next.js ≤15, name the file `middleware.ts` instead. Body is identical._
+
+<Callout>
+  The `matcher` source must be an inline literal — Next.js parses `export const config` statically and rejects imports/expressions. If you customize `internalNamespace`, replace `md/` accordingly.
+</Callout>
+
+## app/md/[...path]/route.ts
+
+```ts title="app/md/[...path]/route.ts"
+import { createDualmarkRouteHandler } from "@dualmark/nextjs";
+import { POSTS } from "@/lib/posts";
+
+const handler = createDualmarkRouteHandler({
+  siteUrl: "https://example.com",
+  collections: {
+    posts: {
+      converter: "blog",
+      getEntries: () =>
+        POSTS.map((p) => ({
+          id: p.slug,
+          data: {
+            title: p.title,
+            description: p.description,
+            publishedDate: new Date(p.publishedDate),
+          },
+          body: p.body,
+        })),
+    },
+  },
+  staticPages: [
+    { pattern: "/", render: () => "# Home\n\nWelcome." },
+    { pattern: "/about", render: () => "# About" },
+  ],
+});
+
+export const dynamic = "force-static";
+export const GET = handler.GET;
+export const generateStaticParams = handler.generateStaticParams;
+```
+
+The handler dispatches incoming `/md/<path>` requests to your collections, static pages, and parameterized routes — `generateStaticParams` returns every prerenderable path so `next build` can statically emit them.
+
+## app/llms.txt/route.ts
+
+```ts title="app/llms.txt/route.ts"
+import { createLlmsTxtHandler } from "@dualmark/nextjs";
+
+const handler = createLlmsTxtHandler({
+  brandName: "Acme",
+  description: "Acme's docs and blog.",
+  sections: [
+    {
+      title: "Pages",
+      links: [
+        { title: "Home", href: "https://example.com/" },
+        { title: "Posts", href: "https://example.com/posts" },
+      ],
+    },
+  ],
+});
+
+export const dynamic = "force-static";
+export const GET = handler.GET;
+```
+
+## Built-in converter names
+
+`blog`, `case-study`, `changelog`, `compare`, `docs`, `feature`, `glossary`, `integration`, `legal`, `pricing`, `pseo`, `status-page`, `tool`, `video` — see [@dualmark/converters](/docs/packages/converters). Or pass a custom function `(entry) => string`.
+
+## Verify
+
+```bash
+bun run dev
+# new terminal:
+bunx @dualmark/cli verify http://localhost:3000/posts/your-post
+```
+
+Expect **120/125** under `next dev` (full Standard conformance).
+
+## Migrating from the manual `@dualmark/core` setup
+
+If you wired `@dualmark/core` into Next.js by hand before `@dualmark/nextjs` shipped, the migration is mechanical:
+
+| Before (`@dualmark/core` only) | After (`@dualmark/nextjs`) |
+|---|---|
+| Hand-rolled `proxy.ts`/`middleware.ts` with `detectAIBot` + `negotiateFormat` + manual rewrite logic | `createDualmarkMiddleware({ siteUrl })` |
+| Hand-rolled `app/md/[...path]/route.ts` with `if`-chains over the joined path | `createDualmarkRouteHandler({ siteUrl, collections, staticPages, parameterizedRoutes })` |
+| Hand-rolled `app/llms.txt/route.ts` calling `renderLlmsTxt` | `createLlmsTxtHandler({ brandName, sections })` |
+| Manual `transpilePackages: ["@dualmark/core", ...]` | `withDualmark(nextConfig, options)` |
+
+The internal namespace, response headers, and conformance score are unchanged. The reference example (`examples/nextjs-app-router`) is the canonical migration — it went from ~120 lines hand-rolled to ~50 lines with the adapter, same 120/125 score.
+
+## Known limitation: Next.js Vary stripping
+
+Next.js's `base-server` overwrites the `Vary` header with its own internal value (`rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding`) on:
+
+- **Prerendered HTML pages** (`/posts/<slug>`) — costs `html.vary` (recommended, **−5pt**)
+- **Prerendered/cached `.md` route handlers** when deployed to Vercel — costs `md.vary` (required, **−10pt**)
+
+Your proxy-set `Link` header survives. Your `markdownResponse()` body and other AEO headers (`X-Markdown-Tokens`, `X-AEO-Version`, `X-Robots-Tag: noindex`, `X-Content-Type-Options: nosniff`) survive. But `Vary: Accept` does not.
+
+This is a Next.js + Vercel architectural quirk, not a Dualmark bug. The practical impact:
+
+- **Local `next dev`**: 120/125 (only `html.vary` fails)
+- **Vercel production**: 110/125 (both `md.vary` and `html.vary` fail because Vercel's edge cache layer strips proxy-set `Vary`)
+
+Both 110 and 120 are still **Standard conformance (≥80%)**. This is what `dualmark.dev` itself ships with — and it's the same level Dodo Payments runs in production, where they saw a 5× lift in AI agent traffic over 2 months.
+
+**Three options, in order of cost:**
+
+1. **Accept the 10–15pt loss** — 110/125 is still **Standard (88%)**, well above the 80% threshold. No code change. (Recommended.)
+
+2. **Disable prerender on AEO-eligible routes** — add `export const dynamic = "force-dynamic"` to `app/posts/[slug]/page.tsx` AND your `.md` route handler. Costs ~50–100ms TTFB per request and disables Vercel's static cache. Gets you 125/125.
+
+3. **Wrap your Next.js output in a Cloudflare Worker** — deploy via `@dualmark/cloudflare`'s `createAEOWorker`. The worker controls `Vary` end-to-end. Gets you 125/125 + edge bot detection at single-digit-ms TTFB.
+
+For most marketing sites, **option 1 is correct** — the 15pt loss does not change the conformance level (Standard is achieved at 80%+) and matters far less than the perf and cache-efficiency wins from prerendering.

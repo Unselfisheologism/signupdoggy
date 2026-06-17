@@ -1,0 +1,103 @@
+---
+title: Discovery
+description: How AI clients find a site's markdown twins and llms.txt.
+---
+
+This document is normative.
+
+A conformant server MUST provide at least one of the following discovery mechanisms so that AI agents can find markdown twins without guessing URLs.
+
+## 1. Link rel="alternate" Header (REQUIRED)
+
+On every HTML response that has a markdown twin, the server MUST include a `Link` header with the form:
+
+```
+Link: <ABSOLUTE-OR-RELATIVE-URL>; rel="alternate"; type="text/markdown"
+```
+
+The URL MAY be absolute (`https://example.com/blog/hello.md`) or relative (`/blog/hello.md`). Per RFC 8288, multiple `Link` values are permitted; servers MUST append, not overwrite.
+
+Example:
+
+```http
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Link: </blog/hello.md>; rel="alternate"; type="text/markdown"
+Vary: Accept
+```
+
+## 2. llms.txt (RECOMMENDED)
+
+A conformant server SHOULD publish an `llms.txt` file at the root path (`/llms.txt`) describing the site's AI-relevant content. See [llms-txt-extensions.md](/docs/spec/llms-txt-extensions) for AEO-specific extensions to the [llms.txt proposal](https://llmstxt.org).
+
+Minimum structure:
+
+```markdown
+# Brand Name
+
+> Short description.
+
+## Section Name
+
+- [Page Title](https://example.com/page): Optional description
+```
+
+The `llms.txt` response:
+
+- SHOULD have `Content-Type: text/plain; charset=utf-8` or `text/markdown; charset=utf-8`
+- SHOULD have `X-Robots-Tag: noindex`
+- MAY have `Cache-Control: public, max-age=3600`
+
+## 3. Sitemap (OPTIONAL)
+
+A conformant server MAY include `.md` URLs in its `sitemap.xml`. When doing so:
+
+- Each `.md` URL SHOULD have a `<loc>` matching the markdown twin URL exactly
+- The `<changefreq>` and `<priority>` SHOULD match the corresponding HTML page
+- AI-focused sitemaps MAY be served separately (e.g. `/sitemap-llms.xml`) listing only `.md` URLs
+
+This is OPTIONAL because traditional search engines may not treat `.md` URLs as canonical content; the `noindex` directive on the markdown twin should prevent indexing regardless.
+
+## 4. Markdown Sitemap Index (OPTIONAL)
+
+A conformant server MAY publish a markdown sitemap at `/sitemap.md` listing all markdown twins:
+
+```markdown
+# Sitemap
+
+## Blog
+- [Hello World](/blog/hello.md)
+- [Second Post](/blog/second.md)
+
+## Pages
+- [Home](/index.md)
+- [About](/about.md)
+```
+
+This is OPTIONAL but may be useful for AI agents that prefer markdown discovery to XML parsing.
+
+## 5. robots.txt Directives
+
+A conformant server SHOULD allow the AI agents listed in the [AI Agent Registry](/docs/spec/ai-bot-detection) to crawl the site, unless the operator explicitly intends to block them. Example permissive `robots.txt`:
+
+```
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# ... etc
+```
+
+A conformant server that wishes to allow only AEO traffic MAY restrict crawl scope:
+
+```
+User-agent: GPTBot
+Disallow: /api/
+Disallow: /admin/
+Allow: /
+```
