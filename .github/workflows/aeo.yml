@@ -1,0 +1,76 @@
+name: AEO Conformance
+
+# Run dualmark verify against the deployed site on every PR and
+# push to main. Fails the build if Advanced conformance drops below
+# 100/125 (the spec's "Standard" floor of 80%, with a small buffer
+# for transient network issues).
+#
+# Score breakdown (see spec/conformance.md#check-catalogue):
+#   - Basic (60 pts): md.fetch, md.contentType, md.tokensHeader,
+#     md.noindex, md.vary, md.body — required for all markdown twins
+#   - Standard (30 pts): html.reachable, html.linkAlternate,
+#     html.vary, negotiation.acceptHeader
+#   - Advanced (35 pts): md.aeoVersion, md.nosniff,
+#     negotiation.botUa, negotiation.notAcceptable
+# Max = 125 with full negotiation, 80 with --skip-negotiation.
+#
+# We verify THREE representative pages to catch regressions on
+# different surfaces (landing, docs, pricing). The PR author is
+# expected to keep the deployed staging URL in sync via the
+# AEO_URL repo variable.
+#
+# Override the base URL by setting the AEO_URL secret/variable
+# to e.g. https://staging.signupdoggy.pages.dev — the matrix
+# path is appended automatically.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: dualmark verify ${{ matrix.path }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        path:
+          - /            # landing
+          - /docs        # API documentation
+          - /pricing     # pricing page
+    env:
+      AEO_BASE: ${{ vars.AEO_URL || 'https://signupdoggy.pages.dev' }}
+    steps:
+      - name: Verify AEO conformance
+        env:
+          URL: ${{ env.AEO_BASE }}${{ matrix.path }}
+        run: |
+          set -euo pipefail
+          echo "Verifying: ${URL}"
+          # Run once, capture JSON. Pipe through python to assert
+          # score ≥ 100/125. If the verifier exits non-zero, the
+          # required-check failure short-circuits this script.
+          REPORT=$(npx --yes @dualmark/cli@^0.8.0 verify "${URL}" --json --timeout 15000)
+          echo "${REPORT}" | python3 -c "
+          import json, sys
+          d = json.loads(sys.stdin.read())
+          print(f\"score: {d['score']}/{d['max']} level: {d['level']} duration: {d['durationMs']}ms\")
+          failed = [c for c in d['checks'] if not c['passed']]
+          if failed:
+              for c in failed:
+                  print(f\"  ✗ {c['id']}: {c['message']}\")
+          if d['score'] < 100:
+              print(f\"::error title=AEO regression::score={d['score']}/{d['max']} on ${URL} (threshold 100/125)\")
+              sys.exit(1)
+          print(f\"✓ score={d['score']}/{d['max']} (>= 100 threshold)\")
+          "
+      - name: Upload AEO report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aeo-report-${{ matrix.path == '/' && 'root' || matrix.path | replace('/', '_') }}
+          path: aeo-report.json
+          if-no-files-found: ignore

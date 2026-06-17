@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "npm run aeo:build && vite",
-    "build": "npm run aeo:build && tsc -b && vite build",
+    "build": "npm run aeo:build && tsc -b && vite build && npm run aeo:build:worker",
     "preview": "vite preview",
     "aeo:build": "node --experimental-strip-types --no-warnings aeo/build-content.ts",
     "aeo:build:worker": "node aeo/build-worker.mjs",
     "aeo:dev": "wrangler dev --config aeo/wrangler.toml --port 8787",
     "aeo:deploy": "wrangler deploy --config aeo/wrangler.toml",
-    "aeo:verify": "dualmark verify https://signupdoggy.pages.dev/pricing --json"
+    "aeo:verify": "dualmark verify https://signupdoggy.pages.dev/pricing --json",
+    "aeo:verify:local": "dualmark verify http://localhost:8787/pricing --json"
   },
   "dependencies": {
     "@dualmark/cloudflare": "^0.7.0",

@@ -28,7 +28,7 @@ import { join, dirname, basename, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderLlmsTxt, normalizeUnicode } from '@dualmark/core';
 import tokenize from './aeo-tokenizer.ts';
-import { LLMS_TXT_OPTIONS, BRAND, WHAT_WE_DO_NOT_DO } from './llms-config.ts';
+import { LLMS_TXT_OPTIONS, BRAND, WHAT_WE_DO_NOT_DO, SITE_URL } from './llms-config.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');                  // app/
@@ -36,12 +36,12 @@ const CONTENT_DIR = join(ROOT, 'aeo', 'content');    // app/aeo/content/
 const DIST_DIR = join(ROOT, 'dist');                // app/dist/
 
 // ─── 1. Copy hand-authored content ─────────────────────────────────
-function copyContent() {
+function copyContent(): string[] {
   if (!existsSync(DIST_DIR)) {
     mkdirSync(DIST_DIR, { recursive: true });
   }
   const entries = readdirSync(CONTENT_DIR);
-  const copied = [];
+  const copied: string[] = [];
   for (const name of entries) {
     const src = join(CONTENT_DIR, name);
     const dst = join(DIST_DIR, name);
@@ -130,9 +130,59 @@ function generateLlmsFullTxt() {
   return 'llms-full.txt';
 }
 
+// ─── 3.5 Generate sitemap.xml (traditional SEO sitemap, also lists .md twins) ─
+function generateSitemapXml() {
+  // Per spec/discovery.md §3, .md URLs MAY be included in sitemap.xml.
+  // We list HTML as canonical, then .md as an alternate — same <loc>
+  // pattern that the spec recommends. AI-focused sitemaps are
+  // already covered by /sitemap.md (U1).
+  const today = new Date().toISOString().slice(0, 10);
+  const pages: { html: string; md?: string; priority: number; changefreq: string }[] = [
+    { html: '/', md: '/index.md', priority: 1.0, changefreq: 'weekly' },
+    { html: '/docs', md: '/docs.md', priority: 0.9, changefreq: 'weekly' },
+    { html: '/pricing', md: '/pricing.md', priority: 0.9, changefreq: 'weekly' },
+    { html: '/terms', md: '/terms.md', priority: 0.3, changefreq: 'yearly' },
+    { html: '/privacy', md: '/privacy.md', priority: 0.3, changefreq: 'yearly' },
+  ];
+
+  const xmlEscape = (s: string) =>
+    s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const urls = pages
+    .map((p) => {
+      const mdBlock = p.md
+        ? `    <xhtml:link rel="alternate" type="text/markdown" href="${xmlEscape(SITE_URL + p.md)}" />\n`
+        : '';
+      return `  <url>\n    <loc>${xmlEscape(SITE_URL + p.html)}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority.toFixed(1)}</priority>\n${mdBlock}  </url>`;
+    })
+    .join('\n');
+
+  // Also list the standalone AI discovery files so they appear in
+  // search-engine indexes (Bing / DuckDuckGo consume sitemap.xml
+  // for content discovery too).
+  const aiFiles = ['/llms.txt', '/llms-full.txt', '/sitemap.md'];
+  const aiUrls = aiFiles
+    .map(
+      (p) => `  <url>\n    <loc>${xmlEscape(SITE_URL + p)}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.5</priority>\n  </url>`,
+    )
+    .join('\n');
+
+  const body = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${urls}
+${aiUrls}
+</urlset>
+`;
+  const dst = join(DIST_DIR, 'sitemap.xml');
+  writeFileSync(dst, body, 'utf8');
+  return 'sitemap.xml';
+}
+
 // ─── 4. Compute token counts → .aeo-tokens.json sidecar ────────────
-function writeTokenSidecar(copiedFiles) {
-  const tokens = {};
+function writeTokenSidecar(copiedFiles: string[]): Record<string, number> {
+  const tokens: Record<string, number> = {};
   for (const name of copiedFiles) {
     const path = join(DIST_DIR, name);
     if (extname(name) === '.md' || extname(name) === '.txt') {
@@ -141,7 +191,8 @@ function writeTokenSidecar(copiedFiles) {
         const normalized = normalizeUnicode(body);
         tokens[`/${name}`] = tokenize(normalized);
       } catch (err) {
-        console.warn(`[aeo:build] failed to tokenize ${name}:`, err.message);
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn(`[aeo:build] failed to tokenize ${name}:`, message);
         tokens[`/${name}`] = -1;
       }
     }
@@ -164,9 +215,10 @@ function writeTokenSidecar(copiedFiles) {
 function main() {
   const start = Date.now();
   const copied = copyContent();
-  const generated = [];
+  const generated: string[] = [];
   generated.push(generateLlmsTxt());
   generated.push(generateLlmsFullTxt());
+  generated.push(generateSitemapXml());
   const tokens = writeTokenSidecar([...copied, ...generated]);
 
   // Verify the AEO spec requirement: llms-full.txt must be ≥1.5× llms.txt
@@ -181,6 +233,7 @@ function main() {
     `[aeo:build] copied ${copied.length} file(s) from aeo/content/ → dist/`,
     `[aeo:build] generated llms.txt (${llmsTxt} tokens)`,
     `[aeo:build] generated llms-full.txt (${llmsFullTxt} tokens, ${ratio.toFixed(2)}× llms.txt) ${ratioOk ? '✓' : '✗ (must be ≥1.5×)'}`,
+    `[aeo:build] generated sitemap.xml (5 HTML pages + 3 AI discovery files)`,
     `[aeo:build] ${mdCount} markdown page twin(s) in dist/`,
     `[aeo:build] .aeo-tokens.json sidecar written`,
     `[aeo:build] done in ${ms}ms`,
