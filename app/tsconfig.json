@@ -17,5 +17,6 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "aeo"]
+  "include": ["src"],
+  "exclude": ["aeo", "node_modules", "dist"]
 }
