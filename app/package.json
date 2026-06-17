@@ -4,22 +4,34 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "dev": "npm run aeo:build && vite",
+    "build": "npm run aeo:build && tsc -b && vite build",
+    "preview": "vite preview",
+    "aeo:build": "node --experimental-strip-types --no-warnings aeo/build-content.ts",
+    "aeo:build:worker": "node aeo/build-worker.mjs",
+    "aeo:dev": "wrangler dev --config aeo/wrangler.toml --port 8787",
+    "aeo:deploy": "wrangler deploy --config aeo/wrangler.toml",
+    "aeo:verify": "dualmark verify https://signupdoggy.pages.dev/pricing --json"
   },
   "dependencies": {
+    "@dualmark/cloudflare": "^0.7.0",
+    "@dualmark/converters": "^0.8.0",
+    "@dualmark/core": "^0.7.0",
     "@supabase/supabase-js": "^2.108.1",
+    "js-tiktoken": "^1.0.21",
     "motion": "^12.40.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
+    "@dualmark/cli": "^0.8.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "esbuild": "^0.25.0",
     "typescript": "^5.6.2",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "wrangler": "^4.101.0"
   }
 }
