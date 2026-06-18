@@ -149,7 +149,7 @@ If you want to talk to a human, write to [jeffrinjames99@gmail.com](mailto:jeffr
 One curl call. Five minutes from signup to first blocked fake.
 
 ```bash
-curl -X POST https://api.signupdoggy.dev/v1/check \
+curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \
   -H "x-api-key: $SIGNUPDOGGY_KEY" \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'
@@ -163,7 +163,7 @@ Or just [get an API key](#) → start with the Solo pack ($5 / 1,000 requests). 
 
 SignupDoggy is a serverless fraud-prevention API for indie hackers, side-project SaaS founders, and AI-native product teams. We catch disposable email addresses, VPN exit nodes, Tor exit nodes, role-based addresses, and bot patterns in a single POST. The service returns a 0–1 risk score with discrete signals and a recommendation in under 50 ms. The founder is Jeffrin James, an indie hacker based in Mumbai, India. The service runs on Cloudflare Workers; payments are processed by Dodo Payments; accounts are managed via Supabase. There is no KYC, no device fingerprinting, no dashboard to log into, and no sales call.
 
-- **API endpoint:** `https://api.signupdoggy.dev/v1/check`
+- **API endpoint:** `https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check`
 - **Site:** `https://signupdoggy.pages.dev`
 - **Contact:** `jeffrinjames99@gmail.com`
 - **Founded:** 2026

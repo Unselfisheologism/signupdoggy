@@ -2,26 +2,38 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
 
-const curlCheck = `curl -X POST https://api.signupdoggy.dev/v1/check \\
+// Base URL must match the actual deployed Worker. The previous
+// `api.signupdoggy.dev` and `signupdoggy.dev` hostnames were never
+// provisioned in DNS — copying them produced 6/UNKNOWN. The Worker
+// is deployed at `signupdoggy-api.<account>.workers.dev`. If a
+// custom domain is later attached to the Worker, update the two
+// consts below in one place and the rest of this page follows.
+const API_BASE = 'https://signupdoggy-api.jeffrinjames99.workers.dev';
+
+const curlCheck = `curl -X POST ${API_BASE}/v1/check \\
   -H "x-api-key: $SIGNUPDOGGY_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'`;
 
 const jsonResp = `{
-  "recommendation": "block",
-  "risk_score": 0.97,
-  "latency_ms": 38,
-  "signals": {
-    "disposable_email": true,
-    "vpn_or_proxy": true,
-    "tor_exit_node": true,
-    "role_based": false
+  "email": {
+    "is_disposable": true,
+    "domain": "10minutemail.com",
+    "risk_score": 85
   },
-  "email": { "domain": "10minutemail.com", "risk_score": 95 },
-  "ip": { "asn": "AS9009", "risk_score": 88 }
+  "ip": {
+    "is_tor": true,
+    "is_proxy": false,
+    "is_hosting": true,
+    "asn": "AS9009",
+    "risk_score": 90
+  },
+  "phone": null,
+  "overall_risk": "high",
+  "recommendation": "block"
 }`;
 
-const nodeExample = `const res = await fetch('https://api.signupdoggy.dev/v1/check', {
+const nodeExample = `const res = await fetch('${API_BASE}/v1/check', {
   method: 'POST',
   headers: {
     'x-api-key': process.env.SIGNUPDOGGY_KEY,
@@ -33,25 +45,32 @@ const nodeExample = `const res = await fetch('https://api.signupdoggy.dev/v1/che
   }),
 });
 const data = await res.json();
-if (data.risk_score > 0.7) return block(data);`;
+if (data.recommendation === 'block') return block(data);`;
 
-const pyExample = `import requests
+const pyExample = `import os, requests
 
 res = requests.post(
-    'https://api.signupdoggy.dev/v1/check',
+    '${API_BASE}/v1/check',
     headers={'x-api-key': os.environ['SIGNUPDOGGY_KEY']},
     json={'email': 'user@example.com', 'ip': '1.2.3.4'}
 )
 data = res.json()
-if data['risk_score'] > 0.7:
+if data['recommendation'] == 'block':
     return block_user(data)`;
 
-const blacklistCurl = `curl -X POST https://api.signupdoggy.dev/v1/blacklist \\
+const blacklistAddCurl = `curl -X POST ${API_BASE}/v1/blacklist \\
   -H "x-api-key: $SIGNUPDOGGY_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"type": "email", "value": "bad@actor.com"}'`;
+  -d '{"type": "email", "value": "bad@actor.com", "action": "add"}'`;
 
-const statsCurl = `curl https://api.signupdoggy.dev/v1/stats \\
+const blacklistRemoveCurl = `curl -X POST ${API_BASE}/v1/blacklist \\
+  -H "x-api-key: $SIGNUPDOGGY_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"type": "ip", "value": "1.2.3.4", "action": "remove"}'`;
+
+const keysCurl = `curl -X POST ${API_BASE}/v1/keys`;
+
+const statsCurl = `curl ${API_BASE}/v1/stats \\
   -H "x-api-key: $SIGNUPDOGGY_KEY"`;
 
 function CodeBlock({ code, label }: { code: string; label?: string }) {
@@ -129,9 +148,20 @@ export default function Docs() {
           ONE ENDPOINT. ONE API KEY. ONE DECISION: ALLOW · REVIEW · BLOCK.
         </p>
 
+        <h2 className="docs-h2"># BASE URL</h2>
+        <p className="docs-p">
+          ALL REQUESTS GO TO THE PUBLIC WORKER DEPLOYMENT BELOW. PASS YOUR API
+          KEY IN THE <code>X-API-KEY</code> HEADER.
+        </p>
+        <div className="docs-code-block">
+          <pre className="docs-code-pre"><code>{API_BASE}</code></pre>
+        </div>
+
         <h2 className="docs-h2"># AUTHENTICATION</h2>
         <p className="docs-p">
-          PASS YOUR API KEY IN THE <code>X-API-KEY</code> HEADER. CREATE A KEY FROM THE DASHBOARD AFTER BUYING CREDITS.
+          PASS YOUR API KEY IN THE <code>X-API-KEY</code> HEADER. KEYS ARE
+          52-CHARACTER STRINGS PREFIXED WITH <code>SD_</code>. CREATE A KEY FROM
+          THE DASHBOARD OR VIA <code>POST /v1/keys</code> BELOW.
         </p>
         <div className="docs-code-block">
           <pre className="docs-code-pre"><code>{'x-api-key: $SIGNUPDOGGY_KEY'}</code></pre>
@@ -143,27 +173,50 @@ export default function Docs() {
         <h2 className="docs-h2"># ENDPOINTS</h2>
 
         <h3 className="docs-h3">CHECK A SIGNUP</h3>
-        <Endpoint method="POST" path="/v1/check" desc="EVALUATE EMAIL + IP IN ONE CALL" />
+        <Endpoint method="POST" path="/v1/check" desc="EVALUATE EMAIL, IP, AND/OR PHONE IN ONE CALL" />
         <p className="docs-p">
-          PASS AN EMAIL, AN IP, OR BOTH. RETURN A 0–1 RISK SCORE PLUS PER-SIGNAL BREAKDOWN.
+          PASS AT LEAST ONE OF <code>email</code>, <code>ip</code>, OR
+          <code> phone</code>. RETURNS PER-INPUT SIGNALS, AN OVERALL RISK BAND,
+          AND A RECOMMENDATION. COSTS ONE CREDIT.
         </p>
 
         <h4 className="docs-h4">REQUEST BODY</h4>
         <FieldTable rows={[
           ['email', 'string', 'NO*', 'EMAIL TO CHECK'],
-          ['ip', 'string', 'NO*', 'IP ADDRESS TO CHECK'],
-          ['phone', 'string', 'NO', 'PHONE NUMBER TO CHECK'],
+          ['ip', 'string', 'NO*', 'IPV4 ADDRESS TO CHECK'],
+          ['phone', 'string', 'NO*', 'PHONE NUMBER TO CHECK (E.164, E.G. +14155551234)'],
         ]} />
+        <p className="docs-p" style={{ opacity: 0.7 }}>
+          *AT LEAST ONE OF <code>email</code>, <code>ip</code>, OR <code>phone</code> IS REQUIRED.
+        </p>
 
         <h4 className="docs-h4">RESPONSE</h4>
         <FieldTable rows={[
-          ['recommendation', '"allow"|"review"|"block"', 'DECISION'],
-          ['risk_score', '0–1', 'OVERALL RISK'],
-          ['latency_ms', 'number', 'TIME TAKEN'],
-          ['signals.disposable_email', 'boolean', 'DISPOSABLE DOMAIN?'],
-          ['signals.vpn_or_proxy', 'boolean', 'VPN / PROXY?'],
-          ['signals.tor_exit_node', 'boolean', 'TOR EXIT?'],
-          ['signals.role_based', 'boolean', 'ADMIN@ / INFO@ / ETC'],
+          ['email', 'object | null', 'EMAIL FINDINGS (NULL IF NOT SENT)'],
+          ['email.is_disposable', 'boolean', 'DOMAIN IS IN OUR DISPOSABLE LIST'],
+          ['email.domain', 'string', 'NORMALIZED DOMAIN'],
+          ['email.risk_score', '0–100', 'EMAIL RISK (100 = DEFINITELY BAD)'],
+          ['ip', 'object | null', 'IP FINDINGS (NULL IF NOT SENT)'],
+          ['ip.is_tor', 'boolean', 'CURRENT TOR EXIT NODE'],
+          ['ip.is_proxy', 'boolean', 'KNOWN VPN / PROXY IP'],
+          ['ip.is_hosting', 'boolean', 'COMMERCIAL HOSTING IP (AWS / DO / HETZNER / ETC)'],
+          ['ip.asn', 'string | null', 'AUTONOMOUS SYSTEM NUMBER'],
+          ['ip.risk_score', '0–100', 'IP RISK'],
+          ['phone', 'object | null', 'PHONE FINDINGS (NULL IF NOT SENT)'],
+          ['phone.is_disposable', 'boolean', 'VIRTUAL / DISPOSABLE NUMBER'],
+          ['phone.number', 'string', 'NORMALIZED E.164 NUMBER'],
+          ['phone.risk_score', '0–100', 'PHONE RISK'],
+          ['overall_risk', '"low" | "medium" | "high"', 'MAX SCORE BUCKETED (≥70 HIGH, ≥30 MEDIUM)'],
+          ['recommendation', '"allow" | "review" | "block"', 'DECISION (MAX ≥80 OR OVERALL=HIGH → BLOCK)'],
+        ]} />
+
+        <h4 className="docs-h4">RESPONSE HEADERS</h4>
+        <FieldTable rows={[
+          ['X-Fraud-Blocked-Today', 'NUMBER', 'CUMULATIVE BLOCKS ON YOUR KEY TODAY'],
+          ['X-Fraud-Blocked-Reason', 'STRING', 'REASON FOR THE BLOCK (disposable_email / tor_exit / proxy / custom_blacklist / disposable_phone) OR "none"'],
+          ['X-Estimated-Cost', 'USD', 'ESTIMATED SPEND SO FAR TODAY'],
+          ['X-Credit-Balance', 'NUMBER', 'CREDITS REMAINING AFTER THIS CALL'],
+          ['X-Founder-Bypass', '"true" | "false"', 'INTERNAL — WHETHER THE FOUNDER BYPASS SKIPPED CREDIT DEDUCTION'],
         ]} />
 
         <div className="docs-code-tabs">
@@ -182,23 +235,55 @@ export default function Docs() {
           {tab === 'curl' && <CodeBlock code={jsonResp} label="EXAMPLE RESPONSE" />}
         </div>
 
-        <h2 className="docs-h2"># CUSTOM BLACKLISTS</h2>
-        <h3 className="docs-h3">ADD A BLACKLIST ENTRY</h3>
-        <Endpoint method="POST" path="/v1/blacklist" desc="ADD EMAIL OR IP TO YOUR ACCOUNT BLACKLIST" />
+        <h3 className="docs-h3">CREATE AN API KEY</h3>
+        <Endpoint method="POST" path="/v1/keys" desc="MINT A NEW API KEY. NO AUTH HEADER REQUIRED. RETURNS 201." />
+        <p className="docs-p">
+          THE RESPONSE BODY INCLUDES THE PLAIN <code>api_key</code> — SAVE IT
+          NOW, IT IS NEVER SHOWN AGAIN.
+        </p>
         <FieldTable rows={[
-          ['type', 'string', 'YES', '"email" OR "ip"'],
-          ['value', 'string', 'YES', 'THE VALUE TO BLOCK'],
+          ['api_key', 'string', 'THE NEW KEY, PREFIXED WITH sd_'],
+          ['user_id', 'string', 'INTERNAL USER ID THE KEY IS BOUND TO'],
+          ['created', 'YYYY-MM-DD', 'KEY CREATION DATE'],
+          ['message', 'string', 'HUMAN-READABLE REMINDER TO SAVE THE KEY'],
         ]} />
-        <CodeBlock code={blacklistCurl} label="CURL" />
+        <CodeBlock code={keysCurl} label="CURL" />
+
+        <h2 className="docs-h2"># CUSTOM BLACKLISTS</h2>
+        <h3 className="docs-h3">ADD OR REMOVE A BLACKLIST ENTRY</h3>
+        <Endpoint method="POST" path="/v1/blacklist" desc="ADD OR REMOVE AN EMAIL / IP / PHONE ON YOUR ACCOUNT BLACKLIST" />
+        <p className="docs-p">
+          BLACKLISTED VALUES RETURN <code>recommendation: "block"</code>
+          {' '}WHATEVER THE OTHER SIGNALS SAY.
+        </p>
+        <FieldTable rows={[
+          ['type', 'string', 'YES', '"email" | "ip" | "phone"'],
+          ['value', 'string', 'YES', 'THE VALUE TO BLACKLIST (LOWERCASED)'],
+          ['action', 'string', 'YES', '"add" | "remove"'],
+        ]} />
+        <CodeBlock code={blacklistAddCurl} label="ADD — CURL" />
+        <CodeBlock code={blacklistRemoveCurl} label="REMOVE — CURL" />
 
         <h2 className="docs-h2"># USAGE</h2>
-        <h3 className="docs-h3">GET USAGE + REMAINING CREDITS</h3>
-        <Endpoint method="GET" path="/v1/stats" desc="CHECK CREDITS, USAGE, AND LIMITS" />
+        <h3 className="docs-h3">GET TODAY'S USAGE</h3>
+        <Endpoint method="GET" path="/v1/stats" desc="REQUESTS, BLOCKS (BY REASON), AND ESTIMATED COST FOR TODAY (UTC)" />
+        <FieldTable rows={[
+          ['period', 'YYYY-MM-DD', 'THE UTC DAY THIS REPORT COVERS'],
+          ['total_requests', 'number', 'CALLS YOU HAVE MADE TODAY'],
+          ['blocked_count', 'number', 'CALLS THAT RETURNED recommendation: "block"'],
+          ['blocked_by_reason.disposable_email', 'number', 'BLOCKS FOR DISPOSABLE EMAIL'],
+          ['blocked_by_reason.tor_exit', 'number', 'BLOCKS FOR TOR EXIT NODE'],
+          ['blocked_by_reason.proxy', 'number', 'BLOCKS FOR VPN / PROXY / HOSTING IP'],
+          ['blocked_by_reason.custom_blacklist', 'number', 'BLOCKS FOR YOUR PERSONAL BLACKLIST'],
+          ['blocked_by_reason.disposable_phone', 'number', 'BLOCKS FOR DISPOSABLE PHONE'],
+          ['estimated_cost_usd', 'number', "TODAY'S SPEND AT $0.01/REQUEST"],
+        ]} />
         <CodeBlock code={statsCurl} label="CURL" />
 
         <h2 className="docs-h2"># PRICING INLINE</h2>
         <p className="docs-p">
-          <strong>$0.01 PER REQUEST</strong> AFTER YOUR CREDITS RUN OUT. CREDITS NEVER EXPIRE. NO MONTHLY FEE. NO SALES CALL.
+          <strong>$0.01 PER REQUEST</strong>, DEDUCTED FROM YOUR PRE-PAID CREDIT
+          BALANCE. CREDITS NEVER EXPIRE. NO MONTHLY FEE. NO SALES CALL.
         </p>
         <p className="docs-p">
           <Link to="/pricing">SEE THE THREE SIZES →</Link>
@@ -206,10 +291,9 @@ export default function Docs() {
 
         <h2 className="docs-h2"># ERRORS</h2>
         <FieldTable headers={['STATUS', 'MEANING']} rows={[
-          ['400', 'BAD REQUEST. MISSING OR INVALID PARAMETERS.'],
+          ['400', 'BAD REQUEST. INVALID JSON OR NO EMAIL/IP/PHONE SUPPLIED.'],
           ['401', 'UNAUTHORIZED. MISSING OR INVALID API KEY.'],
-          ['402', 'OUT OF CREDITS. BUY MORE.'],
-          ['429', 'RATE LIMITED. BACK OFF.'],
+          ['402', 'OUT OF CREDITS. TOP UP AT /BILLING OR VIA THE DASHBOARD. RESPONSE: { "error": "Insufficient credits — top up at https://signupdoggy.pages.dev/billing", "code": "insufficient_credits" }'],
           ['500', 'INTERNAL ERROR. EMAIL JEFFRINJAMES99@GMAIL.COM.'],
         ]} />
       </div>

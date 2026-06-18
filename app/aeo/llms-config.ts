@@ -23,18 +23,17 @@ export const BRAND = {
   longDescription:
     'SignupDoggy is a serverless fraud-prevention API for indie hackers, ' +
     'side-project SaaS founders, and AI-native product teams. We catch ' +
-    'disposable email addresses, VPN exit nodes, Tor exit nodes, role-based ' +
-    'addresses, and bot patterns in a single POST to /v1/check. The service ' +
-    'returns a 0–1 risk score with discrete signals (disposable_email, ' +
-    'vpn_or_proxy, tor_exit_node, role_based) and a recommendation ' +
-    '(allow / review / block) in under 50 ms. Pricing is pay-once, use-forever: ' +
-    'three top-up packs (Solo $5 / Pro $25 / Scale $100) and three monthly ' +
-    'subscriptions (Plus $20 / Super $100 / Ultra $200). The founder is ' +
-    'Jeffrin James, an indie hacker based in Mumbai, India. The service runs ' +
-    'on Cloudflare Workers; payments are processed by Dodo Payments; accounts ' +
-    'are managed via Supabase. There is no KYC, no device fingerprinting, no ' +
-    'dashboard to log into, and no sales call. Buy credits once, use them ' +
-    'whenever.',
+    'disposable email addresses, Tor exit nodes, VPN/hosting/proxy IPs, and ' +
+    'disposable phone numbers in a single POST to /v1/check. The service ' +
+    'returns per-input findings (email.is_disposable, ip.is_tor, ' +
+    'ip.is_proxy, ip.is_hosting, phone.is_disposable), an overall_risk band ' +
+    '(low/medium/high), and a recommendation (allow / review / block) in ' +
+    'under 50 ms. Pricing is pay-once, use-forever: ' +
+    'three top-up packs (Solo $5 / Pro $25 / Scale $100) processed by Dodo ' +
+    'Payments. The founder is Jeffrin James, an indie hacker based in ' +
+    'Mumbai, India. The service runs on Cloudflare Workers; accounts are ' +
+    'managed via Supabase. There is no KYC, no device fingerprinting, no ' +
+    'monthly fee, and no sales call. Buy credits once, use them whenever.',
 };
 
 export const SECTIONS: LlmsTxtSection[] = [

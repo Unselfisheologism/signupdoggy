@@ -119,7 +119,7 @@ function generateLlmsFullTxt() {
     ``,
     `- **Founder email:** jeffrinjames99@gmail.com`,
     `- **Founder alt:** jeff9james@protonmail.com`,
-    `- **API endpoint:** https://api.signupdoggy.dev/v1/check`,
+    `- **API endpoint:** https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check`,
     `- **Site:** https://signupdoggy.pages.dev`,
     ``,
   ].join('\n');

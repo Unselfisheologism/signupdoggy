@@ -1,79 +1,124 @@
 # SignupDoggy API Documentation
 
-> One endpoint. One API key. One decision: `allow` · `review` · `block`. P95 latency: 40 ms. Average response: 4 KB.
-
 <!-- aeo:source=app/src/pages/Docs.tsx -->
+
+## Base URL
+
+All requests go to the deployed Worker:
+
+```
+https://signupdoggy-api.jeffrinjames99.workers.dev
+```
+
+The previous `api.signupdoggy.dev` and `signupdoggy.dev` hostnames are not
+provisioned in DNS. If a custom domain is later attached to the Worker, update
+the base URL here and in `app/src/pages/Docs.tsx` in one place.
 
 ## Authentication
 
-Pass your API key in the `X-API-Key` header. Create a key from the dashboard after buying credits.
+Pass your API key in the `X-API-Key` header. Keys are 52-character strings
+prefixed with `sd_` (the prefix + 48 lowercase alphanumeric characters). Create
+a key from the dashboard or by calling `POST /v1/keys` (no auth header
+required).
 
 ```http
 X-API-Key: $SIGNUPDOGGY_KEY
 ```
 
-The key is a 48-character hex string prefixed with `sd_`. It is bound to your account and is rate-limited per-key.
-
 ## Endpoints
+
+### `POST /v1/keys` — Create a new API key
+
+Mint a key without authentication. Returns `201 Created`. The response body
+contains the plain `api_key` — it is never shown again.
+
+```bash
+curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/keys
+```
+
+Response:
+
+```json
+{
+  "api_key": "sd_abc...xyz",
+  "user_id": "user_1710000000000",
+  "created": "2026-06-18",
+  "message": "Save this API key — it will not be shown again."
+}
+```
 
 ### `POST /v1/check` — Evaluate a signup
 
-Pass an email, an IP, or both. Return a 0–1 risk score plus per-signal breakdown. **This is the only endpoint most users need.**
+Pass at least one of `email`, `ip`, or `phone`. Returns per-input findings,
+an `overall_risk` band, and a `recommendation`. Costs one credit per call.
 
 **Request body**
 
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `email` | string | No* | Email address to check |
-| `ip` | string | No* | IP address to check |
-| `phone` | string | No | Phone number to check (E.164 format, e.g. `+14155551234`) |
+| `ip` | string | No* | IPv4 address to check |
+| `phone` | string | No* | Phone number to check (E.164, e.g. `+141****1234`) |
 
-*At least one of `email` or `ip` is required. `phone` is optional and only used when present.
+*At least one of `email`, `ip`, or `phone` is required.
 
 **Response (200 OK)**
 
 ```json
 {
-  "recommendation": "block",
-  "risk_score": 0.97,
-  "latency_ms": 38,
-  "signals": {
-    "disposable_email": true,
-    "vpn_or_proxy": true,
-    "tor_exit_node": true,
-    "role_based": false
-  },
   "email": {
+    "is_disposable": true,
     "domain": "10minutemail.com",
-    "risk_score": 95
+    "risk_score": 85
   },
   "ip": {
+    "is_tor": true,
+    "is_proxy": false,
+    "is_hosting": true,
     "asn": "AS9009",
-    "risk_score": 88
-  }
+    "risk_score": 90
+  },
+  "phone": null,
+  "overall_risk": "high",
+  "recommendation": "block"
 }
 ```
 
 | Field | Type | Description |
 |---|---|---|
-| `recommendation` | `"allow"` \| `"review"` \| `"block"` | Discrete decision. `allow` if score < 0.3, `review` if 0.3–0.7, `block` if ≥ 0.7. |
-| `risk_score` | 0–1 | Overall risk. Weighted sum of the per-signal scores. |
-| `latency_ms` | number | Time taken on our end, in milliseconds. |
-| `signals.disposable_email` | boolean | True if the email domain is in our blocklist. |
-| `signals.vpn_or_proxy` | boolean | True if the IP is in a known VPN / hosting / proxy ASN. |
-| `signals.tor_exit_node` | boolean | True if the IP is a current Tor exit node. |
-| `signals.role_based` | boolean | True if the email is `admin@`, `info@`, `support@`, etc. |
-| `email.domain` | string | The domain part of the email address. |
-| `email.risk_score` | 0–100 | Per-email risk score. |
-| `ip.asn` | string | The Autonomous System Number for the IP. |
-| `ip.risk_score` | 0–100 | Per-IP risk score. |
+| `email` | object \| null | Email findings, or null if no `email` was sent |
+| `email.is_disposable` | boolean | Domain is in the disposable-email blocklist |
+| `email.domain` | string | Normalized domain |
+| `email.risk_score` | 0–100 | Email risk score (100 = definitely bad) |
+| `ip` | object \| null | IP findings, or null if no `ip` was sent |
+| `ip.is_tor` | boolean | Current Tor exit node |
+| `ip.is_proxy` | boolean | Known VPN / proxy IP |
+| `ip.is_hosting` | boolean | Commercial hosting IP (AWS / DO / Hetzner / etc.) |
+| `ip.asn` | string \| null | Autonomous System Number |
+| `ip.risk_score` | 0–100 | IP risk score |
+| `phone` | object \| null | Phone findings, or null if no `phone` was sent |
+| `phone.is_disposable` | boolean | Virtual / disposable number |
+| `phone.number` | string | Normalized E.164 number |
+| `phone.risk_score` | 0–100 | Phone risk score |
+| `overall_risk` | `"low"` \| `"medium"` \| `"high"` | Max score bucketed (≥70 high, ≥30 medium) |
+| `recommendation` | `"allow"` \| `"review"` \| `"block"` | `max ≥ 80` or `overall_risk="high"` → `block`; `max ≥ 50` or `overall_risk="medium"` → `review`; otherwise `allow` |
+
+**Response headers**
+
+| Header | Description |
+|---|---|
+| `X-Fraud-Blocked-Today` | Cumulative blocks on your key today |
+| `X-Fraud-Blocked-Reason` | Reason for the block (`disposable_email` / `tor_exit` / `proxy` / `custom_blacklist` / `disposable_phone`) or `none` |
+| `X-Estimated-Cost` | Estimated spend so far today, in USD |
+| `X-Credit-Balance` | Credits remaining after this call |
+| `X-Founder-Bypass` | Internal — whether the founder bypass skipped the credit deduction |
 
 ### Examples
 
 **cURL**
 
 ```bash
-curl -X POST https://api.signupdoggy.dev/v1/check \
+curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check \
   -H "x-api-key: $SIGNUPDOGGY_KEY" \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com", "ip": "1.2.3.4"}'
@@ -82,7 +127,7 @@ curl -X POST https://api.signupdoggy.dev/v1/check \
 **Node.js**
 
 ```js
-const res = await fetch('https://api.signupdoggy.dev/v1/check', {
+const res = await fetch('https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check', {
   method: 'POST',
   headers: {
     'x-api-key': process.env.SIGNUPDOGGY_KEY,
@@ -94,52 +139,72 @@ const res = await fetch('https://api.signupdoggy.dev/v1/check', {
   }),
 });
 const data = await res.json();
-if (data.risk_score > 0.7) return block(data);
+if (data.recommendation === 'block') return block(data);
 ```
 
 **Python**
 
 ```python
-import requests
+import os, requests
 
 res = requests.post(
-    'https://api.signupdoggy.dev/v1/check',
+    'https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check',
     headers={'x-api-key': os.environ['SIGNUPDOGGY_KEY']},
     json={'email': 'user@example.com', 'ip': '1.2.3.4'}
 )
 data = res.json()
-if data['risk_score'] > 0.7:
+if data['recommendation'] == 'block':
     return block_user(data)
 ```
 
-### `POST /v1/blacklist` — Add to your account blacklist
+### `POST /v1/blacklist` — Manage your account blacklist
 
-Add an email or IP to your per-account blacklist. Blacklisted values always return `block` regardless of other signals.
+Add or remove an email, IP, or phone on your per-account blacklist.
+Blacklisted values always return `recommendation: "block"` regardless of
+other signals. All three fields are required.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `type` | string | Yes | `"email"` or `"ip"` |
-| `value` | string | Yes | The value to block |
+| `type` | string | Yes | `"email"` \| `"ip"` \| `"phone"` |
+| `value` | string | Yes | The value to blacklist (lowercased server-side) |
+| `action` | string | Yes | `"add"` \| `"remove"` |
 
-**cURL**
+**Add — cURL**
 
 ```bash
-curl -X POST https://api.signupdoggy.dev/v1/blacklist \
+curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/blacklist \
   -H "x-api-key: $SIGNUPDOGGY_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"type": "email", "value": "bad@actor.com"}'
+  -d '{"type": "email", "value": "bad@actor.com", "action": "add"}'
 ```
 
-Bulk import (1000+ entries) is available on the Scale plan via the dashboard.
-
-### `GET /v1/stats` — Check credits and usage
-
-Returns your current credit balance, month-to-date usage, and per-endpoint counters.
-
-**cURL**
+**Remove — cURL**
 
 ```bash
-curl https://api.signupdoggy.dev/v1/stats \
+curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/blacklist \
+  -H "x-api-key: $SIGNUPDOGGY_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type": "ip", "value": "1.2.3.4", "action": "remove"}'
+```
+
+Response:
+
+```json
+{
+  "message": "email added to blacklist",
+  "type": "email",
+  "value": "bad@actor.com",
+  "current_count": { "emails": 1, "ips": 0, "phones": 0 }
+}
+```
+
+### `GET /v1/stats` — Today's usage
+
+Returns requests, blocks (by reason), and estimated cost for the current UTC
+day.
+
+```bash
+curl https://signupdoggy-api.jeffrinjames99.workers.dev/v1/stats \
   -H "x-api-key: $SIGNUPDOGGY_KEY"
 ```
 
@@ -147,69 +212,51 @@ curl https://api.signupdoggy.dev/v1/stats \
 
 ```json
 {
-  "credits_remaining": 4732,
-  "credits_used_mtd": 268,
-  "requests_by_endpoint": {
-    "check": 250,
-    "blacklist": 14,
-    "stats": 4
+  "period": "2026-06-18",
+  "total_requests": 268,
+  "blocked_count": 41,
+  "blocked_by_reason": {
+    "disposable_email": 30,
+    "tor_exit": 3,
+    "proxy": 5,
+    "custom_blacklist": 2,
+    "disposable_phone": 1
   },
-  "rate_limit": {
-    "limit_per_minute": 600,
-    "remaining_this_minute": 596
-  }
+  "estimated_cost_usd": 2.68
 }
 ```
 
 ## Pricing (inline)
 
-**$0.01 per request** after your credits run out. Credits never expire. No monthly fee. No sales call. See the full [Pricing page](./pricing.md) for the three top-up packs (Solo / Pro / Scale) and the three monthly subscriptions (Plus / Super / Ultra).
+**$0.01 per request**, deducted from your pre-paid credit balance processed
+by Dodo Payments. Credits never expire. No monthly fee. No sales call. See
+the full [Pricing page](./pricing.md) for the three top-up packs (Solo / Pro
+/ Scale).
 
 ## Errors
 
 | Status | Meaning |
 |---|---|
-| `400` | Bad request. Missing or invalid parameters. |
+| `400` | Bad request. Invalid JSON or no `email` / `ip` / `phone` supplied. |
 | `401` | Unauthorized. Missing or invalid API key. |
-| `402` | Out of credits. Buy more. |
-| `429` | Rate limited. Back off. Default: 600 requests per minute per key. |
-| `500` | Internal error. Email [jeffrinjames99@gmail.com](mailto:jeffrinjames99@gmail.com) — Jeffrin answers support directly. |
+| `402` | Out of credits. Response: `{ "error": "Insufficient credits — top up at https://signupdoggy.pages.dev/billing", "code": "insufficient_credits" }`. |
+| `500` | Internal error. Email [jeffrinjames99@gmail.com](mailto:jeffrinjames99@gmail.com). |
 
 ## Rate limits
 
-| Plan | Per-minute | Per-day | Burst |
-|---|---|---|---|
-| Solo | 60 | 5,000 | 10 |
-| Pro | 300 | 50,000 | 50 |
-| Scale | 1,200 | 500,000 | 200 |
-| Subscription (Plus/Super/Ultra) | 300 | 50,000 | 50 |
-
-Rate-limited responses include a `Retry-After` header (in seconds).
-
-## SDKs
-
-We do not ship official SDKs. The API is plain HTTPS + JSON; the snippets above are 5 lines in any language. If you need a typed wrapper, a `fetch()` call is enough.
-
-## Webhooks (Scale plan)
-
-The Scale plan can register a webhook URL. SignupDoggy POSTs to your URL whenever a check returns a `recommendation: "block"`, so you can run a downstream side-effect (e.g. auto-quarantine the user, log to your SIEM, page your team).
-
-```http
-POST /your-webhook-url HTTP/1.1
-Content-Type: application/json
-X-Signupdoggy-Signature: hmac-sha256=...
-
-{
-  "event": "check.block",
-  "timestamp": "2026-06-17T10:42:18Z",
-  "data": { /* same body as the /v1/check response */ }
-}
-```
-
-The `X-Signupdoggy-Signature` header is an HMAC-SHA256 of the body using your API key as the secret. Verify it before processing the payload.
+There are no API-level rate limits. You pay per request — $0.01 each, deducted
+from your credit balance. The credit balance is per-user; once exhausted, the
+API returns `402` until you top up.
 
 ## About this API
 
-This API is the public reference for the SignupDoggy fraud-detection service. It is the same API used by the SignupDoggy dashboard, the live playground on the homepage, and every paying customer. The endpoint is hosted on Cloudflare Workers; the blocklists are stored in Cloudflare KV and refreshed on a cron schedule.
+This API is the public reference for the SignupDoggy fraud-detection service.
+It is the same API used by the SignupDoggy dashboard, the live playground on
+the homepage, and every paying customer. The endpoint is hosted on Cloudflare
+Workers; the blocklists are stored in Cloudflare KV and refreshed on a cron
+schedule.
 
-For questions, write to [jeffrinjames99@gmail.com](mailto:jeffrinjames99@gmail.com). For the legal terms of using this API, see the [Terms of Service](./terms.md). For what data we collect and what we don't, see the [Privacy Policy](./privacy.md).
+For questions, write to [jeffrinjames99@gmail.com](mailto:jeffrinjames99@gmail.com).
+For the legal terms of using this API, see the [Terms of Service](./terms.md).
+For what data we collect and what we don't, see the
+[Privacy Policy](./privacy.md).
