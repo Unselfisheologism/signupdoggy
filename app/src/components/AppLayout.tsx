@@ -46,6 +46,7 @@ export default function AppLayout({
       switch (e.key.toLocaleLowerCase()) {
         case 'd': navigate('/docs'); break;
         case 'p': navigate('/pricing'); break;
+        case 'b': navigate('/blog'); break;
         case 'g': navigate(session ? '/dashboard' : '/auth'); break;
       }
     };

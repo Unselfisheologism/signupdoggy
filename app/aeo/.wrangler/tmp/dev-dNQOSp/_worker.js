@@ -1,9 +1,7 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/pages-tDTG2G/bundledWorker-0.5461542957707859.mjs
-var __defProp2 = Object.defineProperty;
-var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
+// ../dist/_worker.js
 function parseAcceptHeader(header) {
   if (!header) return [];
   return header.split(",").map((range) => {
@@ -29,7 +27,6 @@ function parseAcceptHeader(header) {
   });
 }
 __name(parseAcceptHeader, "parseAcceptHeader");
-__name2(parseAcceptHeader, "parseAcceptHeader");
 function mediaTypeMatches(pref, type, subtype) {
   if (pref.quality === 0) return false;
   if (pref.type !== "*" && pref.type !== type) return false;
@@ -37,7 +34,6 @@ function mediaTypeMatches(pref, type, subtype) {
   return true;
 }
 __name(mediaTypeMatches, "mediaTypeMatches");
-__name2(mediaTypeMatches, "mediaTypeMatches");
 var FORMAT_REGISTRY = /* @__PURE__ */ new Map([
   [
     "html",
@@ -92,14 +88,12 @@ function negotiateFormat(accept, available) {
   return best === null ? null : best.fmt;
 }
 __name(negotiateFormat, "negotiateFormat");
-__name2(negotiateFormat, "negotiateFormat");
-var defaultEstimator = /* @__PURE__ */ __name2((text) => text.split(/\s+/).filter(Boolean).length, "defaultEstimator");
+var defaultEstimator = /* @__PURE__ */ __name((text) => text.split(/\s+/).filter(Boolean).length, "defaultEstimator");
 var currentEstimator = defaultEstimator;
 function estimateTokens(text) {
   return currentEstimator(text);
 }
 __name(estimateTokens, "estimateTokens");
-__name2(estimateTokens, "estimateTokens");
 function toMarkdownPath(pathname) {
   if (pathname.endsWith(".md")) return pathname;
   const trimmed = pathname.replace(/\/+$/, "");
@@ -107,7 +101,6 @@ function toMarkdownPath(pathname) {
   return trimmed + ".md";
 }
 __name(toMarkdownPath, "toMarkdownPath");
-__name2(toMarkdownPath, "toMarkdownPath");
 var AI_BOTS = [
   {
     name: "GPTBot",
@@ -273,7 +266,6 @@ function matches(ua, pattern) {
   return pattern.test(ua);
 }
 __name(matches, "matches");
-__name2(matches, "matches");
 function detectAIBot(userAgent) {
   if (!userAgent) {
     return { isBot: false, name: null, vendor: null, purpose: null };
@@ -291,7 +283,6 @@ function detectAIBot(userAgent) {
   return { isBot: false, name: null, vendor: null, purpose: null };
 }
 __name(detectAIBot, "detectAIBot");
-__name2(detectAIBot, "detectAIBot");
 var DEFAULT_SKIP_PREFIXES = ["/admin", "/api/", "/_"];
 var DEFAULT_ASSET_EXTENSIONS = [
   ".js",
@@ -316,12 +307,10 @@ function shouldSkip(pathname, prefixes, extensions) {
   return prefixes.some((p) => pathname.startsWith(p));
 }
 __name(shouldSkip, "shouldSkip");
-__name2(shouldSkip, "shouldSkip");
 function normalizePath(pathname) {
   return pathname.replace(/\/$/, "") || "/";
 }
 __name(normalizePath, "normalizePath");
-__name2(normalizePath, "normalizePath");
 function buildMarkdownHeaders(body, cacheControl, redirectFrom, redirectTo) {
   const tokens = estimateTokens(body);
   const headers = new Headers({
@@ -338,7 +327,6 @@ function buildMarkdownHeaders(body, cacheControl, redirectFrom, redirectTo) {
   return headers;
 }
 __name(buildMarkdownHeaders, "buildMarkdownHeaders");
-__name2(buildMarkdownHeaders, "buildMarkdownHeaders");
 function trackAnalytics(env, bindingName, info, request) {
   if (!bindingName) return;
   const ds = env[bindingName];
@@ -353,7 +341,6 @@ function trackAnalytics(env, bindingName, info, request) {
   });
 }
 __name(trackAnalytics, "trackAnalytics");
-__name2(trackAnalytics, "trackAnalytics");
 function createAEOWorker(options) {
   const skipPrefixes = options.skip?.prefixes ?? DEFAULT_SKIP_PREFIXES;
   const skipExtensions = options.skip?.extensions ?? DEFAULT_ASSET_EXTENSIONS;
@@ -537,7 +524,6 @@ This page has moved to an external location.
   };
 }
 __name(createAEOWorker, "createAEOWorker");
-__name2(createAEOWorker, "createAEOWorker");
 var upstream = {
   async fetch(request, env, _ctx) {
     return env.ASSETS.fetch(request);
@@ -590,7 +576,7 @@ var aeoWorker = createAEOWorker({
   analytics: { binding: "AI_AGENT_ANALYTICS" },
   headers: { cacheControl: "public, max-age=3600" },
   hooks: {
-    onAIRequest: /* @__PURE__ */ __name2((info) => {
+    onAIRequest: /* @__PURE__ */ __name((info) => {
       console.log(
         JSON.stringify({
           event: "aeo.ai_request",
@@ -601,7 +587,7 @@ var aeoWorker = createAEOWorker({
         })
       );
     }, "onAIRequest"),
-    onMiss: /* @__PURE__ */ __name2((info) => {
+    onMiss: /* @__PURE__ */ __name((info) => {
       console.warn(
         JSON.stringify({
           event: "aeo.miss",
@@ -614,7 +600,9 @@ var aeoWorker = createAEOWorker({
   }
 });
 var worker_default = aeoWorker;
-var drainBody = /* @__PURE__ */ __name2(async (request, env, _ctx, middlewareCtx) => {
+
+// ../node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
+var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
   try {
     return await middlewareCtx.next(request, env);
   } finally {
@@ -630,6 +618,8 @@ var drainBody = /* @__PURE__ */ __name2(async (request, env, _ctx, middlewareCtx
   }
 }, "drainBody");
 var middleware_ensure_req_body_drained_default = drainBody;
+
+// ../node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
 function reduceError(e) {
   return {
     name: e?.name,
@@ -639,8 +629,7 @@ function reduceError(e) {
   };
 }
 __name(reduceError, "reduceError");
-__name2(reduceError, "reduceError");
-var jsonError = /* @__PURE__ */ __name2(async (request, env, _ctx, middlewareCtx) => {
+var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
   try {
     return await middlewareCtx.next(request, env);
   } catch (e) {
@@ -652,17 +641,20 @@ var jsonError = /* @__PURE__ */ __name2(async (request, env, _ctx, middlewareCtx
   }
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
+
+// .wrangler/tmp/bundle-EfWlxq/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
 ];
 var middleware_insertion_facade_default = worker_default;
+
+// ../node_modules/wrangler/templates/middleware/common.ts
 var __facade_middleware__ = [];
 function __facade_register__(...args) {
   __facade_middleware__.push(...args.flat());
 }
 __name(__facade_register__, "__facade_register__");
-__name2(__facade_register__, "__facade_register__");
 function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
   const [head, ...tail] = middlewareChain;
   const middlewareCtx = {
@@ -674,7 +666,6 @@ function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
   return head(request, env, ctx, middlewareCtx);
 }
 __name(__facade_invokeChain__, "__facade_invokeChain__");
-__name2(__facade_invokeChain__, "__facade_invokeChain__");
 function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   return __facade_invokeChain__(request, env, ctx, dispatch, [
     ...__facade_middleware__,
@@ -682,18 +673,16 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   ]);
 }
 __name(__facade_invoke__, "__facade_invoke__");
-__name2(__facade_invoke__, "__facade_invoke__");
+
+// .wrangler/tmp/bundle-EfWlxq/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
-  static {
-    __name(this, "___Facade_ScheduledController__");
-  }
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
     this.cron = cron;
     this.#noRetry = noRetry;
   }
   static {
-    __name2(this, "__Facade_ScheduledController__");
+    __name(this, "__Facade_ScheduledController__");
   }
   #noRetry;
   noRetry() {
@@ -710,7 +699,7 @@ function wrapExportedHandler(worker) {
   for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
     __facade_register__(middleware);
   }
-  const fetchDispatcher = /* @__PURE__ */ __name2(function(request, env, ctx) {
+  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
     if (worker.fetch === void 0) {
       throw new Error("Handler does not export a fetch() function.");
     }
@@ -719,7 +708,7 @@ function wrapExportedHandler(worker) {
   return {
     ...worker,
     fetch(request, env, ctx) {
-      const dispatcher = /* @__PURE__ */ __name2(function(type, init) {
+      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
         if (type === "scheduled" && worker.scheduled !== void 0) {
           const controller = new __Facade_ScheduledController__(
             Date.now(),
@@ -735,7 +724,6 @@ function wrapExportedHandler(worker) {
   };
 }
 __name(wrapExportedHandler, "wrapExportedHandler");
-__name2(wrapExportedHandler, "wrapExportedHandler");
 function wrapWorkerEntrypoint(klass) {
   if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
     return klass;
@@ -744,7 +732,7 @@ function wrapWorkerEntrypoint(klass) {
     __facade_register__(middleware);
   }
   return class extends klass {
-    #fetchDispatcher = /* @__PURE__ */ __name2((request, env, ctx) => {
+    #fetchDispatcher = /* @__PURE__ */ __name((request, env, ctx) => {
       this.env = env;
       this.ctx = ctx;
       if (super.fetch === void 0) {
@@ -752,7 +740,7 @@ function wrapWorkerEntrypoint(klass) {
       }
       return super.fetch(request);
     }, "#fetchDispatcher");
-    #dispatcher = /* @__PURE__ */ __name2((type, init) => {
+    #dispatcher = /* @__PURE__ */ __name((type, init) => {
       if (type === "scheduled" && super.scheduled !== void 0) {
         const controller = new __Facade_ScheduledController__(
           Date.now(),
@@ -775,7 +763,6 @@ function wrapWorkerEntrypoint(klass) {
   };
 }
 __name(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
-__name2(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
 var WRAPPED_ENTRY;
 if (typeof middleware_insertion_facade_default === "object") {
   WRAPPED_ENTRY = wrapExportedHandler(middleware_insertion_facade_default);
@@ -783,179 +770,9 @@ if (typeof middleware_insertion_facade_default === "object") {
   WRAPPED_ENTRY = wrapWorkerEntrypoint(middleware_insertion_facade_default);
 }
 var middleware_loader_entry_default = WRAPPED_ENTRY;
-
-// node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
-var drainBody2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } finally {
-    try {
-      if (request.body !== null && !request.bodyUsed) {
-        const reader = request.body.getReader();
-        while (!(await reader.read()).done) {
-        }
-      }
-    } catch (e) {
-      console.error("Failed to drain the unused request body.", e);
-    }
-  }
-}, "drainBody");
-var middleware_ensure_req_body_drained_default2 = drainBody2;
-
-// node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
-function reduceError2(e) {
-  return {
-    name: e?.name,
-    message: e?.message ?? String(e),
-    stack: e?.stack,
-    cause: e?.cause === void 0 ? void 0 : reduceError2(e.cause)
-  };
-}
-__name(reduceError2, "reduceError");
-var jsonError2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } catch (e) {
-    const error = reduceError2(e);
-    return Response.json(error, {
-      status: 500,
-      headers: { "MF-Experimental-Error-Stack": "true" }
-    });
-  }
-}, "jsonError");
-var middleware_miniflare3_json_error_default2 = jsonError2;
-
-// .wrangler/tmp/bundle-Nmu66y/middleware-insertion-facade.js
-var __INTERNAL_WRANGLER_MIDDLEWARE__2 = [
-  middleware_ensure_req_body_drained_default2,
-  middleware_miniflare3_json_error_default2
-];
-var middleware_insertion_facade_default2 = middleware_loader_entry_default;
-
-// node_modules/wrangler/templates/middleware/common.ts
-var __facade_middleware__2 = [];
-function __facade_register__2(...args) {
-  __facade_middleware__2.push(...args.flat());
-}
-__name(__facade_register__2, "__facade_register__");
-function __facade_invokeChain__2(request, env, ctx, dispatch, middlewareChain) {
-  const [head, ...tail] = middlewareChain;
-  const middlewareCtx = {
-    dispatch,
-    next(newRequest, newEnv) {
-      return __facade_invokeChain__2(newRequest, newEnv, ctx, dispatch, tail);
-    }
-  };
-  return head(request, env, ctx, middlewareCtx);
-}
-__name(__facade_invokeChain__2, "__facade_invokeChain__");
-function __facade_invoke__2(request, env, ctx, dispatch, finalMiddleware) {
-  return __facade_invokeChain__2(request, env, ctx, dispatch, [
-    ...__facade_middleware__2,
-    finalMiddleware
-  ]);
-}
-__name(__facade_invoke__2, "__facade_invoke__");
-
-// .wrangler/tmp/bundle-Nmu66y/middleware-loader.entry.ts
-var __Facade_ScheduledController__2 = class ___Facade_ScheduledController__2 {
-  constructor(scheduledTime, cron, noRetry) {
-    this.scheduledTime = scheduledTime;
-    this.cron = cron;
-    this.#noRetry = noRetry;
-  }
-  static {
-    __name(this, "__Facade_ScheduledController__");
-  }
-  #noRetry;
-  noRetry() {
-    if (!(this instanceof ___Facade_ScheduledController__2)) {
-      throw new TypeError("Illegal invocation");
-    }
-    this.#noRetry();
-  }
-};
-function wrapExportedHandler2(worker) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__2 === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__2.length === 0) {
-    return worker;
-  }
-  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__2) {
-    __facade_register__2(middleware);
-  }
-  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
-    if (worker.fetch === void 0) {
-      throw new Error("Handler does not export a fetch() function.");
-    }
-    return worker.fetch(request, env, ctx);
-  }, "fetchDispatcher");
-  return {
-    ...worker,
-    fetch(request, env, ctx) {
-      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
-        if (type === "scheduled" && worker.scheduled !== void 0) {
-          const controller = new __Facade_ScheduledController__2(
-            Date.now(),
-            init.cron ?? "",
-            () => {
-            }
-          );
-          return worker.scheduled(controller, env, ctx);
-        }
-      }, "dispatcher");
-      return __facade_invoke__2(request, env, ctx, dispatcher, fetchDispatcher);
-    }
-  };
-}
-__name(wrapExportedHandler2, "wrapExportedHandler");
-function wrapWorkerEntrypoint2(klass) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__2 === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__2.length === 0) {
-    return klass;
-  }
-  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__2) {
-    __facade_register__2(middleware);
-  }
-  return class extends klass {
-    #fetchDispatcher = /* @__PURE__ */ __name((request, env, ctx) => {
-      this.env = env;
-      this.ctx = ctx;
-      if (super.fetch === void 0) {
-        throw new Error("Entrypoint class does not define a fetch() function.");
-      }
-      return super.fetch(request);
-    }, "#fetchDispatcher");
-    #dispatcher = /* @__PURE__ */ __name((type, init) => {
-      if (type === "scheduled" && super.scheduled !== void 0) {
-        const controller = new __Facade_ScheduledController__2(
-          Date.now(),
-          init.cron ?? "",
-          () => {
-          }
-        );
-        return super.scheduled(controller);
-      }
-    }, "#dispatcher");
-    fetch(request) {
-      return __facade_invoke__2(
-        request,
-        this.env,
-        this.ctx,
-        this.#dispatcher,
-        this.#fetchDispatcher
-      );
-    }
-  };
-}
-__name(wrapWorkerEntrypoint2, "wrapWorkerEntrypoint");
-var WRAPPED_ENTRY2;
-if (typeof middleware_insertion_facade_default2 === "object") {
-  WRAPPED_ENTRY2 = wrapExportedHandler2(middleware_insertion_facade_default2);
-} else if (typeof middleware_insertion_facade_default2 === "function") {
-  WRAPPED_ENTRY2 = wrapWorkerEntrypoint2(middleware_insertion_facade_default2);
-}
-var middleware_loader_entry_default2 = WRAPPED_ENTRY2;
 export {
-  __INTERNAL_WRANGLER_MIDDLEWARE__2 as __INTERNAL_WRANGLER_MIDDLEWARE__,
-  middleware_loader_entry_default2 as default
+  __INTERNAL_WRANGLER_MIDDLEWARE__,
+  middleware_loader_entry_default as default
 };
 /*! signupdoggy-aeo worker — generated by aeo/build-worker.mjs — do not edit by hand */
-//# sourceMappingURL=bundledWorker-0.5461542957707859.js.map
+//# sourceMappingURL=_worker.js.map

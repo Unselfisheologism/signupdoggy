@@ -232,20 +232,7 @@ export default function Landing() {
   const { loading, session } = useAuth();
   const ctaPrimary = !loading && session ? '/dashboard' : '/auth?next=checkout&pack=solo';
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      switch (e.key.toLocaleLowerCase()) {
-        case 'd': window.location.href = '/docs'; break;
-        case 'p': window.location.href = '/pricing'; break;
-        case 'b': window.location.href = '/blog'; break;
-        case 'g': window.location.href = ctaPrimary; break;
-      }
-    };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [ctaPrimary]);
+  // Keyboard shortcuts live in AppLayout so they work on every page.
 
   return (
     <div className="crt">
@@ -613,7 +600,7 @@ export default function Landing() {
               </div>
               <span className="section-divider">|</span>
               <div className="keybind">
-                <span><a href="/blog">BLOG</a></span>
+                <span><Link to="/blog">BLOG</Link></span>
                 <span><Link to="/terms">TERMS</Link></span>
                 <span><Link to="/privacy">PRIVACY</Link></span>
                 <span><a href="mailto:jeffrinjames99@gmail.com">jeffrinjames99@gmail.com</a></span>
