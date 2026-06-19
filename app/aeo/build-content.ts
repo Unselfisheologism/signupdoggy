@@ -152,6 +152,7 @@ function generateSitemapXml(): { file: string; htmlPages: number } {
     { html: '/', md: '/index.md', priority: 1.0, changefreq: 'weekly' },
     { html: '/docs', md: '/docs.md', priority: 0.9, changefreq: 'weekly' },
     { html: '/pricing', md: '/pricing.md', priority: 0.9, changefreq: 'weekly' },
+    { html: '/blog', md: '/blog/index.md', priority: 0.85, changefreq: 'weekly' },
     {
       html: '/blog/how-to-validate-your-saas-idea-with-real-users',
       md: '/blog/how-to-validate-your-saas-idea-with-real-users.md',

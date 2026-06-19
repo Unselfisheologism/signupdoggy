@@ -239,6 +239,7 @@ export default function Landing() {
       switch (e.key.toLocaleLowerCase()) {
         case 'd': window.location.href = '/docs'; break;
         case 'p': window.location.href = '/pricing'; break;
+        case 'b': window.location.href = '/blog'; break;
         case 'g': window.location.href = ctaPrimary; break;
       }
     };
@@ -607,10 +608,12 @@ export default function Landing() {
               <div className="keybind">
                 <span>[<kbd>D</kbd>] DOCS</span>
                 <span>[<kbd>P</kbd>] PRICING</span>
+                <span>[<kbd>B</kbd>] BLOG</span>
                 <span>[<kbd>G</kbd>] GET MY API KEY</span>
               </div>
               <span className="section-divider">|</span>
               <div className="keybind">
+                <span><a href="/blog">BLOG</a></span>
                 <span><Link to="/terms">TERMS</Link></span>
                 <span><Link to="/privacy">PRIVACY</Link></span>
                 <span><a href="mailto:jeffrinjames99@gmail.com">jeffrinjames99@gmail.com</a></span>

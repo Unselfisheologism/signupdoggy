@@ -102,6 +102,13 @@ export const SECTIONS: LlmsTxtSection[] = [
       'how signup-quality shapes product decisions.',
     links: [
       {
+        title: 'Blog index',
+        href: `${SITE_URL}/blog`,
+        description:
+          'All SignupDoggy long-form writing — currently a single post ' +
+          'on SaaS validation, more coming.',
+      },
+      {
         title: 'How SaaS founders should actually get user validation',
         href: `${SITE_URL}/blog/how-to-validate-your-saas-idea-with-real-users`,
         description:
