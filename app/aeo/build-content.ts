@@ -142,11 +142,11 @@ function generateLlmsFullTxt() {
 }
 
 // ─── 3.5 Generate sitemap.xml (traditional SEO sitemap, also lists .md twins) ─
-function generateSitemapXml() {
-  // Per spec/discovery.md §3, .md URLs MAY be included in sitemap.xml.
-  // We list HTML as canonical, then .md as an alternate — same <loc>
-  // pattern that the spec recommends. AI-focused sitemaps are
-  // already covered by /sitemap.md (U1).
+// Per spec/discovery.md §3, .md URLs MAY be included in sitemap.xml.
+// We list HTML as canonical, then .md as an alternate — same <loc>
+// pattern that the spec recommends. AI-focused sitemaps are
+// already covered by /sitemap.md (U1).
+function generateSitemapXml(): { file: string; htmlPages: number } {
   const today = new Date().toISOString().slice(0, 10);
   const pages: { html: string; md?: string; priority: number; changefreq: string }[] = [
     { html: '/', md: '/index.md', priority: 1.0, changefreq: 'weekly' },
@@ -194,7 +194,7 @@ ${aiUrls}
 `;
   const dst = join(DIST_DIR, 'sitemap.xml');
   writeFileSync(dst, body, 'utf8');
-  return 'sitemap.xml';
+  return { file: 'sitemap.xml', htmlPages: pages.length };
 }
 
 // ─── 4. Compute token counts → .aeo-tokens.json sidecar ────────────
@@ -235,7 +235,8 @@ function main() {
   const generated: string[] = [];
   generated.push(generateLlmsTxt());
   generated.push(generateLlmsFullTxt());
-  generated.push(generateSitemapXml());
+  const sitemap = generateSitemapXml();
+  generated.push(sitemap.file);
   const tokens = writeTokenSidecar([...copied, ...generated]);
 
   // Verify the AEO spec requirement: llms-full.txt must be ≥1.5× llms.txt
@@ -244,13 +245,14 @@ function main() {
   const ratio = llmsTxt > 0 ? llmsFullTxt / llmsTxt : 0;
   const ratioOk = ratio >= 1.5;
   const mdCount = copied.filter((f) => f.endsWith('.md')).length;
+  const aiFilesCount = 3; // llms.txt, llms-full.txt, sitemap.md
 
   const ms = Date.now() - start;
   const lines = [
     `[aeo:build] copied ${copied.length} file(s) from aeo/content/ → dist/`,
     `[aeo:build] generated llms.txt (${llmsTxt} tokens)`,
     `[aeo:build] generated llms-full.txt (${llmsFullTxt} tokens, ${ratio.toFixed(2)}× llms.txt) ${ratioOk ? '✓' : '✗ (must be ≥1.5×)'}`,
-    `[aeo:build] generated sitemap.xml (5 HTML pages + 3 AI discovery files)`,
+    `[aeo:build] generated sitemap.xml (${sitemap.htmlPages} HTML pages + ${aiFilesCount} AI discovery files)`,
     `[aeo:build] ${mdCount} markdown page twin(s) in dist/`,
     `[aeo:build] .aeo-tokens.json sidecar written`,
     `[aeo:build] done in ${ms}ms`,
