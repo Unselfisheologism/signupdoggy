@@ -36,20 +36,31 @@ const CONTENT_DIR = join(ROOT, 'aeo', 'content');    // app/aeo/content/
 const DIST_DIR = join(ROOT, 'dist');                // app/dist/
 
 // ─── 1. Copy hand-authored content ─────────────────────────────────
+// Recursively copies every file under aeo/content/ to dist/, preserving
+// subdirectory structure. The AEO Worker can then serve markdown twins
+// at /<name>.md (top-level) and /<subdir>/<name>.md (nested).
 function copyContent(): string[] {
   if (!existsSync(DIST_DIR)) {
     mkdirSync(DIST_DIR, { recursive: true });
   }
-  const entries = readdirSync(CONTENT_DIR);
   const copied: string[] = [];
-  for (const name of entries) {
-    const src = join(CONTENT_DIR, name);
-    const dst = join(DIST_DIR, name);
-    if (statSync(src).isFile()) {
-      cpSync(src, dst);
-      copied.push(name);
+  const walk = (dir: string, rel: string) => {
+    for (const name of readdirSync(dir)) {
+      const src = join(dir, name);
+      const dst = join(DIST_DIR, rel, name);
+      const st = statSync(src);
+      if (st.isDirectory()) {
+        walk(src, join(rel, name));
+      } else if (st.isFile()) {
+        if (!existsSync(dirname(dst))) {
+          mkdirSync(dirname(dst), { recursive: true });
+        }
+        cpSync(src, dst);
+        copied.push(join(rel, name).split('\\').join('/'));
+      }
     }
-  }
+  };
+  walk(CONTENT_DIR, '');
   return copied;
 }
 
@@ -141,6 +152,12 @@ function generateSitemapXml() {
     { html: '/', md: '/index.md', priority: 1.0, changefreq: 'weekly' },
     { html: '/docs', md: '/docs.md', priority: 0.9, changefreq: 'weekly' },
     { html: '/pricing', md: '/pricing.md', priority: 0.9, changefreq: 'weekly' },
+    {
+      html: '/blog/how-to-validate-your-saas-idea-with-real-users',
+      md: '/blog/how-to-validate-your-saas-idea-with-real-users.md',
+      priority: 0.8,
+      changefreq: 'monthly',
+    },
     { html: '/terms', md: '/terms.md', priority: 0.3, changefreq: 'yearly' },
     { html: '/privacy', md: '/privacy.md', priority: 0.3, changefreq: 'yearly' },
   ];

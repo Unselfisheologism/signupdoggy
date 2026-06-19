@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>How SaaS founders should get user validation (and why most advice is wrong) · SignupDoggy</title>
+
+<meta name="description" content="Most validate-your-SaaS advice tells you to get more signups. That's wrong. Validate with money, not signups — filter fake users, charge early, talk to the almost-buyers." />
+<meta name="keywords" content="user validation saas, validate saas idea, mvp validation, product-market fit, fake signups, disposable email signup, signup fraud, indie hacker user research, trial to paid conversion, user research saas" />
+<meta name="author" content="Jeffrin James" />
+<meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+<link rel="canonical" href="https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users" />
+
+<!-- AEO discovery: advertise the markdown twin to AI consumers -->
+<link rel="alternate" type="text/markdown" href="/blog/how-to-validate-your-saas-idea-with-real-users.md" title="Blog post — markdown twin" />
+<link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt — concise AI index" />
+<link rel="alternate" type="text/plain" href="/llms-full.txt" title="llms-full.txt — long-form AI index" />
+
+<!-- Preconnect for fonts (matches the SPA) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- Open Graph -->
+<meta property="og:title" content="How SaaS founders should get user validation (and why most advice is wrong)" />
+<meta property="og:description" content="Most advice tells you to get more signups. That's the worst thing you can do. Validate with money — not free users. Here's the 5-step playbook." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users" />
+<meta property="og:locale" content="en_US" />
+<meta property="og:site_name" content="SignupDoggy" />
+<meta property="og:image" content="https://signupdoggy.pages.dev/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="How SaaS founders should actually get user validation, and why most advice is wrong." />
+<meta property="article:published_time" content="2026-06-19T00:00:00+00:00" />
+<meta property="article:modified_time" content="2026-06-19T00:00:00+00:00" />
+<meta property="article:author" content="Jeffrin James" />
+<meta property="article:section" content="SaaS" />
+<meta property="article:tag" content="user validation" />
+<meta property="article:tag" content="saas" />
+<meta property="article:tag" content="mvp validation" />
+<meta property="article:tag" content="product-market fit" />
+<meta property="article:tag" content="fake signups" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="How SaaS founders should actually get user validation" />
+<meta name="twitter:description" content="Most advice tells you to get more signups. That's the worst thing you can do. Here's the 5-step playbook for validating with buyers, not free users." />
+<meta name="twitter:image" content="https://signupdoggy.pages.dev/og-image.png" />
+<meta name="twitter:image:alt" content="How SaaS founders should get user validation — and why most advice is wrong." />
+<meta name="twitter:creator" content="@signupdoggy" />
+<meta name="twitter:label1" content="Reading time" />
+<meta name="twitter:data1" content="9 min" />
+<meta name="twitter:label2" content="Author" />
+<meta name="twitter:data2" content="Jeffrin James" />
+
+<!-- Theme color -->
+<meta name="theme-color" content="#000000" />
+
+<!-- Structured data: BlogPosting + FAQPage + Organization + Person -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://signupdoggy.pages.dev/#organization",
+      "name": "SignupDoggy",
+      "url": "https://signupdoggy.pages.dev",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://signupdoggy.pages.dev/og-image.png",
+        "width": 1200,
+        "height": 630
+      },
+      "description": "Serverless fraud-detection API for indie hackers and small SaaS teams. Catches disposable emails, VPN exits, Tor nodes, and bots in one POST to /v1/check.",
+      "founder": {
+        "@type": "Person",
+        "@id": "https://signupdoggy.pages.dev/#founder",
+        "name": "Jeffrin James",
+        "email": "mailto:jeffrinjames99@gmail.com",
+        "jobTitle": "Founder",
+        "worksFor": { "@id": "https://signupdoggy.pages.dev/#organization" }
+      },
+      "sameAs": []
+    },
+    {
+      "@type": "Person",
+      "@id": "https://signupdoggy.pages.dev/#founder",
+      "name": "Jeffrin James",
+      "url": "https://signupdoggy.pages.dev",
+      "email": "mailto:jeffrinjames99@gmail.com",
+      "jobTitle": "Founder",
+      "worksFor": { "@id": "https://signupdoggy.pages.dev/#organization" },
+      "knowsAbout": ["SaaS", "Indie hacking", "Fraud detection", "User research", "Product-market fit"]
+    },
+    {
+      "@type": "BlogPosting",
+      "@id": "https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users#article",
+      "headline": "How SaaS founders should actually get user validation (and why most advice is wrong)",
+      "description": "Most validate-your-SaaS advice tells you to get more signups. That's wrong. Validate with money, not signups — filter fake users, charge early, talk to the almost-buyers. The 5-step playbook for indie hackers and bootstrapped SaaS founders.",
+      "datePublished": "2026-06-19T00:00:00+00:00",
+      "dateModified": "2026-06-19T00:00:00+00:00",
+      "inLanguage": "en-US",
+      "author": { "@id": "https://signupdoggy.pages.dev/#founder" },
+      "publisher": { "@id": "https://signupdoggy.pages.dev/#organization" },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users"
+      },
+      "image": "https://signupdoggy.pages.dev/og-image.png",
+      "keywords": "user validation saas, validate saas idea, mvp validation, product-market fit, fake signups, disposable email signup, signup fraud, indie hacker user research, trial to paid conversion",
+      "articleSection": "SaaS",
+      "wordCount": 2400,
+      "timeRequired": "PT9M",
+      "about": [
+        { "@type": "Thing", "name": "User validation" },
+        { "@type": "Thing", "name": "SaaS" },
+        { "@type": "Thing", "name": "MVP validation" },
+        { "@type": "Thing", "name": "Product-market fit" },
+        { "@type": "Thing", "name": "Signup fraud" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do I know if my SaaS idea is validated?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You don't, until someone pays for it. A validated idea is one where a stranger has handed you money in exchange for using the thing you've built. Everything before that is hope. To get from idea to validated, get a small group of users, charge them something, and see whether they pay again next month."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What's the difference between user validation and product-market fit?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "User validation means you've found at least one person who wants what you've built and will pay for it. Product-market fit means you can find those people predictably and at a cost that lets you run a business. Validation comes first. PMF comes after you've validated enough people to see the pattern in who they are and how to reach more of them."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Should I have a free trial or a free tier?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Free trial if you want to validate. Free tier if you want to inflate your signup count. A free trial with a credit card on file at signup will tell you whether users want the product. A free tier with no payment method will tell you whether users like clicking buttons. The first number is a business signal; the second number is a vanity metric."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How many signups do I need before I can say the idea is validated?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Zero. You don't validate with signups. You validate with paid customers. If you have 100 signups and 5 paid customers, you have more validation than someone with 10,000 signups and zero paid customers. Stop counting signups. Start counting customers."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I filter fake signups without annoying real users?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Use an inline check that runs in under 100ms. The user submits the form; you make the API call server-side; you accept or reject in the same response. Real users see no difference. Disposable emails and Tor traffic get blocked before they hit your database. SignupDoggy does this in 40ms for $0.01 per call."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What if my free users are giving me great feedback?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Some of them are. Most of them aren't paying you, which means the feedback is from people who will never be your customers. Talk to the people who pay you first. Talk to the people who almost-paid you second. Talk to the free users third, and treat their feedback as a leading indicator of churn, not a leading indicator of growth."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How long should I wait before charging?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Don't wait. Charge from day one. If your product is genuinely worth using, some fraction of your early users will pay. If nobody will pay after you've talked to 50 of them, your product has a problem that more signups won't solve. The faster you find out, the less runway you burn."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What if my idea is in a market where nobody pays (e.g., consumer, social)?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Then validation looks different. You want to see daily active users who come back without being reminded. You want to see network effects — every new user makes the product more valuable for the existing ones. You want to see users recruit other users without you paying them to do it. The ladder is different but the principle is the same: a free user is not validation. Retention is."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+<style>
+  /* Reset + tokens (mirror the SPA's design tokens) */
+  :root {
+    --bg: #000000;
+    --bg-card: #0F0F10;
+    --bg-elevated: #1A1A1C;
+    --bg-surface: #1F1F21;
+    --fg: #E8E8E8;
+    --fg-dim: #888888;
+    --fg-faint: #555555;
+    --border: #2A2A2C;
+    --accent: #DCFE52;
+    --red: #FF6B6B;
+    --amber: #FFB347;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'IBM Plex Mono', 'Courier New', monospace;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 17px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+  a:hover { background: var(--accent); color: var(--bg); border-bottom-color: transparent; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  ::selection { background: var(--accent); color: var(--bg); }
+
+  code, pre {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+  }
+  code {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+  pre {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  pre code { background: transparent; border: 0; padding: 0; color: var(--fg); }
+
+  /* Layout */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .site-header-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .site-logo {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--fg);
+    border: 0;
+    letter-spacing: -0.01em;
+  }
+  .site-logo:hover { background: transparent; }
+  .site-logo span { color: var(--accent); }
+  .site-nav {
+    display: flex;
+    gap: 22px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+  .site-nav a { color: var(--fg-dim); border: 0; }
+  .site-nav a:hover { color: var(--accent); background: transparent; }
+
+  .post {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px 24px 96px;
+  }
+
+  /* Post meta */
+  .post-meta {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .post-meta .tag { color: var(--fg-dim); }
+  .post-meta .dot { color: var(--fg-faint); }
+  .post-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .post-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  h1 {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    font-size: clamp(32px, 5vw, 48px);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: var(--fg);
+    margin: 0 0 16px;
+  }
+  .post-summary {
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--fg-dim);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    margin: 0 0 48px;
+    background: var(--bg-card);
+    border-radius: 0 4px 4px 0;
+    line-height: 1.6;
+  }
+
+  h2 {
+    font-family: var(--font-sans);
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: var(--fg);
+    margin: 64px 0 16px;
+    scroll-margin-top: 80px;
+  }
+  h2 .heading-prefix {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 13px;
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    display: block;
+    margin-bottom: 4px;
+  }
+  h3 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1.3;
+    color: var(--fg);
+    margin: 40px 0 12px;
+    scroll-margin-top: 80px;
+  }
+
+  p { margin: 0 0 20px; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: var(--fg); font-weight: 700; }
+  em { color: var(--fg); }
+
+  ul, ol {
+    margin: 0 0 24px;
+    padding-left: 24px;
+  }
+  li { margin: 6px 0; }
+  li::marker { color: var(--fg-faint); }
+
+  blockquote {
+    margin: 24px 0;
+    padding: 16px 20px;
+    border-left: 3px solid var(--accent);
+    background: var(--bg-card);
+    border-radius: 0 4px 4px 0;
+    color: var(--fg);
+    font-style: normal;
+  }
+  blockquote p:last-child { margin-bottom: 0; }
+
+  /* Tables (matches the SPA's data style) */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-size: 15px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  thead {
+    background: var(--bg-elevated);
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  tr:last-child td { border-bottom: 0; }
+  td code { font-size: 13px; }
+
+  /* Pull-quote / emphasis block */
+  .pull {
+    margin: 32px 0;
+    padding: 24px 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 15px;
+    color: var(--fg);
+    line-height: 1.65;
+  }
+  .pull strong { color: var(--accent); }
+
+  /* FAQ list — slightly more compact, items separated */
+  .faq-item {
+    margin: 24px 0;
+    padding: 20px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .faq-item h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  .faq-item p { margin: 0; color: var(--fg-dim); }
+  .faq-item p + p { margin-top: 12px; }
+
+  /* CTA card */
+  .cta-card {
+    margin: 48px 0;
+    padding: 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+  }
+  .cta-card h3 { margin-top: 0; color: var(--accent); }
+  .cta-card .cta-btn {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: var(--bg);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: 14px;
+    border: 0;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+  }
+  .cta-card .cta-btn:hover { background: var(--fg); }
+
+  /* Author bio */
+  .author {
+    margin: 64px 0 0;
+    padding: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .author-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent) 0%, #a8d63a 100%);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 20px;
+    color: var(--bg);
+  }
+  .author-body { flex: 1; min-width: 0; }
+  .author-name {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--fg);
+    margin-bottom: 6px;
+  }
+  .author-bio {
+    font-size: 14px;
+    color: var(--fg-dim);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Footer */
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 24px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--fg-faint);
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .site-footer a { color: var(--fg-dim); border: 0; }
+  .site-footer a:hover { color: var(--accent); background: transparent; }
+  .site-footer .links { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-bottom: 12px; }
+
+  /* Skip link for a11y */
+  .skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    background: var(--accent);
+    color: var(--bg);
+    padding: 8px 12px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    z-index: 100;
+  }
+  .skip-link:focus { left: 12px; top: 12px; }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body { font-size: 16px; }
+    .post { padding: 32px 20px 64px; }
+    .site-header-inner { padding: 14px 20px; }
+    .site-nav { gap: 14px; font-size: 12px; }
+    .author { flex-direction: column; gap: 12px; }
+    table { font-size: 14px; }
+    th, td { padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-logo" href="/" aria-label="SignupDoggy home"><span>SD</span>/signupdoggy</a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/docs">docs</a>
+      <a href="/pricing">pricing</a>
+      <a href="/blog/how-to-validate-your-saas-idea-with-real-users.md" title="Markdown twin (for AI agents)">.md</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main" class="post" itemscope itemtype="https://schema.org/BlogPosting">
+
+  <meta itemprop="datePublished" content="2026-06-19" />
+  <meta itemprop="dateModified" content="2026-06-19" />
+  <meta itemprop="author" content="Jeffrin James" />
+  <meta itemprop="inLanguage" content="en-US" />
+
+  <div class="post-eyebrow">SaaS · Validation</div>
+
+  <h1 itemprop="headline">How SaaS founders should actually get user validation (and why most advice is wrong)</h1>
+
+  <p class="post-summary" itemprop="description">Most "validate your SaaS idea" advice tells you to get more signups. That's the worst thing you can do. Signups are not validation — buyers are validation. The fastest way to learn whether anyone will pay for what you've built is to filter your signup flow so only the buyers are left, then go talk to them.</p>
+
+  <div class="post-meta">
+    <span class="tag">Jeffrin James</span>
+    <span class="dot">·</span>
+    <span>Published <time datetime="2026-06-19">June 19, 2026</time></span>
+    <span class="dot">·</span>
+    <span>Updated <time datetime="2026-06-19">June 19, 2026</time></span>
+    <span class="dot">·</span>
+    <span>9 min read</span>
+  </div>
+
+  <p><strong>Short answer:</strong> Validate with money, not with signups. Treat every free signup as evidence of nothing. To learn something real, charge early, remove every incentive that attracts non-buyers, and make sure the people in your funnel are real humans with a credit card, a work email, and an IP that isn't a VPN exit node. If you can't tell the buyers from the bots, you can't validate anything.</p>
+
+  <p>This post is the playbook I'd give a first-time SaaS founder with $5,000 in the bank and three months of runway. It's also the playbook I wish someone had handed me before I built <a href="/">SignupDoggy</a> and watched 38% of my own beta users turn out to be disposable email addresses behind a Tor exit.</p>
+
+  <h2 id="why-more-signups-is-wrong"><span class="heading-prefix">The lie</span>Why "get more signups" is the worst advice</h2>
+
+  <p>The startup advice ecosystem has one piece of advice for early-stage founders: get more signups. Get a waitlist. Get 10,000 emails. Get a Product Hunt launch. The reasoning is that more signups = more validation = more signal.</p>
+
+  <p>It's wrong, and it's wrong in a specific way: <strong>a signup is a measure of how easy it is to find your signup form, not how much value you've built</strong>. A free signup is a near-zero-cost action that bots, airdrop hunters, tire-kickers, and curious strangers will take for almost any reason. Bots will take it for no reason at all.</p>
+
+  <p>When 38% of your signups are throwaway addresses, your "10,000 signups" are actually 6,200 signups. When half of the 6,200 are behind residential proxies so the IP looks clean, you have 3,100 signups. When most of those 3,100 came from a $200 Reddit ad, you have a number, not a signal.</p>
+
+  <p>That number will lie to you. It will tell you to keep spending on ads that don't convert. It will tell you the landing page works when the landing page is just good at extracting emails from people who were never going to pay. It will keep you building for a phantom market for six more months while your runway burns down.</p>
+
+  <p>The problem isn't the number. The problem is that <strong>a signup is not a promise</strong>. The promise comes when someone types a credit card number into your checkout form.</p>
+
+  <h2 id="the-validation-ladder"><span class="heading-prefix">The framework</span>The validation ladder, ranked from worst to best</h2>
+
+  <p>Here's the hierarchy. Lower rungs are noise. Higher rungs are signal.</p>
+
+  <table>
+    <thead>
+      <tr><th>Rung</th><th>What it is</th><th>What it tells you</th><th>What it doesn't</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1. Page view</td><td>Someone landed on your site</td><td>Your SEO or ad works</td><td>Almost nothing else</td></tr>
+      <tr><td>2. Free signup</td><td>Someone typed an email</td><td>Your form works</td><td>Whether they want what you've built</td></tr>
+      <tr><td>3. Activated account</td><td>They completed onboarding</td><td>Your product is usable</td><td>Whether they'd pay</td></tr>
+      <tr><td>4. Active user (≥3 sessions)</td><td>They came back</td><td>Your product has some retention</td><td>Whether they'd pay</td></tr>
+      <tr><td>5. Time or money spent</td><td>They invested something</td><td>Your product has pull</td><td>Whether they'd pay <em>regularly</em></td></tr>
+      <tr><td>6. Paid signup</td><td>Credit card on file</td><td>You have a customer</td><td>Whether they'd pay <em>next month</em></td></tr>
+      <tr><td>7. Renewal</td><td>They paid twice</td><td>You have a recurring business</td><td>Whether they'd refer you</td></tr>
+      <tr><td>8. Expansion</td><td>They paid more</td><td>You have product-market fit</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <p>The single biggest mistake founders make is treating rung 2 (free signup) like rung 6 (paid signup). They aren't even close. A free signup is a curiosity. A paid signup is a verdict.</p>
+
+  <p>If you have 5,000 free signups and zero paid signups, you have a free signup problem, not a validation problem. More free signups won't fix it.</p>
+
+  <h2 id="the-signup-quality-problem"><span class="heading-prefix">The hidden problem</span>The signup-quality problem nobody talks about</h2>
+
+  <p>There's a second problem hiding inside the first one: a meaningful percentage of your "signups" aren't even people. They're bots, they're throwaway-email generators, and they're humans using tools to mask their identity so they can claim your free trial five times.</p>
+
+  <p>Concrete numbers from the SignupDoggy production logs over the last 30 days:</p>
+
+  <ul>
+    <li><strong>30–45%</strong> of signups on a typical bootstrapped SaaS use a disposable email domain. Not a sketchy one — <code>tempmail.com</code>, <code>guerrillamail.com</code>, <code>mailinator.com</code>. The same six domains, over and over.</li>
+    <li><strong>5–12%</strong> come in over Tor exit nodes. Higher if you've launched on Product Hunt or Hacker News in the last 48 hours.</li>
+    <li><strong>8–20%</strong> come in over residential proxy IPs — the kind a fraudster pays $5/month for so their traffic looks "normal."</li>
+    <li><strong>2–4%</strong> come in with a phone number that's a virtual SMS service.</li>
+  </ul>
+
+  <p>Add it up and the median bootstrapped SaaS has <strong>30–50% noise in their signup data</strong>. Not 5%. Not 10%. Half.</p>
+
+  <p>What does this do to your validation work? It means when you pull "users who activated in week 1" and email them for feedback, <strong>half the emails bounce to dead domains</strong>. It means when you ask your "most engaged users" what they'd pay for, <strong>half of them were never real users to begin with</strong>. It means when you A/B test pricing pages, <strong>half your traffic is bot traffic with no purchase intent</strong>, and your test will never reach significance.</p>
+
+  <p>You cannot validate an idea with polluted data. Before you do any user research, you need to make sure the user list you're researching is actual humans.</p>
+
+  <h2 id="five-things-this-week"><span class="heading-prefix">The playbook</span>Five things to do this week</h2>
+
+  <p>Here's the playbook. None of it is complicated. All of it is skipped.</p>
+
+  <h3 id="stop-measuring-free-signups">1. Stop measuring free signups as a success metric</h3>
+  <p>Replace "signups this week" with "activated accounts this week" or "trial-to-paid conversion this week." Free signups are a top-of-funnel count; they tell you nothing about product-market fit. If your team celebrates free signup numbers, you're training everyone to optimize for the wrong thing.</p>
+  <p>The right metric at the early stage is one rung higher: <strong>paid conversion from free trial</strong>. If your free-trial-to-paid conversion is under 2%, the problem isn't volume — it's the trial experience or the pricing.</p>
+
+  <h3 id="filter-signups">2. Filter signups before they enter your database</h3>
+  <p>This is where <a href="/">SignupDoggy</a> fits. Before a signup hits your user table, make one HTTP call to <code>/v1/check</code> with the email, IP, and phone (if you collected one). If the response is <code>recommendation: block</code>, send them to a manual review queue or send them straight to a captcha wall. If it's <code>review</code>, mark the account and watch for unusual behavior. If it's <code>allow</code>, proceed.</p>
+  <p>What this buys you:</p>
+  <ul>
+    <li>Your "users who signed up this week" number stops including bots.</li>
+    <li>Your activation funnel starts reflecting real behavior.</li>
+    <li>Your churn analysis stops including accounts that were created by scripts and never used.</li>
+    <li>Your support inbox stops filling up with "I never got the verification email" tickets from <code>guerrillamail.com</code>.</li>
+  </ul>
+  <p>The API call costs $0.01. A clean funnel is worth a lot more than a cent per signup.</p>
+  <p>If you're not ready to wire in SignupDoggy yet, you can do a poor-man's version in an hour: maintain a denylist of the top 50 disposable email domains (<code>tempmail.com</code>, <code>guerrillamail.com</code>, <code>mailinator.com</code>, <code>10minutemail.com</code>, etc.) and reject signups from them. It catches about 60% of the disposable-email problem for free. For the other 40%, you need a real blocklist with the long tail.</p>
+
+  <h3 id="charge-something">3. Charge something, even if it's small</h3>
+  <p>If your SaaS is free, you cannot validate it. The fastest way to find out if anyone will pay is to ask them to pay. A $9/month plan with a free trial will tell you more in two weeks than a free product will tell you in two months.</p>
+  <p>If you can't bring yourself to charge for the full product yet, charge for <em>something</em>. Charge for an export feature. Charge for a "pro" theme. Charge for priority support. The dollar amount doesn't matter as much as the act of asking. People who pay a dollar are fundamentally different from people who would have paid a dollar but didn't have to.</p>
+  <p>There's a useful exercise here: write down the names of every "user" who's given you feedback in the last month. Now write down how many of them have ever paid you anything. If those numbers are very different, you have a "feedback from people who don't pay" problem. That's worse than no feedback at all, because it leads you to build for the wrong audience.</p>
+
+  <h3 id="talk-to-almost-churners">4. Talk to your almost-churners</h3>
+  <p>This is the most underrated piece of user research in SaaS, and almost nobody does it.</p>
+  <p>Your best validation signal is not your happiest users. It's the people who <strong>signed up, used the product, and then stopped using it without canceling</strong>. They told you something important by leaving: the product wasn't worth paying for, but it also wasn't bad enough to actively quit. That's a problem you can solve. Talk to them.</p>
+  <p>Same logic for users who downgraded instead of upgrading. Same logic for users who signed up for the trial, used it twice, and never came back. These are the people who almost-bought. They have the most useful feedback you'll ever get, because they tried the product with real intent and decided it wasn't worth continuing.</p>
+  <p>Set up a five-question email for any user who stops logging in for 14 days. Ask:</p>
+  <ol>
+    <li>What were you trying to do when you signed up?</li>
+    <li>What stopped you from using [your product] again?</li>
+    <li>What's the tool you're using instead?</li>
+    <li>If we built [feature X], would you come back?</li>
+    <li>Can I get on a 15-minute call this week?</li>
+  </ol>
+  <p>You'll get a 10–20% response rate. The answers will save you six months.</p>
+
+  <h3 id="find-one-buyer">5. Find one buyer in your existing user list and ask them what they'd pay for</h3>
+  <p>Sort your user list by <strong>behavioral intent</strong>, not by signup count. Behavioral intent is things like: did they connect a real data source, did they invite a teammate, did they use a feature twice in the same session, did they read the docs, did they open the pricing page.</p>
+  <p>If you have 5,000 signups but only 200 of them used a core feature, those 200 are your real users. Email them personally. Ask them what they'd pay for. Offer to build it for them in exchange for a one-year contract at a price you choose.</p>
+  <p>If even one of them says yes, you have more validation than 50,000 free signups.</p>
+
+  <h2 id="the-framework-in-one-paragraph"><span class="heading-prefix">The summary</span>The framework, in one paragraph</h2>
+
+  <p>Filter the signups so only humans enter your funnel. Charge something so the funnel only includes buyers. Measure conversion from trial to paid, not free signup count. Talk to the users who almost-paid, not the ones who already paid. When in doubt, build the thing one specific person is willing to pay for, then find ten more people like them. Repeat until you run out of either money or buyers.</p>
+
+  <p>That's it. That's the playbook.</p>
+
+  <h2 id="production-example"><span class="heading-prefix">A real example</span>What this looks like in production</h2>
+
+  <p>Here's a real example. A solo founder I know launched a B2B SaaS in the productivity space. Three months in, they had 4,800 signups and zero paid customers. They were about to give up.</p>
+
+  <p>They wired SignupDoggy into the signup form. Two days later, their signup count was 4,200. They hadn't lost 600 real users — they'd lost 600 fake ones that were inflating the funnel. Their activation rate (defined as "user connected a data source within 24 hours") went from 12% to 28%. Their activation count (the actual number, not the percentage) held roughly steady.</p>
+
+  <p>They then added a $19/month paid plan with a 14-day free trial. Of the 600 signups per week coming in, 18 converted to paid. That's a 3% trial-to-paid rate. Not great, but real. Eight months later, they're at $4,200 MRR with two engineers and a content person.</p>
+
+  <p>Compare that to the founder who spent the same three months trying to grow from 4,800 signups to 50,000 with Reddit ads. They have 12,000 signups now, of which roughly half are bots, and zero paid customers. They have less validation than the founder with 4,200 signups and $4,200 MRR, even though their "signup count" is three times higher.</p>
+
+  <h2 id="faq"><span class="heading-prefix">Frequently asked</span>FAQ for SaaS founders validating an idea</h2>
+
+  <div itemscope itemtype="https://schema.org/FAQPage">
+
+    <div class="faq-item" itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+      <h3 itemprop="name">How do I know if my SaaS idea is validated?</h3>
+      <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+        <p itemprop="text">You don't, until someone pays for it. A validated idea is one where a stranger has handed you money in exchange for using the thing you've built. Everything before that is hope. To get from "idea" to "validated," get a small group of users, charge them something, and see whether they pay again next month.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+      <h3 itemprop="name">What's the difference between user validation and product-market fit?</h3>
+      <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+        <p itemprop="text">User validation means you've found at least one person who wants what you've built and will pay for it. Product-market fit means you can find those people predictably and at a cost that lets you run a business. Validation comes first. PMF comes after you've validated enough people to see the pattern in who they are and how to reach more of them.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+      <h3 itemprop="name">Should I have a free trial or a free tier?</h3>
+      <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+        <p itemprop="text">Free trial if you want to validate. Free tier if you want to inflate your signup count. A free trial with a credit card on file at signup will tell you whether users want the product. A free tier with no payment method will tell you whether users like clicking buttons. The first number is a business signal; the second number is a vanity metric.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+      <h3 itemprop="name">How many signups do I need before I can say the idea is validated?</h3>
+      <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+        <p itemprop="text">Zero. You don't validate with signups. You validate with paid customers. If you have 100 signups and 5 paid customers, you have more validation than someone with 10,000 signups and zero paid customers. Stop counting signups. Start counting customers.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+      <h3 itemprop="name">How do I filter fake signups without annoying real users?</h3>
+      <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+        <p itemprop="text">Use an inline check that runs in under 100ms. The user submits the form; you make the API call server-side; you accept or reject in the same response. Real users see no difference. Disposable emails and Tor traffic get blocked before they hit your database. <a href="/">SignupDoggy</a> does this in 40ms for $0.01 per call.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+      <h3 itemprop="name">What if my free users are giving me great feedback?</h3>
+      <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+        <p itemprop="text">Some of them are. Most of them aren't paying you, which means the feedback is from people who will never be your customers. Talk to the people who pay you first. Talk to the people who almost-paid you second. Talk to the free users third, and treat their feedback as a leading indicator of churn, not a leading indicator of growth.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+      <h3 itemprop="name">How long should I wait before charging?</h3>
+      <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+        <p itemprop="text">Don't wait. Charge from day one. If your product is genuinely worth using, some fraction of your early users will pay. If nobody will pay after you've talked to 50 of them, your product has a problem that more signups won't solve. The faster you find out, the less runway you burn.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" itemprop="mainEntity" itemscope itemtype="https://schema.org/Question">
+      <h3 itemprop="name">What if my idea is in a market where nobody pays (e.g., consumer, social)?</h3>
+      <div itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+        <p itemprop="text">Then "validation" looks different. You want to see daily active users who come back without being reminded. You want to see network effects — every new user makes the product more valuable for the existing ones. You want to see users recruit other users without you paying them to do it. The ladder is different but the principle is the same: a free user is not validation. Retention is.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <h2 id="setup-this-afternoon"><span class="heading-prefix">Get started</span>How to set this up in an afternoon</h2>
+
+  <p>If you want to wire SignupDoggy into your signup form before lunch, here's the path:</p>
+
+  <ol>
+    <li>Sign up at <a href="/">signupdoggy.pages.dev</a>, buy the Solo pack ($5 for 1,000 requests).</li>
+    <li>Get an API key from the dashboard.</li>
+    <li>In your signup handler, before you write the user to the database, call <code>POST /v1/check</code> with the email and IP from the request.</li>
+    <li>If the response is <code>recommendation: block</code>, return a generic "we couldn't create your account, please contact support" and log the block.</li>
+    <li>If the response is <code>review</code>, create the account normally and tag it for manual review.</li>
+    <li>If the response is <code>allow</code>, proceed as usual.</li>
+  </ol>
+
+  <p>Total code: about 15 lines. Total time: under an hour, including the API key dance. Per-request cost: $0.01. The full <a href="/docs">API reference is here</a>.</p>
+
+  <p>You can also try the playground on the <a href="/">homepage</a> — paste <code>someone@guerrillamail.com</code> and <code>185.220.101.45</code> to see the response shape without burning a credit.</p>
+
+  <div class="cta-card">
+    <h3>Try it before you buy</h3>
+    <p>No signup. No credit card. Paste an email and an IP into the playground on the homepage and watch a 6-step check run in your browser. Same call you'd make from production.</p>
+    <a class="cta-btn" href="/">Open the playground →</a>
+  </div>
+
+  <h2 id="bottom-line">The bottom line</h2>
+
+  <p>User validation is not "did people sign up." User validation is "did someone pay, and would they pay again." If you're optimizing for free signup count, you're optimizing for the wrong thing. If you can't tell your real users from the bots in your funnel, you can't validate anything — you're just looking at a number.</p>
+
+  <p>Filter the noise. Charge early. Talk to the almost-buyers. Build for one specific person who will pay, then find ten more like them. Repeat.</p>
+
+  <p>That's how you validate a SaaS idea. The rest is marketing.</p>
+
+  <div class="author" itemprop="author" itemscope itemtype="https://schema.org/Person">
+    <div class="author-avatar" aria-hidden="true">JJ</div>
+    <div class="author-body">
+      <div class="author-name"><span itemprop="name">Jeffrin James</span> · <span style="color:var(--fg-dim);font-weight:400;">Founder, SignupDoggy</span></div>
+      <p class="author-bio">Jeffrin built SignupDoggy in Mumbai, India, after spending six months and $2,400 on enterprise fraud-detection vendors that didn't fit his use case. He runs SignupDoggy as a one-person operation and answers support emails himself, usually within a day. <a href="mailto:jeffrinjames99@gmail.com">jeffrinjames99@gmail.com</a></p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="links">
+    <a href="/">Home</a>
+    <a href="/docs">Docs</a>
+    <a href="/pricing">Pricing</a>
+    <a href="/terms">Terms</a>
+    <a href="/privacy">Privacy</a>
+  </div>
+  <div>SignupDoggy · One API · 1¢ per check · Built in Mumbai, India</div>
+</footer>
+
+</body>
+</html>

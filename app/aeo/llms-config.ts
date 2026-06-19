@@ -96,6 +96,24 @@ export const SECTIONS: LlmsTxtSection[] = [
     ],
   },
   {
+    title: 'Blog & articles',
+    description:
+      'Long-form writing on SaaS validation, indie hacker tactics, and ' +
+      'how signup-quality shapes product decisions.',
+    links: [
+      {
+        title: 'How SaaS founders should actually get user validation',
+        href: `${SITE_URL}/blog/how-to-validate-your-saas-idea-with-real-users`,
+        description:
+          'A 5-step playbook for validating a SaaS idea with buyers ' +
+          '(not free signups). Covers the validation ladder, the ' +
+          'signup-quality problem, charging early, and why most ' +
+          '"get more signups" advice is actively harmful to early ' +
+          'stage founders.',
+      },
+    ],
+  },
+  {
     title: 'What We Do Not Do',
     description:
       'Disambiguation. SignupDoggy is sometimes confused with adjacent ' +
