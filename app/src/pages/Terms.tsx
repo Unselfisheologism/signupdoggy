@@ -1,8 +1,11 @@
 import AppLayout from '../components/AppLayout';
+import { SEO } from '../components/SEO';
+import { ROUTES as SEO_ROUTES } from '../lib/seoConfig';
 
 export default function Terms() {
   return (
     <AppLayout>
+      <SEO config={SEO_ROUTES.terms} />
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./terms --read

@@ -1,5 +1,7 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
+import { SEO } from '../components/SEO';
+import { ROUTES as SEO_ROUTES } from '../lib/seoConfig';
 
 // 1 credit = $0.01 USD. Credit-based, pay-as-you-go.
 // The 3 sizes below are top-up packs. Credits never expire.
@@ -23,6 +25,7 @@ export default function Pricing() {
   const requested = params.get('pack');
   return (
     <AppLayout>
+      <SEO config={SEO_ROUTES.pricing} />
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./pricing --list

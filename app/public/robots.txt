@@ -1,0 +1,85 @@
+# robots.txt — SignupDoggy
+# Deployed at https://signupdoggy.pages.dev/robots.txt
+#
+# Strategy:
+# - Allow the marketing surface (everything user-facing except auth + account).
+# - Disallow /auth, /login, /signup, /dashboard, /keys, /checkout — they require
+#   a session, have no SEO value, and would dilute crawl budget.
+# - Disallow the Google Search Console verification stub path so the verifier
+#   stays valid (it's only ever fetched by Google, not by us).
+# - Disallow the Next/Vite asset chunks — they're hashed and shouldn't
+#   show up in the index, and Google will waste crawl budget on them.
+# - Sitemap pointer: Google reads this line, so the URL must be absolute.
+
+User-agent: *
+Allow: /
+Allow: /docs
+Allow: /pricing
+Allow: /blog
+Allow: /blog/
+Allow: /terms
+Allow: /privacy
+Disallow: /auth
+Disallow: /login
+Disallow: /signup
+Disallow: /dashboard
+Disallow: /keys
+Disallow: /checkout
+Disallow: /assets/
+Disallow: /*.js$
+Disallow: /*.map$
+
+# AI scrapers (GPTBot, ClaudeBot, PerplexityBot, CCBot, Google-Extended):
+# explicitly allowed so AI agents and search-AI (SGE, Copilot) can index
+# the public pages. We expose machine-readable text at /llms.txt.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+# Ahrefs / Semrush / Moz — explicitly block. We don't sell backlinks and
+# their crawlers burn bandwidth without giving us rank.
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: SemrushBot-SA
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+Sitemap: https://signupdoggy.pages.dev/sitemap.xml

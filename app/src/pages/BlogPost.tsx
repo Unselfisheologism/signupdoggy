@@ -4,6 +4,9 @@ import { marked } from 'marked';
 import AppLayout from '../components/AppLayout';
 import { getPostBySlug } from '../lib/posts';
 import { POST_BODIES } from '../lib/postContent';
+import { SEO } from '../components/SEO';
+import type { SeoConfig } from '../lib/seoConfig';
+import { SITE } from '../lib/seoConfig';
 
 // /blog/:slug — single post page.
 //
@@ -15,6 +18,46 @@ import { POST_BODIES } from '../lib/postContent';
 // To add a post:
 //   1. Add a markdown body string to POST_BODIES in postContent.ts.
 //   2. Add a matching entry in src/lib/posts.ts (slug, title, etc.).
+//   3. (Optional) Customize the per-post SEO config in getPostSeo().
+
+function getPostSeo(slug: string, post: { title: string; description: string; date: string; tags: string[]; readingTime: string }): SeoConfig {
+  return {
+    path: `/blog/${slug}`,
+    title: `${post.title} — SignupDoggy Blog`,
+    description: post.description,
+    keywords: [...post.tags, 'signupdoggy', 'signup quality', 'fraud prevention', 'indie hacker'].join(', '),
+    canonical: `${SITE.url}/blog/${slug}`,
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.title,
+        description: post.description,
+        datePublished: post.date,
+        dateModified: post.date,
+        inLanguage: 'en-US',
+        author: { '@type': 'Person', name: 'Jeffrin James', email: 'mailto:jeffrinjames99@gmail.com' },
+        publisher: { '@type': 'Organization', name: 'SignupDoggy', url: SITE.url, logo: { '@type': 'ImageObject', url: `${SITE.url}/android-chrome-512x512.png` } },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `${SITE.url}/blog/${slug}` },
+        keywords: post.tags.join(', '),
+        url: `${SITE.url}/blog/${slug}`,
+        image: `${SITE.url}/og-image.png`,
+        articleSection: post.tags[0] || 'Signup Quality',
+        wordCount: Math.max(1, Math.round(((POST_BODIES[slug] || '').split(/\s+/).filter(Boolean).length))),
+        timeRequired: post.readingTime,
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE.url}/` },
+          { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE.url}/blog` },
+          { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE.url}/blog/${slug}` },
+        ],
+      },
+    ],
+  };
+}
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -47,6 +90,7 @@ export default function BlogPost() {
 
   return (
     <AppLayout>
+      <SEO config={getPostSeo(post.slug, post)} />
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./blog/{post.slug} --read

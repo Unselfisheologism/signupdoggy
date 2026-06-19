@@ -4,6 +4,8 @@ import { useAuth } from '../auth';
 import { motion, useInView } from 'motion/react';
 import { ArrowRightIcon, PromptIcon } from '../components/icons';
 import CatchTheFakes from '../components/CatchTheFakes';
+import { SEO } from '../components/SEO';
+import { ROUTES as SEO_ROUTES } from '../lib/seoConfig';
 
 // ── Animated Counter ──────────────────────────────────────────────────────────
 function AnimatedCounter({ from, to, suffix = '', auto = false }: { from: number; to: number; suffix?: string; auto?: boolean }) {
@@ -260,6 +262,7 @@ export default function Landing() {
 
   return (
     <div className="crt">
+      <SEO config={SEO_ROUTES.home} />
       <div className="window">
 
         {/* ── Terminal Header / Nav ── */}

@@ -1,0 +1,20 @@
+# Cloudflare Pages configuration
+#
+# ── _redirects ────────────────────────────────────────────────────────────────
+# Single Page App — every URL that doesn't match a static file or a route
+# folder we pre-render must fall through to the SPA shell. Pre-rendered
+# route folders (dist/<route>/index.html) take precedence because they're
+# matched first as static files; this block is the safety net for any
+# new route that hasn't been pre-rendered yet (e.g. /blog/<new-slug>).
+#
+# We also redirect the legacy /signup path to /auth?next=/signup so old
+# links still work, and the /billing path that the docs mention to the
+# real /dashboard page (where the top-up button actually lives).
+
+# 301 redirects first (they match before the SPA fallback)
+/signup   /auth?next=/signup   301
+/billing  /dashboard            301
+/blog/:slug.md  /blog/:slug    301
+
+# SPA fallback: anything that didn't match a static file → index.html.
+/*    /index.html   200

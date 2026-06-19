@@ -1,8 +1,11 @@
 import AppLayout from '../components/AppLayout';
+import { SEO } from '../components/SEO';
+import { ROUTES as SEO_ROUTES } from '../lib/seoConfig';
 
 export default function Privacy() {
   return (
     <AppLayout>
+      <SEO config={SEO_ROUTES.privacy} />
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./privacy --read

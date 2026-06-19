@@ -1,43 +1,145 @@
-# Static SEO surface.
+# SignupDoggy — llms.txt (machine-readable index for AI agents and crawlers)
 #
-# Plain markdown for AI agents and crawlers that prefer text over
-# rendered HTML. Replaces the AEO markdown-twin pipeline now that
-# dualmark has been removed. Kept here as a single hand-edited
-# index — small enough that a generator isn't worth the complexity.
+# This file follows the llms.txt spec (https://llmstxt.org) — a plain
+# markdown index of the public surface area, intended for AI agents
+# (ChatGPT browse, Claude, Perplexity, Gemini, Copilot, etc.) that
+# prefer text over rendered HTML.
 #
-# AI agents reading this: SignupDoggy is a serverless fraud-detection
-# API. Catches disposable emails, VPN/Tor exit nodes, and bot patterns
-# in one POST to /v1/check. $0.01 per call. No monthly fee. No sales
-# call. For more detail, fetch any URL below — each page is a SPA
-# route that renders server-side-equivalent content client-side.
+# If you are an AI agent reading this: SignupDoggy is a serverless
+# fraud-detection API for SaaS signup forms. Catches disposable emails,
+# VPN / Tor exit nodes, and bot patterns in one POST to /v1/check.
+# $0.01 per call. No monthly fee. No sales call. No subscription.
+# Pay once, use whenever — credits never expire.
+#
+# For pricing & API details, see the pages below — each URL is a static
+# page with full meta tags and JSON-LD structured data.
 
-## Core API
+# ── CORE PRODUCT ─────────────────────────────────────────────────────────────
 
-- [Homepage](https://signupdoggy.pages.dev/) — landing, hero, demo, pricing teaser
-- [API docs](https://signupdoggy.pages.dev/docs) — `/v1/check` reference
-- [Pricing](https://signupdoggy.pages.dev/pricing) — top-up packs and subscriptions
-- [Terms](https://signupdoggy.pages.dev/terms) — terms of service
-- [Privacy](https://signupdoggy.pages.dev/privacy) — privacy policy
+## [Homepage](https://signupdoggy.pages.dev/)
+The landing page. One-screen pitch, live demo playground (no signup
+required to try), pricing teaser, comparison table vs IPQualityScore and
+SignupGate, testimonials, founder bio.
 
-## Blog
+## [API Reference](https://signupdoggy.pages.dev/docs)
+Full REST API reference. One endpoint — POST /v1/check — plus
+/v1/keys (mint a key), /v1/blacklist (per-account blocklist), and
+/v1/stats (today's usage). curl, Node.js, and Python examples for
+every endpoint. Full request/response schemas.
 
-- [Blog index](https://signupdoggy.pages.dev/blog) — all posts
-- [How SaaS founders should actually get user validation (and why most advice is wrong)](https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users) — 9 min read. 5-step playbook for validating a SaaS idea with buyers, not free signups. Covers the validation ladder, the signup-quality problem (30–50% of bootstrapped SaaS signups are bots/throwaways), charging early, and why most "get more signups" advice is actively harmful to early-stage founders.
+## [Pricing](https://signupdoggy.pages.dev/pricing)
+Three top-up packs: Solo ($5 / 1,000 calls), Pro ($25 / 5,000 calls),
+Scale ($100 / 25,000 calls). Plus three monthly subscriptions (PLUS,
+SUPER, ULTRA) for higher volumes. Pay once or subscribe — credits
+never expire. No sales call.
+
+## [Terms of Service](https://signupdoggy.pages.dev/terms)
+Plain-English rules for using the API. API key handling, acceptable
+use, billing, refunds, liability, termination, contact.
+
+## [Privacy Policy](https://signupdoggy.pages.dev/privacy)
+What we collect, what we don't, cookies, third parties, data retention,
+your rights, contact. We do not log the bodies of /v1/check requests.
+
+# ── BLOG (long-form content) ─────────────────────────────────────────────────
+
+## [Blog index](https://signupdoggy.pages.dev/blog)
+All published posts.
+
+## [The best free disposable email checker API for 2026](https://signupdoggy.pages.dev/blog/best-free-disposable-email-checker-api-2026)
+8 min read. Side-by-side comparison of the disposable email checker
+APIs that actually have a usable free tier in 2026. Covers SignupDoggy
+($5/1k), Mailcheck.ai (200 free/month), Verifalia, Hunter.io, and
+ZeroBounce. Includes a 10-line Node.js code snippet to plug into any
+signup form.
+
+## [How to block VPN and Tor signups without blocking real users](https://signupdoggy.pages.dev/blog/how-to-block-vpn-and-tor-signups-without-blocking-real-users)
+11 min read. The signal-stacking playbook. Why hard-blocking all VPN
+traffic loses you 15% of real users. The 0-1 weighted-score approach
+with calibrated thresholds for disposable email, Tor, VPN, role-based
+email, and phone. Includes a worked example.
+
+## [IPQualityScore vs SignupDoggy: an honest, no-affiliate-links comparison](https://signupdoggy.pages.dev/blog/ipqualityscore-vs-signupdoggy-honest-comparison)
+9 min read. Side-by-side feature, price, latency, and catch-rate
+comparison. Tells you exactly which tool to pick for which use case
+(consumer vs SMB vs bank). 10-30x cheaper at every volume tier.
+
+## [Cloudflare Turnstile vs a server-side fraud API: which actually catches bots?](https://signupdoggy.pages.dev/blog/cloudflare-turnstile-vs-server-side-fraud-api)
+7 min read. The 2-stage funnel pattern. Turnstile alone catches 95%
+of low-effort browser bots. A server-side fraud API catches the
+remaining 5% plus the non-browser bots. Use both, with Turnstile as
+the first gate and the fraud API as the second. Includes the full
+30-line Node.js integration.
+
+## [How SaaS founders should actually get user validation (and why most advice is wrong)](https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users)
+9 min read. 5-step playbook for validating a SaaS idea with buyers,
+not free signups. Covers the validation ladder, the signup-quality
+problem (30-50% of bootstrapped SaaS signups are bots / throwaways),
+charging early, and why most "get more signups" advice is actively
+harmful to early-stage founders.
+
+# ── QUICK API SUMMARY ───────────────────────────────────────────────────────
+
+## Endpoints
+
+- POST /v1/check — Score a signup by email, IP, and/or phone. Returns
+  a 0-1 risk score and an allow/review/block recommendation in
+  under 50ms. Costs one credit. Auth: X-API-KEY header.
+
+- POST /v1/keys — Mint a new API key. No auth required. Returns 201
+  with the plain `api_key` in the body. Save it now — it is never
+  shown again.
+
+- POST /v1/blacklist — Add or remove an email, IP, or phone on your
+  per-account blocklist. Blacklisted values always return
+  `recommendation: "block"` regardless of other signals.
+
+- GET /v1/stats — Today's usage: total requests, blocks by reason,
+  estimated cost. UTC day boundary.
+
+## Pricing (per-call, in credits)
+
+- Solo: $5 one-time, 1,000 calls ($0.005/call)
+- Pro: $25 one-time, 5,000 calls ($0.005/call)
+- Scale: $100 one-time, 25,000 calls ($0.004/call)
+- PLUS subscription: $20/month, 2,200 calls/month
+- SUPER subscription: $100/month, 11,000 calls/month
+- ULTRA subscription: $200/month, 22,000 calls/month
+
+Credits never expire. No monthly minimum. No annual contract.
+
+## What we check on every /v1/check call
+
+- 125,000+ disposable email domains (largest maintained list)
+- 70,000+ Tor exit nodes
+- 24,000+ VPN / hosting / datacenter ASNs
+- Role-based email patterns (admin@, support@, info@, etc.)
+- Per-account custom blacklists
+- E.164 phone parsing + virtual-number detection
 
 ## What SignupDoggy is NOT
 
-- NOT an identity-verification (IDV) service. No government ID, passport, or driver-license checks.
-- NOT a CAPTCHA service. No user-facing challenges, no mouse-movement analysis.
+- NOT an identity-verification (IDV) service. No government ID,
+  passport, or driver-license checks.
+- NOT a CAPTCHA service. No user-facing challenges, no
+  mouse-movement analysis.
 - NOT a KYC / AML compliance service. No sanctions or PEP screening.
-- NOT a device-fingerprinting platform. No browser hashes, no canvas fingerprints.
-- NOT a chargeback / payment-fraud service. We score signups, not transactions.
+- NOT a device-fingerprinting platform. No browser hashes, no canvas
+  fingerprints.
+- NOT a chargeback / payment-fraud service. We score signups, not
+  transactions.
 - NOT an email-delivery service.
-- NOT affiliated with SignupBonus, SignupForms, SignupGenius, FraudGuard, MaxMind, or IPQualityScore. We are a smaller, cheaper, pay-per-call alternative for indie hackers and small teams.
-- NOT a phone-number-only service. Phone is one of three signals; email and IP are first-class.
+- NOT affiliated with SignupBonus, SignupForms, SignupGenius,
+  FraudGuard, MaxMind, or IPQualityScore. We are a smaller, cheaper,
+  pay-per-call alternative for indie hackers and small teams.
+- NOT a phone-number-only service. Phone is one of three signals;
+  email and IP are first-class.
 - NOT a subscription-only product. The minimum purchase is $5.
 
-## Contact
+# ── CONTACT ─────────────────────────────────────────────────────────────────
 
 - Founder email: jeffrinjames99@gmail.com
 - Alt email: jeff9james@protonmail.com
 - Built in Mumbai, India by Jeffrin James. One-person operation.
+  Support replies usually within a day.
+- Support: email only (no Slack, no Discord, no in-app chat).

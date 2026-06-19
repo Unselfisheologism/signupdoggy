@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
+import { SEO } from '../components/SEO';
+import { ROUTES as SEO_ROUTES } from '../lib/seoConfig';
 
 // Base URL must match the actual deployed Worker. The previous
 // `api.signupdoggy.dev` and `signupdoggy.dev` hostnames were never
@@ -137,6 +139,7 @@ export default function Docs() {
 
   return (
     <AppLayout>
+      <SEO config={SEO_ROUTES.docs} />
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./docs --api-reference

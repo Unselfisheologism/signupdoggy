@@ -1,19 +1,23 @@
 import { Link } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
 import { posts } from '../lib/posts';
+import { SEO } from '../components/SEO';
+import { ROUTES as SEO_ROUTES } from '../lib/seoConfig';
 
 // /blog — the index page.
 //
 // Lists every published post as a card. Each card links to the post page
-// (a React route at /blog/<slug>) and to the markdown twin at
-// /blog/<slug>.md (the AEO-readable form served to AI agents).
-//
-// Markdown twins are served by the AEO Worker from the same source
-// markdown file that powers the rendered post — see BlogPost.tsx.
+// at /blog/<slug>. (The AEO markdown-twin pipeline at /blog/<slug>.md
+// was removed when the dualmark system was deleted — see vite.config.ts
+// notes. Crawlers can read the rendered post HTML just fine; for
+// AI agents we expose the same content via /llms.txt and via the
+// <noscript> body that prerender.mjs writes into each post's static
+// index.html.)
 
 export default function Blog() {
   return (
     <AppLayout>
+      <SEO config={SEO_ROUTES.blog} />
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./blog --list
@@ -44,15 +48,6 @@ export default function Blog() {
                   <span>Jeffrin James</span>
                   <span className="blog-dot">·</span>
                   <span className="blog-read-time">{post.readingTime} read</span>
-                  <span className="blog-dot">·</span>
-                  <a
-                    className="blog-md-link"
-                    href={`/blog/${post.slug}.md`}
-                    onClick={(e) => e.stopPropagation()}
-                    title="Markdown twin — the same post as plain text for AI agents"
-                  >
-                    .md
-                  </a>
                 </div>
               </Link>
             </li>

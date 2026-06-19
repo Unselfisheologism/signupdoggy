@@ -4,7 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <title>SignupDoggy — Catch fake signups in 1¢</title>
+    <title>SignupDoggy — Disposable Email, VPN &amp; Tor Detection API · $0.01/call</title>
+
+    <!-- Favicons + PWA (per-route meta is injected by prerender + SEO.tsx) -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
 
     <!-- Preconnect for fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,19 +23,19 @@
       rel="stylesheet"
     />
 
-    <!-- SEO -->
+    <!-- SEO defaults (overridden per-route by prerender + SEO.tsx) -->
     <meta
       name="description"
-      content="One API. 1¢ per check. Catches disposable emails, VPNs, Tor exit nodes, and bots. No monthly fee. No sales call."
+      content="Serverless fraud-detection API for SaaS signups. Catches disposable emails, VPN/Tor exit nodes, and bot patterns in one POST. $0.01 per request, no monthly fee, no sales call."
     />
     <meta
       name="keywords"
-      content="fraud detection, fake signups, disposable email, vpn detection, tor detection, signup api, indie hacker"
+      content="fraud detection API, fake signup detection, disposable email checker, VPN detection API, Tor exit node API, signup fraud, email validation API, IP risk score, fraud prevention, indie hacker, SaaS fraud, signupdoggy"
     />
+    <meta name="author" content="Jeffrin James" />
     <link rel="canonical" href="https://signupdoggy.pages.dev" />
 
     <!-- AEO / SEO discovery -->
-    <link rel="canonical" href="https://signupdoggy.pages.dev" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <link rel="alternate" type="text/plain" href="/llms.txt" title="llms.txt — plain-text index for AI agents" />
 
@@ -54,13 +63,7 @@
     />
     <meta name="twitter:image" content="https://signupdoggy.pages.dev/og-image.png" />
     <meta name="twitter:image:alt" content="SignupDoggy — Catch fake signups in 1¢" />
-
-    <!-- Theme color -->
-    <meta name="theme-color" content="#000000" />
-
-    <!-- PWA / mobile -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="twitter:site" content="@signupdoggy" />
   </head>
   <body>
     <div id="root"></div>

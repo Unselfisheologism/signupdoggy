@@ -1,0 +1,49 @@
+# Cloudflare Pages security & caching headers
+#
+# ── _headers ──────────────────────────────────────────────────────────────────
+# 1) Security headers on every response (defense in depth, even though the
+#    site is a static SPA with no server-side auth).
+# 2) Aggressive immutable caching for hashed assets under /assets/ — Vite
+#    outputs content-hashed filenames, so a 1-year cache is safe.
+# 3) No-cache for HTML (sitemap, robots, llms, index.html) so deploys
+#    propagate immediately.
+# 4) Don't touch /api/* or the Worker — that lives on a different host.
+
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  X-DNS-Prefetch-Control: on
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+/og-image.png
+  Cache-Control: public, max-age=604800
+
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/sitemap.xml
+  Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=86400
+
+/llms.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=86400
