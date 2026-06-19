@@ -866,6 +866,41 @@ code { font-family: var(--font-mono); }
   color: var(--text-muted);
 }
 
+/* ─── Footer keybind links ─── */
+/* Each footer item is BOTH a clickable link AND its keyboard
+   shortcut's visual hint. Hovering/highlighting the kbd tints the
+   label, and the cursor turns into a pointer over the whole row. */
+.terminal-footer .keybind-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.terminal-footer .keybind-link kbd {
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  border: var(--border-thin) solid var(--border-dim);
+  border-radius: 2px;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+.terminal-footer .keybind-link:hover {
+  color: var(--accent);
+  background: transparent;
+}
+.terminal-footer .keybind-link:hover kbd {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
 /* ═══════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════ */

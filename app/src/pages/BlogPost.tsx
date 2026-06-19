@@ -4,38 +4,29 @@ import { marked } from 'marked';
 import AppLayout from '../components/AppLayout';
 import { getPostBySlug } from '../lib/posts';
 
-// Vite `?raw` glob — every markdown file in the blog folder, keyed by
-// relative path. The same .md files are served to AI agents by the
-// AEO Worker as the markdown twin at /blog/<slug>.md, so there is
-// literally one source of truth for the body content.
+// Vite plugin `md-inline-loader` (see vite.config.ts) turns each
+// `?raw` import into an inlined JS string at build time. The same
+// .md file is the source of truth for the AEO markdown twin served
+// to AI agents at /blog/<slug>.md — so this render and the AI
+// version literally share content. No dual-source drift.
 //
-// We use `import.meta.glob` (Vite's recommended pattern) instead of
-// static `import` because the static form hit a Rollup limitation
-// around resolving .md files outside the conventional src tree.
-// `as: 'raw'` reads each file as a string at build time.
-// `eager: true` resolves them inline so we don't need a Suspense boundary.
-const POST_BODIES = import.meta.glob('../aeo/content/blog/*.md', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-}) as Record<string, string>;
+// Add a new post:
+//   1. Drop the .md at app/aeo/content/blog/<slug>.md.
+//   2. Add the import below + a matching posts.ts entry.
+//   3. Run aeo:build to refresh llms.txt + sitemap.
+import howToValidateMarkdown from '../aeo/content/blog/how-to-validate-your-saas-idea-with-real-users.md?raw';
 
 // /blog/:slug — single post page.
 //
-// Imports the same .md file that the AEO Worker serves as the
-// markdown twin to AI agents. That makes the React render and the
-// AI-readable markdown literally the same source — no drift.
-//
-// The body is parsed once with `marked` and injected via
+// The body is parsed with `marked` and injected via
 // `dangerouslySetInnerHTML`. The content is hand-authored (we own
-// app/aeo/content/blog/<slug>.md), not user-submitted, so this is
-// a safe use of innerHTML.
+// the .md file), not user-submitted, so innerHTML is safe here.
 
-// Map glob keys ("../aeo/content/blog/<slug>.md") to slugs.
-function bodyFor(slug: string): string {
-  const key = `../aeo/content/blog/${slug}.md`;
-  return POST_BODIES[key] ?? '';
-}
+// Map of slug → raw markdown body. Add an entry here (and a matching
+// import above + posts.ts entry) when a new post lands.
+const POST_BODIES: Record<string, string> = {
+  'how-to-validate-your-saas-idea-with-real-users': howToValidateMarkdown,
+};
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
@@ -55,7 +46,7 @@ export default function BlogPost() {
     return <Navigate to="/blog" replace />;
   }
 
-  const raw = bodyFor(post.slug);
+  const raw = POST_BODIES[post.slug] ?? '';
 
   // Strip the leading H1 (we render the title in the React header)
   // and the aeo:source HTML comment, so the markdown body lines up

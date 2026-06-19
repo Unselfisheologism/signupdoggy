@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
 import { motion, useInView } from 'motion/react';
 import { ArrowRightIcon, PromptIcon } from '../components/icons';
@@ -230,9 +230,33 @@ const testimonials = [
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function Landing() {
   const { loading, session } = useAuth();
+  const navigate = useNavigate();
   const ctaPrimary = !loading && session ? '/dashboard' : '/auth?next=checkout&pack=solo';
 
-  // Keyboard shortcuts live in AppLayout so they work on every page.
+  // Keyboard shortcuts.
+  //
+  // The Landing page is intentionally NOT wrapped in <AppLayout> — it
+  // owns its own <div class="crt"> window. So we attach the global
+  // keyboard listener here too. AppLayout has the same handler for
+  // every other page; this keeps the landing page on the same
+  // keyboard surface so D/P/B/G/T/V/M work no matter where you are.
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return; // don't hijack browser shortcuts
+      switch (e.key.toLocaleLowerCase()) {
+        case 'd': navigate('/docs'); break;
+        case 'p': navigate('/pricing'); break;
+        case 'b': navigate('/blog'); break;
+        case 't': navigate('/terms'); break;
+        case 'v': navigate('/privacy'); break;
+        case 'g': navigate(session ? '/dashboard' : '/auth'); break;
+        case 'm': window.location.href = 'mailto:jeffrinjames99@gmail.com'; break;
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [navigate, session]);
 
   return (
     <div className="crt">
@@ -593,17 +617,13 @@ export default function Landing() {
               <span>SIGNUPDOGGY v2.1.0</span>
               <span className="section-divider">|</span>
               <div className="keybind">
-                <span>[<kbd>D</kbd>] DOCS</span>
-                <span>[<kbd>P</kbd>] PRICING</span>
-                <span>[<kbd>B</kbd>] BLOG</span>
-                <span>[<kbd>G</kbd>] GET MY API KEY</span>
-              </div>
-              <span className="section-divider">|</span>
-              <div className="keybind">
-                <span><Link to="/blog">BLOG</Link></span>
-                <span><Link to="/terms">TERMS</Link></span>
-                <span><Link to="/privacy">PRIVACY</Link></span>
-                <span><a href="mailto:jeffrinjames99@gmail.com">jeffrinjames99@gmail.com</a></span>
+                <Link to="/docs" className="keybind-link"><kbd>D</kbd> DOCS</Link>
+                <Link to="/pricing" className="keybind-link"><kbd>P</kbd> PRICING</Link>
+                <Link to="/blog" className="keybind-link"><kbd>B</kbd> BLOG</Link>
+                <Link to="/terms" className="keybind-link"><kbd>T</kbd> TERMS</Link>
+                <Link to="/privacy" className="keybind-link"><kbd>V</kbd> PRIVACY</Link>
+                <a href="mailto:jeffrinjames99@gmail.com" className="keybind-link"><kbd>M</kbd> EMAIL</a>
+                <Link to={ctaPrimary} className="keybind-link"><kbd>G</kbd> GET MY API KEY</Link>
               </div>
             </div>
             <div className="footer-credit">

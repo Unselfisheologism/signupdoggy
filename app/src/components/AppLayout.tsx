@@ -43,11 +43,15 @@ export default function AppLayout({
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return; // don't hijack browser shortcuts
       switch (e.key.toLocaleLowerCase()) {
         case 'd': navigate('/docs'); break;
         case 'p': navigate('/pricing'); break;
         case 'b': navigate('/blog'); break;
+        case 't': navigate('/terms'); break;
+        case 'v': navigate('/privacy'); break;
         case 'g': navigate(session ? '/dashboard' : '/auth'); break;
+        case 'm': window.location.href = 'mailto:jeffrinjames99@gmail.com'; break;
       }
     };
     window.addEventListener('keydown', handleKey);
@@ -113,15 +117,13 @@ export default function AppLayout({
               </div>
               <span className="section-divider">|</span>
               <div className="keybind">
-                <span>[<kbd>D</kbd>] DOCS</span>
-                <span>[<kbd>P</kbd>] PRICING</span>
-                <span>[<kbd>G</kbd>] GET MY API KEY</span>
-              </div>
-              <span className="section-divider">|</span>
-              <div className="keybind">
-                <span><Link to="/terms">TERMS</Link></span>
-                <span><Link to="/privacy">PRIVACY</Link></span>
-                <span><a href="mailto:jeffrinjames99@gmail.com">jeffrinjames99@gmail.com</a></span>
+                <Link to="/docs" className="keybind-link"><kbd>D</kbd> DOCS</Link>
+                <Link to="/pricing" className="keybind-link"><kbd>P</kbd> PRICING</Link>
+                <Link to="/blog" className="keybind-link"><kbd>B</kbd> BLOG</Link>
+                <Link to="/terms" className="keybind-link"><kbd>T</kbd> TERMS</Link>
+                <Link to="/privacy" className="keybind-link"><kbd>V</kbd> PRIVACY</Link>
+                <a href="mailto:jeffrinjames99@gmail.com" className="keybind-link"><kbd>M</kbd> EMAIL</a>
+                <Link to={session ? '/dashboard' : '/auth'} className="keybind-link"><kbd>G</kbd> {session ? 'DASHBOARD' : 'GET MY API KEY'}</Link>
               </div>
             </div>
             <div className="footer-credit">
