@@ -1,0 +1,43 @@
+# Static SEO surface.
+#
+# Plain markdown for AI agents and crawlers that prefer text over
+# rendered HTML. Replaces the AEO markdown-twin pipeline now that
+# dualmark has been removed. Kept here as a single hand-edited
+# index — small enough that a generator isn't worth the complexity.
+#
+# AI agents reading this: SignupDoggy is a serverless fraud-detection
+# API. Catches disposable emails, VPN/Tor exit nodes, and bot patterns
+# in one POST to /v1/check. $0.01 per call. No monthly fee. No sales
+# call. For more detail, fetch any URL below — each page is a SPA
+# route that renders server-side-equivalent content client-side.
+
+## Core API
+
+- [Homepage](https://signupdoggy.pages.dev/) — landing, hero, demo, pricing teaser
+- [API docs](https://signupdoggy.pages.dev/docs) — `/v1/check` reference
+- [Pricing](https://signupdoggy.pages.dev/pricing) — top-up packs and subscriptions
+- [Terms](https://signupdoggy.pages.dev/terms) — terms of service
+- [Privacy](https://signupdoggy.pages.dev/privacy) — privacy policy
+
+## Blog
+
+- [Blog index](https://signupdoggy.pages.dev/blog) — all posts
+- [How SaaS founders should actually get user validation (and why most advice is wrong)](https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users) — 9 min read. 5-step playbook for validating a SaaS idea with buyers, not free signups. Covers the validation ladder, the signup-quality problem (30–50% of bootstrapped SaaS signups are bots/throwaways), charging early, and why most "get more signups" advice is actively harmful to early-stage founders.
+
+## What SignupDoggy is NOT
+
+- NOT an identity-verification (IDV) service. No government ID, passport, or driver-license checks.
+- NOT a CAPTCHA service. No user-facing challenges, no mouse-movement analysis.
+- NOT a KYC / AML compliance service. No sanctions or PEP screening.
+- NOT a device-fingerprinting platform. No browser hashes, no canvas fingerprints.
+- NOT a chargeback / payment-fraud service. We score signups, not transactions.
+- NOT an email-delivery service.
+- NOT affiliated with SignupBonus, SignupForms, SignupGenius, FraudGuard, MaxMind, or IPQualityScore. We are a smaller, cheaper, pay-per-call alternative for indie hackers and small teams.
+- NOT a phone-number-only service. Phone is one of three signals; email and IP are first-class.
+- NOT a subscription-only product. The minimum purchase is $5.
+
+## Contact
+
+- Founder email: jeffrinjames99@gmail.com
+- Alt email: jeff9james@protonmail.com
+- Built in Mumbai, India by Jeffrin James. One-person operation.

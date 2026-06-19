@@ -3,37 +3,25 @@ import { useMemo } from 'react';
 import { marked } from 'marked';
 import AppLayout from '../components/AppLayout';
 import { getPostBySlug } from '../lib/posts';
-
-// Vite plugin `md-inline-loader` (see vite.config.ts) turns each
-// `?raw` import into an inlined JS string at build time. The same
-// .md file is the source of truth for the AEO markdown twin served
-// to AI agents at /blog/<slug>.md — so this render and the AI
-// version literally share content. No dual-source drift.
-//
-// Add a new post:
-//   1. Drop the .md at app/aeo/content/blog/<slug>.md.
-//   2. Add the import below + a matching posts.ts entry.
-//   3. Run aeo:build to refresh llms.txt + sitemap.
-import howToValidateMarkdown from '../aeo/content/blog/how-to-validate-your-saas-idea-with-real-users.md?raw';
+import { POST_BODIES } from '../lib/postContent';
 
 // /blog/:slug — single post page.
 //
-// The body is parsed with `marked` and injected via
-// `dangerouslySetInnerHTML`. The content is hand-authored (we own
-// the .md file), not user-submitted, so innerHTML is safe here.
-
-// Map of slug → raw markdown body. Add an entry here (and a matching
-// import above + posts.ts entry) when a new post lands.
-const POST_BODIES: Record<string, string> = {
-  'how-to-validate-your-saas-idea-with-real-users': howToValidateMarkdown,
-};
+// Post body is loaded from src/lib/postContent.ts (a plain TS string
+// constant keyed by slug). It's parsed with `marked` and rendered via
+// `dangerouslySetInnerHTML`. The content is hand-authored, not
+// user-submitted, so innerHTML is safe here.
+//
+// To add a post:
+//   1. Add a markdown body string to POST_BODIES in postContent.ts.
+//   2. Add a matching entry in src/lib/posts.ts (slug, title, etc.).
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
   const post = slug ? getPostBySlug(slug) : undefined;
 
-  // Configure marked once per render. The options are stable, so
-  // wrapping in useMemo keeps the renderer from being recreated.
+  // Configure marked once. Options are stable; useMemo keeps the
+  // renderer reference from being recreated on every render.
   const renderer = useMemo(() => {
     marked.setOptions({
       gfm: true,
@@ -48,9 +36,9 @@ export default function BlogPost() {
 
   const raw = POST_BODIES[post.slug] ?? '';
 
-  // Strip the leading H1 (we render the title in the React header)
-  // and the aeo:source HTML comment, so the markdown body lines up
-  // cleanly under our hand-styled hero.
+  // Strip the leading H1 (the React header renders its own h1) and
+  // the aeo:source HTML comment so the body lines up cleanly under
+  // the hand-styled hero.
   const cleaned = raw
     .replace(/^#\s+.*\n+/, '')                    // drop the H1
     .replace(/^<!--\s*aeo:source=.*?-->\s*\n+/m, ''); // drop aeo:source
@@ -82,13 +70,6 @@ export default function BlogPost() {
             <time dateTime={post.date}>{formatDate(post.date)}</time>
             <span className="blog-dot">·</span>
             <span className="blog-read-time">{post.readingTime} read</span>
-            <span className="blog-dot">·</span>
-            <a
-              href={`/blog/${post.slug}.md`}
-              title="The same post as plain markdown — what AI agents see"
-            >
-              .md
-            </a>
           </div>
         </header>
 
@@ -119,4 +100,3 @@ function formatDate(iso: string): string {
   ];
   return `${months[m - 1]} ${d}, ${y}`;
 }
-

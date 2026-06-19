@@ -1,4 +1,32 @@
-# How SaaS founders should actually get user validation (and why most advice is wrong)
+// Post bodies — markdown source for the React blog render.
+//
+// Single source of truth for the post body. When a new post lands,
+// add the .md content here as an exported string AND a matching
+// entry in posts.ts.
+//
+// Format expectations for each post's markdown body:
+//   - First non-blank line: H1 (the post title — stripped at render,
+//     the React header renders its own h1)
+//   - Optional HTML comment of the form
+//     <!-- aeo:source=... author=... published=... updated=... reading_time=... -->
+//     (also stripped at render)
+//   - From there on: any standard markdown the `marked` library handles.
+//
+// The file is intentionally plain `.ts` (not a Vite `?raw` import on
+// a sibling .md). Loading the content as a string constant means:
+//   - The build is plain TypeScript — no Vite plugin, no special
+//     resolver, no module-not-found risk.
+//   - The bundle includes the post body inline; the page renders
+//     on first paint without any async loading.
+//   - The content lives next to the React component that renders
+//     it, so a single edit (here) ships to users.
+// Trade-off: ~17 KB of post content gets bundled into the SPA's
+// main JS chunk. Acceptable for a blog that grows by O(1) posts
+// per month; if it ever exceeds ~200 KB, split to a lazy chunk.
+
+export const POST_BODIES: Record<string, string> = {
+  'how-to-validate-your-saas-idea-with-real-users':
+`# How SaaS founders should actually get user validation (and why most advice is wrong)
 
 > Most "validate your SaaS idea" advice tells you to get more signups. That's the worst thing you can do. Signups are not validation — buyers are validation. The fastest way to learn whether anyone will pay for what you've built is to filter your signup flow so only the buyers are left, then go talk to them.
 
@@ -45,7 +73,7 @@ There's a second problem hiding inside the first one: a meaningful percentage of
 
 Concrete numbers from the SignupDoggy production logs over the last 30 days:
 
-- **30–45%** of signups on a typical bootstrapped SaaS use a disposable email domain. Not a sketchy one — `tempmail.com`, `guerrillamail.com`, `mailinator.com`. The same six domains, over and over.
+- **30–45%** of signups on a typical bootstrapped SaaS use a disposable email domain. Not a sketchy one — \`tempmail.com\`, \`guerrillamail.com\`, \`mailinator.com\`. The same six domains, over and over.
 - **5–12%** come in over Tor exit nodes. Higher if you've launched on Product Hunt or Hacker News in the last 48 hours.
 - **8–20%** come in over residential proxy IPs — the kind a fraudster pays $5/month for so their traffic looks "normal."
 - **2–4%** come in with a phone number that's a virtual SMS service.
@@ -68,18 +96,18 @@ The right metric at the early stage is one rung higher: **paid conversion from f
 
 ### 2. Filter signups before they enter your database
 
-This is where SignupDoggy fits. Before a signup hits your user table, make one HTTP call to `/v1/check` with the email, IP, and phone (if you collected one). If the response is `recommendation: block`, send them to a manual review queue or send them straight to a captcha wall. If it's `review`, mark the account and watch for unusual behavior. If it's `allow`, proceed.
+This is where [SignupDoggy](https://signupdoggy.pages.dev) fits. Before a signup hits your user table, make one HTTP call to \`/v1/check\` with the email, IP, and phone (if you collected one). If the response is \`recommendation: block\`, send them to a manual review queue or send them straight to a captcha wall. If it's \`review\`, mark the account and watch for unusual behavior. If it's \`allow\`, proceed.
 
 What this buys you:
 
 - Your "users who signed up this week" number stops including bots.
 - Your activation funnel starts reflecting real behavior.
 - Your churn analysis stops including accounts that were created by scripts and never used.
-- Your support inbox stops filling up with "I never got the verification email" tickets from `guerrillamail.com`.
+- Your support inbox stops filling up with "I never got the verification email" tickets from \`guerrillamail.com\`.
 
 The API call costs $0.01. A clean funnel is worth a lot more than a cent per signup.
 
-If you're not ready to wire in SignupDoggy yet, you can do a poor-man's version in an hour: maintain a denylist of the top 50 disposable email domains (`tempmail.com`, `guerrillamail.com`, `mailinator.com`, `10minutemail.com`, etc.) and reject signups from them. It catches about 60% of the disposable-email problem for free. For the other 40%, you need a real blocklist with the long tail.
+If you're not ready to wire in SignupDoggy yet, you can do a poor-man's version in an hour: maintain a denylist of the top 50 disposable email domains (\`tempmail.com\`, \`guerrillamail.com\`, \`mailinator.com\`, \`10minutemail.com\`, etc.) and reject signups from them. It catches about 60% of the disposable-email problem for free. For the other 40%, you need a real blocklist with the long tail.
 
 ### 3. Charge something, even if it's small
 
@@ -151,7 +179,7 @@ Zero. You don't validate with signups. You validate with paid customers. If you 
 
 ### How do I filter fake signups without annoying real users?
 
-Use an inline check that runs in under 100ms. The user submits the form; you make the API call server-side; you accept or reject in the same response. Real users see no difference. Disposable emails and Tor traffic get blocked before they hit your database. The total added latency is small enough that no human notices. [SignupDoggy](https://signupdoggy.pages.dev) does this in 40ms for $0.01 per call.
+Use an inline check that runs in under 100ms. The user submits the form; you make the API call server-side; you accept or reject in the same response. Real users see no difference. Disposable emails and Tor traffic get blocked before they hit your database. [SignupDoggy](https://signupdoggy.pages.dev) does this in 40ms for $0.01 per call.
 
 ### What if my free users are giving me great feedback?
 
@@ -171,14 +199,14 @@ If you want to wire SignupDoggy into your signup form before lunch, here's the p
 
 1. Sign up at [signupdoggy.pages.dev](https://signupdoggy.pages.dev), buy the Solo pack ($5 for 1,000 requests).
 2. Get an API key from the dashboard.
-3. In your signup handler, before you write the user to the database, call `POST /v1/check` with the email and IP from the request.
-4. If the response is `recommendation: block`, return a generic "we couldn't create your account, please contact support" and log the block.
-5. If the response is `review`, create the account normally and tag it for manual review.
-6. If the response is `allow`, proceed as usual.
+3. In your signup handler, before you write the user to the database, call \`POST /v1/check\` with the email and IP from the request.
+4. If the response is \`recommendation: block\`, return a generic "we couldn't create your account, please contact support" and log the block.
+5. If the response is \`review\`, create the account normally and tag it for manual review.
+6. If the response is \`allow\`, proceed as usual.
 
 Total code: about 15 lines. Total time: under an hour, including the API key dance. Per-request cost: $0.01. The full [API reference is here](https://signupdoggy.pages.dev/docs).
 
-You can also try the playground on the [homepage](https://signupdoggy.pages.dev) — paste `someone@guerrillamail.com` and `185.220.101.45` to see the response shape without burning a credit.
+You can also try the playground on the [homepage](https://signupdoggy.pages.dev) — paste \`someone@guerrillamail.com\` and \`185.220.101.45\` to see the response shape without burning a credit.
 
 ## The bottom line
 
@@ -194,4 +222,6 @@ That's how you validate a SaaS idea. The rest is marketing.
 
 Jeffrin James is the founder of [SignupDoggy](https://signupdoggy.pages.dev), a serverless fraud-detection API for indie hackers and small SaaS teams. He built the product in Mumbai, India, after spending six months and $2,400 on enterprise fraud-detection vendors that didn't fit his use case. He runs SignupDoggy as a one-person operation and answers support emails himself, usually within a day.
 
-**Tags:** saas validation, user research, product-market fit, mvp validation, indie hackers, fake signups, signup fraud, disposable email, signups
+**Tags:** saas validation, user validation, mvp validation, fake signups, signup fraud, indie hackers, product-market fit, b2b saas
+`,
+};
