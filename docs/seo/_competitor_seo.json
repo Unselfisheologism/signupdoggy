@@ -1,0 +1,102 @@
+{
+  "IPQualityScore \u2014 main": {
+    "url": "https://www.ipqualityscore.com/",
+    "title": "IP Intelligence, Bot Detection, Fraud Detection | IPQS",
+    "h1": "Detect Fraud and Cyber Threats<br /> With Unmatched Accuracy",
+    "description": "Prevent fraud and detect bots confidently with IPQS fraud detection solutions. Enrich risk signals for bot detection, email & IP intelligence, proxy detection.",
+    "h2s": [
+      "Proxy Detection",
+      "Proxy Detection Test",
+      "IP Fraud Score Checker",
+      "Tor Detection Test",
+      "VPN Detection Test",
+      "Bot Detection Test",
+      "Proxy Detection Database",
+      "IP Address Blacklist"
+    ]
+  },
+  "Sift \u2014 main": {
+    "url": "https://sift.com/",
+    "title": "Digital Fraud Prevention &amp; Risk-Based Authentication | Sift",
+    "h1": "Stop Fraud Fast.<br><span class=\"font-marker text--accent\">Grow</span> Revenue Faster.",
+    "description": "Sift\u2019s fraud prevention and risk-based authentication platform empowers digital businesses to grow fearlessly and reduce risk without compromising trust.",
+    "h2s": [
+      "Fuel Fearless Growth at Scale",
+      "The Sift&nbsp;Difference",
+      "Deliver Trust Across the Consumer Journey",
+      "What\u2019s New at Sift",
+      "Dare to grow differently."
+    ]
+  },
+  "Cloudflare Turnstile": {
+    "url": "https://www.cloudflare.com/products/turnstile/",
+    "title": "Cloudflare Turnstile - Easy CAPTCHA Alternative",
+    "h1": "Build without boundaries",
+    "description": "Replace CAPTCHAs with a simple, privacy-preserving verification tool that confirms web visitors are real and blocks unwanted bots effectively.",
+    "h2s": [
+      "Verify Visitors Without CAPTCHA"
+    ]
+  },
+  "SEON": {
+    "url": "https://seon.io/",
+    "title": "SEON: AI Fraud Prevention &amp; AML Compliance Platform",
+    "h1": "The AI Command Center for Fraud Prevention &amp; AML Compliance",
+    "description": "SEON&#039;s fraud prevention platform unifies real-time detection and AML in one place. Built on 900+ first-party signals, with 14 days implementation average.",
+    "h2s": [
+      "One Platform. One Data Foundation.",
+      "Protect Revenue at Every Step",
+      "AI Tools That Drive Real Efficiency",
+      "Built for Your Industry&#8217;s Unique Challenges",
+      "&#8220;SEON&#8217;s incredibly flexible rule writing and ease of launch allow us to respond quickly to emerging fraud threats.&#8221;",
+      "How Bilt Achieved Comprehensive Fraud Prevention and Reduced Chargebacks",
+      "&#8220;SEON gives us system-wide visibility. Even if fraud starts on one merchant, we block it across the platform before it spreads.&#8221;",
+      "How Payop Scaled Global Payment Coverage While Blocking Fraud Across 500+ Payment Methods"
+    ]
+  },
+  "Kickbox (email validation)": {
+    "url": "https://kickbox.com/",
+    "title": "Email Address Verification Service | Kickbox",
+    "h1": "Fast, Reliable, &amp; Accurate Email Verification",
+    "description": "Verify your email list in minutes, or integrate real-time email verification into your app with our API. Over 26 billion emails verified. Get started for free.",
+    "h2s": [
+      "Top Rated on G2",
+      "Email list &amp; database cleanup",
+      "Email list &amp; database cleanup",
+      "Block invalid emails &amp; detect typos in real-time",
+      "Find &amp; fix what's hurting your email performance",
+      "See if Kickbox Email Deliverability Consulting is right for you"
+    ]
+  },
+  "AbstractAPI email validation": {
+    "url": "https://www.abstractapi.com/email-verification-validation-api",
+    "title": "Email Validation API \u2014 Real-Time, Free Tier | Abstract API",
+    "h1": "Email Validation API <br/>Verify Any Email in Real Time",
+    "description": "",
+    "h2s": [
+      "What the API checks \u2014 4 validations in one call",
+      "Quick start \u2014 first validation in 2 minutes",
+      "Start validating emails in minutes production-ready API",
+      "Stop paying to send emails that bounce. Keep your list clean with validations that run in real time.",
+      "Simple and transparent pricing",
+      "API Response Examples",
+      "The best build on Abstract",
+      "Email Validation and Verification API Changelog"
+    ]
+  },
+  "EmailListVerify": {
+    "url": "https://www.emaillistverify.com/",
+    "title": "Email Checker &amp; Bulk Email List Verifier - EmailListVerify",
+    "h1": "Full-Featured Email Checker & Verification.<br>But half the price.",
+    "description": "Get rid of spam traps, bounces, disposable or catch-all emails with bulk email verifier or real-time API. Start with 100 FREE email verifications!",
+    "h2s": [
+      "Free Email Checker & Verifier",
+      "Why you should give&nbsp;a&nbsp;f@#k",
+      "How we verify emails",
+      "23% of emails in your list may be bad",
+      "Improve deliverability of your next campaign",
+      "Email Checker & Verification API",
+      "Catch bad emails before they get to database",
+      "Integration with your favorite email service"
+    ]
+  }
+}

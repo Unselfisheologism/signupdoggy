@@ -305,4 +305,24 @@
       <priority>0.8</priority>
     </url>
 
-  </urlset>
+  <!-- NEW KEYWORD-TARGETED LANDING PAGES -->
+  <url>
+    <loc>https://signupdoggy.pages.dev/pay-per-call</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://signupdoggy.pages.dev/fraud-detection-api-for-saas</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://signupdoggy.pages.dev/free-email-verification</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+</urlset>

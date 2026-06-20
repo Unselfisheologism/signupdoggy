@@ -19,6 +19,9 @@ import Topics from './pages/Topics';
 import DisposableChecker from './pages/DisposableChecker';
 import Glossary from './pages/Glossary';
 import Alternatives from './pages/Alternatives';
+import PayPerCall from './pages/PayPerCall';
+import FraudApiForSaas from './pages/FraudApiForSaas';
+import FreeEmailVerification from './pages/FreeEmailVerification';
 import { SITE, ROUTES as SEO_ROUTES } from './lib/seoConfig';
 
 // Body text imports for static pages. These are the same strings the
@@ -84,14 +87,19 @@ function AppRoutes() {
           {/* ═══ GLOSSARY (educational pillar) ═════════════════════════════════ */}
           <Route path="/glossary" element={<Glossary />} />
 
-          {/* ═══ ALTERNATIVES HUB + PER-TOOL PAGES ════════════════════════════ */}
-          <Route path="/alternatives" element={<Alternatives />} />
-          <Route path="/alternatives/:slug" element={<Alternatives />} />
-        </Routes>
-      </main>
-    </div>
-  );
-}
+          {/* ═══ ALTERNATIVES HUB + PER-TOOL PAGES ═════════════════════════════ */}
+                    <Route path="/alternatives" element={<Alternatives />} />
+                    <Route path="/alternatives/:slug" element={<Alternatives />} />
+
+                    {/* ═══ NEW LANDING PAGES (P0 keyword targets) ═══════════════════════ */}
+                    <Route path="/pay-per-call" element={<PayPerCall />} />
+                    <Route path="/fraud-detection-api-for-saas" element={<FraudApiForSaas />} />
+                    <Route path="/free-email-verification" element={<FreeEmailVerification />} />
+                  </Routes>
+                </main>
+              </div>
+            );
+          }
 
 export default function App() {
   return (

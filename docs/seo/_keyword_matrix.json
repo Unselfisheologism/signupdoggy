@@ -1,0 +1,371 @@
+[
+  {
+    "keyword": "fraud detection api",
+    "type": "head",
+    "intent": "buy",
+    "vol": "10K-100K",
+    "kd": 85,
+    "priority": "P2",
+    "page": "/vs/* (we already have these)"
+  },
+  {
+    "keyword": "disposable email checker api",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "1K-10K",
+    "kd": 45,
+    "priority": "P0",
+    "page": "/disposable-checker"
+  },
+  {
+    "keyword": "ipqualityscore alternative",
+    "type": "mid",
+    "intent": "compare",
+    "vol": "1K-10K",
+    "kd": 40,
+    "priority": "P0",
+    "page": "/alternatives/ipqualityscore"
+  },
+  {
+    "keyword": "maxmind alternative",
+    "type": "mid",
+    "intent": "compare",
+    "vol": "1K-10K",
+    "kd": 38,
+    "priority": "P0",
+    "page": "/alternatives/maxmind"
+  },
+  {
+    "keyword": "sift alternative",
+    "type": "mid",
+    "intent": "compare",
+    "vol": "1K-10K",
+    "kd": 42,
+    "priority": "P0",
+    "page": "/alternatives/sift"
+  },
+  {
+    "keyword": "cloudflare turnstile alternative",
+    "type": "mid",
+    "intent": "compare",
+    "vol": "1K-10K",
+    "kd": 35,
+    "priority": "P0",
+    "page": "/alternatives/cloudflare-turnstile"
+  },
+  {
+    "keyword": "free disposable email checker",
+    "type": "mid",
+    "intent": "do",
+    "vol": "1K-10K",
+    "kd": 50,
+    "priority": "P0",
+    "page": "/disposable-checker"
+  },
+  {
+    "keyword": "email validation api",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "10K-100K",
+    "kd": 75,
+    "priority": "P1",
+    "page": "/blog/email-validation-vs-email-verification"
+  },
+  {
+    "keyword": "fraud detection api free",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "1K-10K",
+    "kd": 60,
+    "priority": "P1",
+    "page": "/pricing (FREE demo at playground)"
+  },
+  {
+    "keyword": "free fraud api",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "1K-10K",
+    "kd": 65,
+    "priority": "P1",
+    "page": "/pricing + /disposable-checker"
+  },
+  {
+    "keyword": "vpn detection api",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "1K-10K",
+    "kd": 55,
+    "priority": "P1",
+    "page": "/blog/how-to-block-vpn-and-tor-signups-without-blocking-real-users"
+  },
+  {
+    "keyword": "tor exit node api",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "100-1K",
+    "kd": 30,
+    "priority": "P1",
+    "page": "/blog/how-to-detect-vpn-users-nodejs"
+  },
+  {
+    "keyword": "ip risk score api",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "1K-10K",
+    "kd": 50,
+    "priority": "P1",
+    "page": "/docs"
+  },
+  {
+    "keyword": "bot detection api",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "1K-10K",
+    "kd": 70,
+    "priority": "P1",
+    "page": "/blog/how-to-stop-bot-signups-without-captcha"
+  },
+  {
+    "keyword": "ipqualityscore alternatives",
+    "type": "long",
+    "intent": "compare",
+    "vol": "100-1K",
+    "kd": 25,
+    "priority": "P0",
+    "page": "/alternatives (hub)"
+  },
+  {
+    "keyword": "maxmind alternatives",
+    "type": "long",
+    "intent": "compare",
+    "vol": "100-1K",
+    "kd": 25,
+    "priority": "P0",
+    "page": "/alternatives (hub)"
+  },
+  {
+    "keyword": "maxmind free alternative",
+    "type": "long",
+    "intent": "compare",
+    "vol": "100-1K",
+    "kd": 30,
+    "priority": "P0",
+    "page": "/alternatives/maxmind"
+  },
+  {
+    "keyword": "maxmind geoip alternative",
+    "type": "long",
+    "intent": "compare",
+    "vol": "100-1K",
+    "kd": 28,
+    "priority": "P0",
+    "page": "/alternatives/maxmind"
+  },
+  {
+    "keyword": "maxmind geoip free alternative",
+    "type": "long",
+    "intent": "compare",
+    "vol": "100-1K",
+    "kd": 28,
+    "priority": "P0",
+    "page": "/alternatives/maxmind"
+  },
+  {
+    "keyword": "vpn & proxy detection api",
+    "type": "long",
+    "intent": "buy",
+    "vol": "100-1K",
+    "kd": 35,
+    "priority": "P1",
+    "page": "/blog/how-to-block-vpn-and-tor-signups-without-blocking-real-users"
+  },
+  {
+    "keyword": "best vpn detection api",
+    "type": "long",
+    "intent": "compare",
+    "vol": "100-1K",
+    "kd": 40,
+    "priority": "P1",
+    "page": "/blog/how-to-detect-vpn-users-nodejs"
+  },
+  {
+    "keyword": "vpn detection api free",
+    "type": "long",
+    "intent": "buy",
+    "vol": "100-1K",
+    "kd": 40,
+    "priority": "P1",
+    "page": "/pricing"
+  },
+  {
+    "keyword": "cloudflare turnstile open source alternative",
+    "type": "long",
+    "intent": "compare",
+    "vol": "100-1K",
+    "kd": 30,
+    "priority": "P1",
+    "page": "/alternatives/cloudflare-turnstile"
+  },
+  {
+    "keyword": "cloudflare bot detection api",
+    "type": "long",
+    "intent": "buy",
+    "vol": "100-1K",
+    "kd": 40,
+    "priority": "P1",
+    "page": "/alternatives/cloudflare-turnstile"
+  },
+  {
+    "keyword": "disposable email checker github",
+    "type": "long",
+    "intent": "do",
+    "vol": "100-1K",
+    "kd": 25,
+    "priority": "P1",
+    "page": "/blog/best-free-disposable-email-checker-api-2026"
+  },
+  {
+    "keyword": "disposable email checker npm",
+    "type": "long",
+    "intent": "do",
+    "vol": "<100",
+    "kd": 20,
+    "priority": "P1",
+    "page": "/blog/disposable-email-detection-nodejs-tutorial"
+  },
+  {
+    "keyword": "disposable email list",
+    "type": "mid",
+    "intent": "info",
+    "vol": "10K-100K",
+    "kd": 65,
+    "priority": "P1",
+    "page": "/blog/disposable-email-list-2026-how-to-maintain"
+  },
+  {
+    "keyword": "disposable email list github",
+    "type": "mid",
+    "intent": "info",
+    "vol": "1K-10K",
+    "kd": 55,
+    "priority": "P1",
+    "page": "/blog/disposable-email-list-2026-how-to-maintain"
+  },
+  {
+    "keyword": "saas fraud prevention",
+    "type": "mid",
+    "intent": "info",
+    "vol": "100-1K",
+    "kd": 45,
+    "priority": "P1",
+    "page": "/use-cases/saas-startups"
+  },
+  {
+    "keyword": "bot signup prevention",
+    "type": "long",
+    "intent": "info",
+    "vol": "100-1K",
+    "kd": 35,
+    "priority": "P1",
+    "page": "/blog/how-to-stop-bot-signups-without-captcha"
+  },
+  {
+    "keyword": "indie hacker fraud detection",
+    "type": "long",
+    "intent": "info",
+    "vol": "<100",
+    "kd": 20,
+    "priority": "P0",
+    "page": "/use-cases/indie-hackers"
+  },
+  {
+    "keyword": "indie hacker api",
+    "type": "long",
+    "intent": "buy",
+    "vol": "100-1K",
+    "kd": 25,
+    "priority": "P0",
+    "page": "NEW: /use-cases/indie-hackers (revamp)"
+  },
+  {
+    "keyword": "pay per call api",
+    "type": "mid",
+    "intent": "buy",
+    "vol": "100-1K",
+    "kd": 30,
+    "priority": "P0",
+    "page": "NEW: /pay-per-call (need)"
+  },
+  {
+    "keyword": "fraud api for startups",
+    "type": "long",
+    "intent": "buy",
+    "vol": "100-1K",
+    "kd": 25,
+    "priority": "P0",
+    "page": "/use-cases/saas-startups"
+  },
+  {
+    "keyword": "supabase auth fraud prevention",
+    "type": "long",
+    "intent": "do",
+    "vol": "<100",
+    "kd": 15,
+    "priority": "P0",
+    "page": "/blog/signup-validation-supabase-auth-integration"
+  },
+  {
+    "keyword": "free email validation api no signup",
+    "type": "long",
+    "intent": "do",
+    "vol": "100-1K",
+    "kd": 35,
+    "priority": "P1",
+    "page": "/disposable-checker"
+  },
+  {
+    "keyword": "tempmail checker",
+    "type": "long",
+    "intent": "do",
+    "vol": "1K-10K",
+    "kd": 30,
+    "priority": "P0",
+    "page": "/disposable-checker"
+  },
+  {
+    "keyword": "temp mail checker",
+    "type": "long",
+    "intent": "do",
+    "vol": "1K-10K",
+    "kd": 30,
+    "priority": "P0",
+    "page": "/disposable-checker"
+  },
+  {
+    "keyword": "check disposable email",
+    "type": "long",
+    "intent": "do",
+    "vol": "1K-10K",
+    "kd": 35,
+    "priority": "P0",
+    "page": "/disposable-checker"
+  },
+  {
+    "keyword": "free email checker",
+    "type": "long",
+    "intent": "do",
+    "vol": "10K-100K",
+    "kd": 70,
+    "priority": "P1",
+    "page": "/disposable-checker"
+  },
+  {
+    "keyword": "email verification api free",
+    "type": "long",
+    "intent": "buy",
+    "vol": "1K-10K",
+    "kd": 60,
+    "priority": "P1",
+    "page": "/disposable-checker (cross-link)"
+  }
+]

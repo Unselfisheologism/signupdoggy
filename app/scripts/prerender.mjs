@@ -1644,7 +1644,126 @@ ZeroBounce is the email-verification tool of choice for email marketers. SMTP-le
 NOT THE RIGHT TOOL FOR INLINE SIGNUP FRAUD FILTERING. ZeroBounce's SMTP-level checks take 300–500ms, which makes them too slow to call inline in a signup POST handler. ZeroBounce shines when you're cleaning a list of 50k addresses before a campaign — not when you're scoring one signup at a time.
 
 For inline signup fraud scoring, SignupDoggy is the right alternative — sub-50ms p95, $0.01 per call, $5 minimum.`,
-  };
+
+'/pay-per-call': `If you've been shopping for a fraud-detection API, email validation API, or any other developer tool, you've hit the same wall: every "enterprise" vendor wants a $25/month minimum, an annual contract, or a sales call. **Pay-per-call** pricing flips that — you pay only for what you use, no minimum, no subscription.
+
+This page is the indie-hacker / SaaS-startup playbook for evaluating pay-per-call APIs (and a deep dive on why SignupDoggy is the cheapest one that still ships to production).
+
+## What "pay-per-call" actually means
+
+A pay-per-call API charges you only for the requests you make. The math is straightforward:
+
+- **Per-call cost** — the price of one request (SignupDoggy: $0.01)
+- **No minimum spend** — you can buy 100 calls or 100,000 calls
+- **No monthly subscription** — there's no recurring charge for "access to the API"
+- **No annual contract** — you can stop using the API at any time
+
+## Why pay-per-call wins for indie SaaS
+
+Three concrete reasons:
+
+**1. Cash flow matches revenue.** When your SaaS hits $20 MRR, you don't want to be locked into a $25/month IPQS contract. Pay-per-call aligns your fraud-detection spend with your revenue.
+
+**2. No vendor lock-in.** The moment you're not locked into a 12-month contract, you can switch APIs in an afternoon. This pushes vendors to compete on quality.
+
+**3. You only pay for real value.** If your signup form gets 10 fake signups today and 0 tomorrow, your bill reflects that. With a subscription, you pay the same regardless.
+
+## The SignupDoggy pay-per-call model
+
+| Tier | Price | Calls | Per-call cost |
+|---|---|---|---|
+| Solo | $5 one-time | 1,000 | $0.005 |
+| Pro | $25 one-time | 5,000 | $0.005 |
+| Scale | $100 one-time | 25,000 | $0.004 |
+
+Credits **never expire**. No monthly fee on the one-time packs. You can mix and match.
+
+## Compare to subscription alternatives
+
+At 5,000 signups/month sustained for 12 months:
+
+- IPQS: $300–$960/year
+- MaxMind: $300–$900/year
+- Sift: $12,000+/year
+- SignupDoggy: $25/year (Pro pack, refilled annually)
+
+That's a **12x–480x cost difference** at the same volume.
+
+## What to look for in a pay-per-call fraud API
+
+Five criteria: real coverage, sub-100ms latency, no minimums, credits that don't expire, no sales call. SignupDoggy hits all five. See /pricing for the full breakdown.`,
+
+    '/fraud-detection-api-for-saas': `If you're building a SaaS — any SaaS, at any scale — you need fraud detection on your signup form. This page is the complete playbook: why you need it, what to look for, and how SignupDoggy compares to the alternatives.
+
+## Why SaaS companies need a fraud-detection API
+
+Every SaaS signup form is attacked:
+
+- **5–15%** of all signups use disposable email addresses
+- **2–5%** come from VPN, Tor, or residential-proxy IPs
+- **0.5–2%** are pure bot signups from headless browsers
+- **1–3%** are human abusers (free-trial abusers, promo-code hunters)
+
+If you don't filter these, you get inflated Mixpanel numbers, support tickets from real users, Stripe Radar chargeback fees, and wasted Postgres rows.
+
+## What to look for in a SaaS fraud-detection API
+
+Seven criteria: disposable email detection, VPN/Tor detection, bot pattern recognition, sub-100ms latency, no sales call, no annual contract, webhook + dashboard.
+
+## Compare fraud APIs for SaaS
+
+SignupDoggy covers disposable email (200K domains), Tor exits (70K), VPN ASNs (24K), role-based patterns, and phone numbers. Sub-50ms p95. $0.01/call. $5 minimum. No monthly fee.
+
+MaxMind lacks disposable email detection. Sift starts at $1,000/month. Cloudflare Turnstile is CAPTCHA-only, not a fraud API.
+
+## How to integrate in 5 minutes
+
+One POST to /v1/check with email + IP, get back a 0–1 risk score + allow/review/block recommendation. Sub-50ms p95. Inline-callable in your signup POST handler.
+
+## The 2-stage funnel pattern
+
+Pair SignupDoggy + Cloudflare Turnstile for maximum bot-block rate with zero user friction: Turnstile catches naive browser bots for free, SignupDoggy catches the headless scripts, residential proxies, and disposable emails that Turnstile can't see. Combined: 99%+ bot-block rate with 0% real-user friction.
+
+## Real production numbers
+
+In our own deployment: ~12% of all signups blocked at disposable-email check, ~3% at Tor/VPN, ~0.5% at bot pattern. 0.4% false-positive rate on real users.
+
+## Get started
+
+Buy credits at /pricing — $5 minimum, no monthly fee. Or try the playground for free — one free /v1/check call per day, no signup.`,
+
+    '/free-email-verification': `Looking for a free email validation API that actually ships? This page covers what "email validation" really means, what the free options are in 2026, and why SignupDoggy's free disposable email checker is the best starting point for indie SaaS teams.
+
+## What "email validation" actually means
+
+Email validation can mean syntax, MX, SMTP probing, role-based, disposable, free-provider, typo suggestion, or catch-all detection. Different APIs do different subsets.
+
+## What the free options are in 2026
+
+Free email validation APIs ranked:
+
+- **SignupDoggy** — unlimited free in-browser disposable check at /disposable-checker, no signup
+- **AbstractAPI** — 100/month then paid
+- **Mailcheck.ai** — 200/month
+- **Verifalia** — 25 one-shot credits
+- **Hunter.io** — 50/month
+- **ZeroBounce** — 100 one-shot credits
+
+## Why SignupDoggy's free tier is different
+
+Most "free tier" APIs give you N requests per month (25 to 200). After that, you pay. SignupDoggy gives you **unlimited free in-browser disposable email checks** at /disposable-checker (no signup) plus 5,000 free API calls if you sign up for the Solo pack ($5).
+
+## When to use the in-browser checker vs the paid API
+
+Use /disposable-checker (free, in-browser) when you need disposable email detection at signup with zero latency overhead. Use the paid API when you also need IP risk scoring (Tor/VPN) or phone number validation. Most production SaaS uses both.
+
+## What about SMTP probing?
+
+We deliberately don't do SMTP probing. It's slow (100ms–2s), risks IP blacklisting by major ESPs, and is unreliable against catch-all domains. For disposable email + role-based + free provider detection, you have the blocklist. You don't need SMTP.
+
+## Get started
+
+Try the free disposable email checker at /disposable-checker — no signup, no API key, no tracking. Buy credits at /pricing if you outgrow it.`,  };
 }
 
 main().catch((e) => {

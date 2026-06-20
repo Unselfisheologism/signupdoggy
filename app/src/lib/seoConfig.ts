@@ -338,11 +338,11 @@ export const ROUTES: Record<string, SeoConfig> = {
 
   pricing: {
     path: '/pricing',
-    title: 'Pricing — SignupDoggy · $5 Solo / $25 Pro / $100 Scale · Pay once, no expiry',
+    title: 'Pricing — Pay-Per-Call Fraud API from $5 (no monthly fee, credits never expire)',
     description:
-      'SignupDoggy pricing: $0.01 per fraud-detection API call. Three packs — Solo ($5 / 1,000 calls), Pro ($25 / 5,000 calls), Scale ($100 / 25,000 calls). Credits never expire. No monthly fee. No sales call.',
+      'Pay-per-call fraud API pricing for indie hackers, SaaS startups, and small teams. Solo $5 / 1,000 calls, Pro $25 / 5,000 calls, Scale $100 / 25,000 calls. $0.01 per request. No subscription. No monthly fee. No sales call. Credits never expire. The cheapest fraud API that ships in production for less than a coffee per check.',
     keywords:
-      'SignupDoggy pricing, fraud detection API pricing, disposable email API cost, pay per call API, indie hacker pricing, no subscription API',
+      'pay per call API, fraud detection API pricing, fraud API pricing, fraud API for startups, cheap fraud API, disposable email API cost, pay per call fraud detection, pay-as-you-go fraud API, no subscription fraud API, no monthly fee API, indie hacker pricing, signupdoggy pricing',
     canonical: 'https://signupdoggy.pages.dev/pricing',
     schemas: [
       {
@@ -507,10 +507,11 @@ export const ROUTES: Record<string, SeoConfig> = {
 
   vsMaxmind: {
     path: '/vs/maxmind',
-    title: 'MaxMind minFraud vs SignupDoggy — 2026 developer comparison',
+    title: 'MaxMind Alternative — Free & $0.01/call minFraud replacement (2026)',
     description:
-      'MaxMind minFraud vs SignupDoggy: a developer-focused comparison of pricing, accuracy, integration time, and which one fits a small SaaS team. 48x price difference, real numbers.',
-    keywords: 'MaxMind alternative, MaxMind minFraud vs SignupDoggy, minFraud alternative, fraud API comparison',
+      'Looking for a MaxMind alternative? SignupDoggy is the indie-hacker minFraud replacement: same depth of IP intelligence (IP-to-ASN-to-org), same disposable-email + Tor coverage, 48x cheaper, no $25/month minimum, no annual contract, no sales call. Built for 2-50 person SaaS teams.',
+    keywords:
+      'MaxMind alternative, MaxMind free alternative, MaxMind GeoIP alternative, MaxMind GeoIP free alternative, MaxMind minFraud alternative, minFraud alternative, fraud API alternative, IP intelligence API, IP geolocation API, fraud detection API alternative',
     canonical: 'https://signupdoggy.pages.dev/vs/maxmind',
     schemas: [
       {
@@ -573,10 +574,11 @@ export const ROUTES: Record<string, SeoConfig> = {
 
   vsTurnstile: {
     path: '/vs/cloudflare-turnstile',
-    title: 'Cloudflare Turnstile vs a server-side fraud API: which actually wins?',
+    title: 'Cloudflare Turnstile Alternative — Bot Detection API + CAPTCHA combo (2026)',
     description:
-      'Cloudflare Turnstile is free and frictionless. A server-side fraud API costs $0.01 per call. Here is the 2-stage funnel pattern that uses both, with the full Node.js integration code.',
-    keywords: 'Turnstile alternative, Turnstile vs fraud API, Cloudflare Turnstile vs SignupDoggy',
+      'Cloudflare Turnstile is a CAPTCHA, not a fraud API. If you need Turnstile alternatives for bot detection (or a Cloudflare bot detection API to pair with Turnstile), this is the comparison: Turnstile vs SignupDoggy vs hCaptcha vs DataDome, with the 2-stage funnel pattern that catches 99%+ of bots while keeping every real user.',
+    keywords:
+      'Cloudflare Turnstile alternative, Turnstile alternative, Cloudflare Turnstile open source alternative, simple Cloudflare Turnstile CAPTCHA alternative, Cloudflare bot detection API, Turnstile vs fraud API, bot detection API, CAPTCHA alternative, fraud API alternative, signup fraud',
     canonical: 'https://signupdoggy.pages.dev/vs/cloudflare-turnstile',
     schemas: [
       {
@@ -607,10 +609,11 @@ export const ROUTES: Record<string, SeoConfig> = {
   // ═══ USE-CASE PAGES (long-tail, high buyer intent) ═══════════════════════
   useIndieHackers: {
     path: '/use-cases/indie-hackers',
-    title: 'Fraud detection API for indie hackers — SignupDoggy',
+    title: 'Pay-Per-Call Fraud API for Indie Hackers — SignupDoggy ($5 min, no monthly fee)',
     description:
-      'SignupDoggy is the fraud-detection API built for indie hackers. $0.01 per call, $5 minimum, no sales call, no monthly fee. Filter bot signups from your SaaS without a 4-week vendor onboarding.',
-    keywords: 'fraud detection API for indie hackers, signup API indie, cheap fraud API, indie hacker signup validation',
+      'Indie hacker fraud API that actually fits your runway. SignupDoggy charges $0.01/call with a $5 minimum — no $25/month subscription, no annual contract, no business email, no sales call. Filter bot signups, disposable emails, and VPN users from your SaaS in one curl call. Built by a solo founder for solo founders.',
+    keywords:
+      'indie hacker API, indie hacker fraud detection, pay per call API, fraud detection API for indie hackers, cheap fraud API, signup API indie, indie hacker signup validation, indie SaaS fraud, fraud API for startups, fraud API pricing',
     canonical: 'https://signupdoggy.pages.dev/use-cases/indie-hackers',
     schemas: [
       {
@@ -636,10 +639,11 @@ export const ROUTES: Record<string, SeoConfig> = {
 
   useSaasStartups: {
     path: '/use-cases/saas-startups',
-    title: 'Fraud detection for SaaS startups — SignupDoggy',
+    title: 'Fraud Detection API for SaaS Startups — Pay $5 once, never again',
     description:
-      'How 2-50 person SaaS teams use SignupDoggy to keep their signup funnels clean, their Mixpanel data honest, and their support inbox free of bot-related tickets. Pricing, integration code, and the 2-stage funnel pattern.',
-    keywords: 'fraud detection SaaS startup, signup validation SaaS, bot detection for SaaS, anti-fraud API for startups',
+      'Fraud detection API for SaaS startups: SignupDoggy costs $0.01/call with a $5 minimum, no monthly subscription, no enterprise sales call. Built for 2-50 person teams that need IP risk scoring, disposable email detection, VPN/Tor detection, and bot pattern recognition in one POST to /v1/check. The 2-stage funnel pattern + the SaaS startup playbook for keeping Mixpanel honest.',
+    keywords:
+      'fraud detection API for SaaS startups, SaaS fraud prevention, fraud API for startups, signup validation SaaS, bot detection for SaaS, anti-fraud API for startups, SaaS signup fraud, SaaS fraud detection, fraud detection for SaaS, fraud detection startup',
     canonical: 'https://signupdoggy.pages.dev/use-cases/saas-startups',
     schemas: [
       {
@@ -830,17 +834,110 @@ export const ROUTES: Record<string, SeoConfig> = {
     ],
   },
 
+payPerCall: {
+    path: '/pay-per-call',
+    title: 'Pay-Per-Call API — fraud detection for $0.01/call, no monthly fee (SignupDoggy)',
+    description:
+      'Pay-per-call fraud-detection API for indie hackers and SaaS startups. $0.01 per call, $5 minimum, credits never expire. The cheapest fraud API that ships to production: 12x-480x cheaper than IPQS, MaxMind, or Sift at the same volume.',
+    keywords:
+      'pay per call API, pay per call fraud detection, pay-as-you-go API, no subscription API, no monthly fee API, fraud detection API pricing, fraud API for startups, cheap fraud API, indie hacker pricing, pay-as-you-go fraud API',
+    canonical: 'https://signupdoggy.pages.dev/pay-per-call',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Pay-Per-Call Fraud Detection API — SignupDoggy',
+        url: 'https://signupdoggy.pages.dev/pay-per-call',
+        description: 'Pay-per-call fraud-detection API pricing for indie hackers and SaaS startups.',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Pricing', item: 'https://signupdoggy.pages.dev/pricing' },
+          { '@type': 'ListItem', position: 3, name: 'Pay-per-call', item: 'https://signupdoggy.pages.dev/pay-per-call' },
+        ],
+      },
+    ],
+  },
+
+  fraudApiForSaas: {
+    path: '/fraud-detection-api-for-saas',
+    title: 'Fraud Detection API for SaaS — $5 minimum, no monthly fee (SignupDoggy)',
+    description:
+      'Fraud detection API for SaaS startups: SignupDoggy costs $0.01/call with a $5 minimum, no monthly subscription, no enterprise sales call. Built for 2-50 person teams. Disposable email + VPN + Tor + bot detection in one POST to /v1/check. The 2-stage funnel pattern + the SaaS startup playbook for keeping Mixpanel honest.',
+    keywords:
+      'fraud detection API for SaaS, fraud detection API for SaaS startups, SaaS fraud prevention, fraud API for startups, anti-fraud API for startups, SaaS fraud detection, bot detection for SaaS, signup validation SaaS',
+    canonical: 'https://signupdoggy.pages.dev/fraud-detection-api-for-saas',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Fraud Detection API for SaaS — SignupDoggy',
+        url: 'https://signupdoggy.pages.dev/fraud-detection-api-for-saas',
+        description: 'Fraud detection API for SaaS startups. 5-minute integration, $0.01/call, $5 minimum.',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Use cases', item: 'https://signupdoggy.pages.dev/use-cases/saas-startups' },
+          { '@type': 'ListItem', position: 3, name: 'Fraud API for SaaS', item: 'https://signupdoggy.pages.dev/fraud-detection-api-for-saas' },
+        ],
+      },
+    ],
+  },
+
+  freeEmailVerification: {
+    path: '/free-email-verification',
+    title: 'Free Email Verification API — no signup, in-browser (SignupDoggy)',
+    description:
+      'Free email verification API: instantly detect disposable, throwaway, and fake email addresses in your browser. No signup, no API key, no tracking. 200,000+ domain blocklist. Same data that powers the paid SignupDoggy API. Honest comparison with AbstractAPI, Mailcheck, Verifalia, Hunter.io, ZeroBounce.',
+    keywords:
+      'free email verification API, email verification API free, free email checker, free email validator, free disposable email checker, no signup email verification, free email validation, free bulk email verification, free email API, best free email validation API',
+    canonical: 'https://signupdoggy.pages.dev/free-email-verification',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Free Email Verification API — SignupDoggy',
+        url: 'https://signupdoggy.pages.dev/free-email-verification',
+        description: 'Free, browser-based email verification. No signup. No API key. 200K+ domain blocklist.',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Disposable email checker', item: 'https://signupdoggy.pages.dev/disposable-checker' },
+          { '@type': 'ListItem', position: 3, name: 'Free email verification', item: 'https://signupdoggy.pages.dev/free-email-verification' },
+        ],
+      },
+    ],
+  },
   // ═══ FREE TOOL: DISPOSABLE EMAIL CHECKER ═════════════════════════════
-  // High search-volume landing page for "disposable email checker" queries.
+  // High search-volume landing page. Targets the full cluster of
+  // 'disposable email checker' queries:
+  //   - disposable email checker api (1K-10K)
+  //   - free disposable email checker (1K-10K)
+  //   - tempmail checker (1K-10K)
+  //   - temp mail checker (1K-10K)
+  //   - check disposable email (1K-10K)
+  //   - disposable email list github (1K-10K)
   // The component lives at /pages/DisposableChecker.tsx and the body text
   // is loaded separately (see loadStaticBodies in scripts/prerender.mjs).
   disposableChecker: {
     path: '/disposable-checker',
-    title: 'Free Disposable Email Checker — SignupDoggy',
+    title: 'Free Disposable Email Checker & Temp Mail Detector — SignupDoggy',
     description:
-      'Free, instant, in-browser disposable email checker. Type an email — get a verdict. No signup, no API key, no tracking. Checks against 200,000+ disposable providers. Used by indie SaaS teams and solo founders.',
+      'Free temp mail checker: instantly detect disposable, throwaway, and fake email addresses (tempmail.com, mailinator, guerrillamail, yopmail, 10minutemail) in your browser. No signup, no API key, no tracking. Checks against 200,000+ disposable providers. The same 200K-domain blocklist that powers the SignupDoggy fraud-detection API.',
     keywords:
-      'disposable email checker, free disposable email checker, temp mail checker, throwaway email detector, tempmail check, mailinator detector, email validation, signup validation, signupdoggy',
+      'disposable email checker, free disposable email checker, tempmail checker, temp mail checker, check disposable email, disposable email checker api, disposable email detector, throwaway email checker, fake email checker, mailinator checker, tempmail, guerrillamail, 10minutemail, yopmail, free email validation, email verification, signup validation, signupdoggy',
     canonical: 'https://signupdoggy.pages.dev/disposable-checker',
     schemas: [
       {
