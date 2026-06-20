@@ -26,11 +26,22 @@
 interface Env {
   SIGNUPDOGGY_DEMO_KEY?: string;
   COOKIE_SECRET?: string;
+  /** Email that bypasses the rate limit (defaults to the founder's email). */
+  FOUNDER_EMAIL?: string;
 }
 
 const API_BASE = 'https://signupdoggy-api.jeffrinjames99.workers.dev';
 const COOKIE_NAME = 'sd_pg_used';
 const COOKIE_TTL_HOURS = 24;
+// Default to the founder's email so the bypass works out of the box.
+// Override in the Cloudflare Pages dashboard via the FOUNDER_EMAIL env var
+// if the founder ever changes their test address.
+const DEFAULT_FOUNDER_EMAIL = 'jeffrinjames99@gmail.com';
+
+function isFounderEmail(email: string | undefined, founderEmail: string): boolean {
+  if (!email) return false;
+  return email.trim().toLowerCase() === founderEmail.trim().toLowerCase();
+}
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
@@ -65,31 +76,39 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   // ── Rate-limit check ─────────────────────────────────────────────────────
-  const cookieHeader = request.headers.get('Cookie') || '';
-  const usedCookie = parseCookie(cookieHeader)[COOKIE_NAME];
-  const today = utcDate();
-  const secret = env.COOKIE_SECRET || 'sd-playground-dev-secret-change-me-in-production';
+  // The founder's email is exempt from rate limiting entirely — when the
+  // submitted email matches, we skip the cookie check and skip setting it
+  // (so the bypass is stateless and survives across all browsers/devices).
+  const founderEmail = (env.FOUNDER_EMAIL || DEFAULT_FOUNDER_EMAIL).trim();
+  const isFounder = isFounderEmail(email, founderEmail);
 
-  if (usedCookie) {
-    const expected = await sign(`${today}|used`, secret);
-    if (usedCookie === expected) {
-      return new Response(
-        JSON.stringify({
-          error: 'free_limit_reached',
-          message: 'You used your free playground call today. Get an API key for unlimited checks — credits start at $5 and never expire.',
-          next_available: nextUtcMidnightIso(),
-        }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': String(secondsUntilUtcMidnight()),
-            ...CORS,
-          },
-        }
-      );
+  if (!isFounder) {
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const usedCookie = parseCookie(cookieHeader)[COOKIE_NAME];
+    const today = utcDate();
+    const secret = env.COOKIE_SECRET || 'sd-playground-dev-secret-change-me-in-production';
+
+    if (usedCookie) {
+      const expected = await sign(`${today}|used`, secret);
+      if (usedCookie === expected) {
+        return new Response(
+          JSON.stringify({
+            error: 'free_limit_reached',
+            message: 'You used your free playground call today. Get an API key for unlimited checks — credits start at $5 and never expire.',
+            next_available: nextUtcMidnightIso(),
+          }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': String(secondsUntilUtcMidnight()),
+              ...CORS,
+            },
+          }
+        );
+      }
+      // Cookie is stale (different day) — fall through and re-issue.
     }
-    // Cookie is stale (different day) — fall through and re-issue.
   }
 
   // ── Validate API key is configured ──────────────────────────────────────
@@ -132,18 +151,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const apiBody = await apiRes.text();
   const upstreamMs = Date.now() - t0;
 
-  // ── Set the rate-limit cookie and return ─────────────────────────────────
-  const signed = await sign(`${today}|used`, secret);
-  const cookieValue = [
-    `${COOKIE_NAME}=${signed}`,
-    `Path=/`,
-    `Max-Age=${COOKIE_TTL_HOURS * 3600}`,
-    `HttpOnly`,
-    `SameSite=Lax`,
-  ].join('; ');
-
   // If upstream returned an error, surface it but DON'T burn the cookie —
-  // the user can retry with different inputs.
+  // the user can retry with different inputs. (Founders skip the cookie
+  // entirely so this branch is always reachable for them.)
   if (!apiRes.ok) {
     return new Response(
       JSON.stringify({
@@ -155,19 +165,31 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
   }
 
+  // ── Set the rate-limit cookie (founder exempt) and return ─────────────────
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...CORS,
+  };
+  if (!isFounder) {
+    const today = utcDate();
+    const secret = env.COOKIE_SECRET || 'sd-playground-dev-secret-change-me-in-production';
+    const signed = await sign(`${today}|used`, secret);
+    headers['Set-Cookie'] = [
+      `${COOKIE_NAME}=${signed}`,
+      `Path=/`,
+      `Max-Age=${COOKIE_TTL_HOURS * 3600}`,
+      `HttpOnly`,
+      `SameSite=Lax`,
+    ].join('; ');
+  }
+
   return new Response(
     JSON.stringify({
       result: safeJsonParse(apiBody),
       upstream_ms: upstreamMs,
+      ...(isFounder ? { founder_bypass: true } : {}),
     }),
-    {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Set-Cookie': cookieValue,
-        ...CORS,
-      },
-    }
+    { status: 200, headers }
   );
 };
 

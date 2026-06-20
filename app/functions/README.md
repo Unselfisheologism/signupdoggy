@@ -4,8 +4,18 @@ The `/api/playground` function is a server-side proxy that lets
 visitors hit the real SignupDoggy `/v1/check` endpoint without
 needing an API key, signup, or login.
 
-**Rate limit:** one free call per browser per UTC day. Implemented via
-a signed cookie (`sd_pg_used`) — clearing cookies resets the limit.
+## Rate limit & founder bypass
+
+**One free call per browser per UTC day** for everyone, implemented via
+an HMAC-signed cookie (`sd_pg_used`). Clearing cookies resets the limit.
+
+**Founder bypass:** the email `jeffrinjames99@gmail.com` is exempt from
+the rate limit entirely — calling the playground with that email skips
+the cookie check AND skips setting the cookie, so the founder can call
+as many times as they want from any browser. Override the bypass email
+with the `FOUNDER_EMAIL` env var.
+
+When the bypass is active, the response includes `"founder_bypass": true`.
 
 ## Required environment variables
 
