@@ -111,21 +111,24 @@ export default function AppLayout({
               Built in Mumbai. Catches fakes globally. <span className="footer-quote-mark close">”</span>
             </div>
             <div className="footer-row">
-              <div className="status">
-                <span className="status-dot" />
-                <span>STATUS: OPERATIONAL</span>
-              </div>
-              <span className="section-divider">|</span>
-              <div className="keybind">
-                <Link to="/docs" className="keybind-link"><kbd>D</kbd> DOCS</Link>
-                <Link to="/pricing" className="keybind-link"><kbd>P</kbd> PRICING</Link>
-                <Link to="/blog" className="keybind-link"><kbd>B</kbd> BLOG</Link>
-                <Link to="/terms" className="keybind-link"><kbd>T</kbd> TERMS</Link>
-                <Link to="/privacy" className="keybind-link"><kbd>V</kbd> PRIVACY</Link>
-                <a href="mailto:jeffrinjames99@gmail.com" className="keybind-link"><kbd>M</kbd> EMAIL</a>
-                <Link to={session ? '/dashboard' : '/auth'} className="keybind-link"><kbd>G</kbd> {session ? 'DASHBOARD' : 'GET MY API KEY'}</Link>
-              </div>
-            </div>
+                          <div className="status">
+                            <span className="status-dot" />
+                            <span>STATUS: OPERATIONAL</span>
+                          </div>
+                          <span className="section-divider">|</span>
+                          <div className="keybind">
+                            <Link to="/docs" className="keybind-link"><kbd>D</kbd> DOCS</Link>
+                            <Link to="/pricing" className="keybind-link"><kbd>P</kbd> PRICING</Link>
+                            <Link to="/blog" className="keybind-link"><kbd>B</kbd> BLOG</Link>
+                            <Link to="/topics" className="keybind-link"><kbd>O</kbd> TOPICS</Link>
+                            <Link to="/disposable-checker" className="keybind-link">FREE CHECKER</Link>
+                            <Link to="/glossary" className="keybind-link">GLOSSARY</Link>
+                            <Link to="/alternatives" className="keybind-link">ALTERNATIVES</Link>
+                            <Link to="/author/jeffrin-james" className="keybind-link">AUTHOR</Link>
+                            <a href="mailto:jeffrinjames99@gmail.com" className="keybind-link"><kbd>M</kbd> EMAIL</a>
+                            <Link to={session ? '/dashboard' : '/auth'} className="keybind-link"><kbd>G</kbd> {session ? 'DASHBOARD' : 'GET MY API KEY'}</Link>
+                          </div>
+                        </div>
             <div className="footer-credit">
               $ ./whoami → jeffrin-james, mumbai, india, indie hacker
             </div>
