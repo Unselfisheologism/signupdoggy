@@ -223,9 +223,9 @@ That's how you validate a SaaS idea. The rest is marketing.
 Jeffrin James is the founder of [SignupDoggy](https://signupdoggy.pages.dev), a serverless fraud-detection API for indie hackers and small SaaS teams. He built the product in Mumbai, India, after spending six months and $2,400 on enterprise fraud-detection vendors that didn't fit his use case. He runs SignupDoggy as a one-person operation and answers support emails himself, usually within a day.
 
 **Tags:** saas validation, user validation, mvp validation, fake signups, signup fraud, indie hackers, product-market fit, b2b saas
-\u0060,
+`,
   'best-free-disposable-email-checker-api-2026':
-\u0060# The best free disposable email checker API for 2026 (and why you actually need one)
+`# The best free disposable email checker API for 2026 (and why you actually need one)
 
 > If your signup form is open to the public internet, roughly 5-15% of new accounts are throwaway emails. The free-tier API roundup below filters the noise so you can pick a tool that actually works in production, not one that looks good in a tutorial.
 
@@ -356,10 +356,9 @@ For a B2B SaaS that also wants IP/VPN/Tor scoring, the answer is [SignupDoggy](h
 Jeffrin James is the founder of [SignupDoggy](https://signupdoggy.pages.dev), a serverless fraud-detection API for indie hackers and small SaaS teams. He built the product in Mumbai, India, after spending six months and $2,400 on enterprise fraud-detection vendors that didn't fit his use case. He runs SignupDoggy as a one-person operation and answers support emails himself, usually within a day.
 
 **Tags:** disposable email checker, free email verification API, temp mail blocker, signup validation, indie hackers, fraud API
-\u0060,
-
+`,
   'how-to-block-vpn-and-tor-signups-without-blocking-real-users':
-\u0060# How to block VPN and Tor signups without blocking real users (the 2026 playbook)
+`# How to block VPN and Tor signups without blocking real users (the 2026 playbook)
 
 > Blocking all VPN traffic at signup sounds easy. It also locks out 15% of real users. Here's the threshold-and-signal approach that catches bots without throwing away buyers.
 
@@ -498,10 +497,9 @@ The 0.4% false-positive rate you'll get from this approach is roughly the same a
 Jeffrin James is the founder of [SignupDoggy](https://signupdoggy.pages.dev), a serverless fraud-detection API for indie hackers and small SaaS teams. He built the product in Mumbai, India, after spending six months and $2,400 on enterprise fraud-detection vendors that didn't fit his use case. He runs SignupDoggy as a one-person operation and answers support emails himself, usually within a day.
 
 **Tags:** VPN detection, Tor blocking, signup fraud, IP scoring, indie hackers, fraud prevention
-\u0060,
-
+`,
   'ipqualityscore-vs-signupdoggy-honest-comparison':
-\u0060# IPQualityScore vs SignupDoggy: an honest, no-affiliate-links comparison
+`# IPQualityScore vs SignupDoggy: an honest, no-affiliate-links comparison
 
 > IPQualityScore is the 800-pound gorilla of fraud-detection APIs. SignupDoggy is a solo-founder project that costs $0.01 per call. Here's a feature-by-feature breakdown of what you actually get from each, written without an affiliate link in sight.
 
@@ -653,10 +651,9 @@ The only people who should think harder are the ones in the middle: a mid-stage 
 Jeffrin James is the founder of [SignupDoggy](https://signupdoggy.pages.dev), a serverless fraud-detection API for indie hackers and small SaaS teams. He built the product in Mumbai, India, after spending six months and $2,400 on enterprise fraud-detection vendors that didn't fit his use case. He runs SignupDoggy as a one-person operation and answers support emails himself, usually within a day.
 
 **Tags:** IPQualityScore, fraud detection API, IPQS comparison, SignupDoggy, indie hackers, signup fraud
-\u0060,
-
+`,
   'cloudflare-turnstile-vs-server-side-fraud-api':
-\u0060# Cloudflare Turnstile vs a server-side fraud API: which actually catches bots?
+`# Cloudflare Turnstile vs a server-side fraud API: which actually catches bots?
 
 > Turnstile is free, frictionless, and almost entirely useless against a real attacker. A server-side fraud API costs a cent per call and catches the things Turnstile can't. Here's when to use which (or both).
 
