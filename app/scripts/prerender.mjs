@@ -402,25 +402,34 @@ function rewriteShell(shell, config, body) {
   //     <meta charset="UTF-8" />
   //     <meta name="viewport" ... />
   //     <link rel="preconnect" ... />
-  //     ... etc
+  //     <script type="module" crossorigin src="/assets/index-XXX.js"></script>
+  //     <link rel="stylesheet" crossorigin href="/assets/index-XXX.css">
   //   </head>
   //   <body>
   //     <div id="root"></div>
-  //     <script type="module" src="/src/main.tsx"></script>
   //   </body></html>
+  //
+  // CRITICAL: the Vite-injected <script type="module"> and
+  // <link rel="stylesheet"> tags sit inside <head>, NOT inside
+  // <body>. If we drop them here the React SPA never loads and
+  // users see a blank page. They must be preserved.
 
-  // Preserve the preconnect + Google Fonts link (the SPA still needs
-  // them at runtime). Snip everything between <head> and </head>,
-  // drop the bits we don't want, then insert the new meta block.
+  // Preserve the preconnect + Google Fonts link + the Vite-injected
+  // JS/CSS bundle (the SPA still needs them at runtime). Snip
+  // everything between <head> and </head>, drop the bits we don't
+  // want, then insert the new meta block.
   const headMatch = shell.match(/<head>([\s\S]*?)<\/head>/i);
   if (!headMatch) {
     // No head — unlikely, but bail safely.
     return shell;
   }
   const headContent = headMatch[1];
-  // Keep preconnect + the Google Fonts stylesheet; drop everything else.
+  // Keep: preconnect, Google Fonts, AND the Vite bundle (JS + CSS).
+  // Without the Vite bundle, the React SPA never boots and the page
+  // renders blank. Match any src="/assets/..." script or
+  // href="/assets/..." stylesheet, regardless of attribute order.
   const keep = [];
-  const keepRe = /(<link rel="preconnect"[^>]*>|<link[^>]*fonts\.googleapis\.com[^>]*>)/gi;
+  const keepRe = /(<link[^>]*rel=["']?preconnect["']?[^>]*>|<link[^>]*fonts\.googleapis\.com[^>]*>|<link[^>]*href=["']?\/assets\/[^"']+\.css["']?[^>]*>|<script[^>]*src=["']?\/assets\/[^"']+\.js["']?[^>]*><\/script>)/gi;
   let m;
   while ((m = keepRe.exec(headContent)) !== null) keep.push(m[0]);
 
