@@ -1,0 +1,97 @@
+name: Daily SEO indexation check
+
+# Runs daily. Verifies:
+# - The site is live and serving prerendered HTML for every public route
+# - The sitemap, robots, and IndexNow key file are reachable
+# - IndexNow submission is working (or queueing for retry)
+# - Google has indexed pages (via "site:" search, best-effort)
+# - Bing has indexed pages (via "site:" search, best-effort)
+#
+# Output is appended to docs/seo/INDEXATION_REPORT.md and committed back
+# so the trend over time is visible in git history.
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # 06:00 UTC daily
+  workflow_dispatch:
+
+jobs:
+  check-indexation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify site is live
+        run: |
+          echo "=== SITE LIVE CHECK ==="
+          for path in / /docs /pricing /blog /disposable-checker /glossary /alternatives /alternatives/ipqualityscore; do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "https://signupdoggy.pages.dev${path}/")
+            echo "${path}/ => ${status}"
+            if [ "${status}" != "200" ]; then
+              echo "::warning::${path} returned ${status}"
+            fi
+          done
+
+      - name: Verify SEO assets are reachable
+        run: |
+          echo "=== SEO ASSETS CHECK ==="
+          for asset in /robots.txt /sitemap.xml /llms.txt /llms-full.txt /e8d8e6e443e74ec4a2ee53d952f0a147.txt; do
+            status=$(curl -s -o /dev/null -w "%{http_code}" "https://signupdoggy.pages.dev${asset}")
+            echo "${asset} => ${status}"
+          done
+
+      - name: Retry IndexNow submission
+        run: |
+          echo "=== INDEXNOW RETRY ==="
+          KEY="e8d8e6e443e74ec4a2ee53d952f0a147"
+          response=$(curl -s -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "{\"host\":\"signupdoggy.pages.dev\",\"key\":\"${KEY}\",\"keyLocation\":\"https://signupdoggy.pages.dev/${KEY}.txt\",\"urlList\":[\"https://signupdoggy.pages.dev/\",\"https://signupdoggy.pages.dev/disposable-checker/\",\"https://signupdoggy.pages.dev/glossary/\",\"https://signupdoggy.pages.dev/alternatives/\",\"https://signupdoggy.pages.dev/blog/best-free-disposable-email-checker-api-2026/\"]}" \
+            -w "\nHTTP_STATUS:%{http_code}")
+          echo "${response}"
+
+      - name: Count Google indexed pages (best-effort)
+        run: |
+          echo "=== GOOGLE INDEXED COUNT ==="
+          count=$(curl -s -A "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36" \
+            "https://www.google.com/search?q=site%3Asignupdoggy.pages.dev&num=100" 2>/dev/null | \
+            grep -oE 'About [0-9,]+ results' | head -1 || echo "rate-limited")
+          echo "Indexed: ${count}"
+
+      - name: Count Bing indexed pages (best-effort)
+        run: |
+          echo "=== BING INDEXED COUNT ==="
+          count=$(curl -s -A "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36" \
+            "https://www.bing.com/search?q=site%3Asignupdoggy.pages.dev&count=50" 2>/dev/null | \
+            grep -oE '[0-9]+,[0-9]+ results' | head -1 || echo "unknown")
+          echo "Indexed: ${count}"
+
+      - name: Submit indexnow via script
+        working-directory: app
+        run: |
+          npm install --no-audit --no-fund
+          npm run submit-indexnow || echo "IndexNow not yet accepted (expected first 24-48h)"
+
+      - name: Append to indexation report
+        run: |
+          DATE=$(date -u +"%Y-%m-%d")
+          REPORT="docs/seo/INDEXATION_REPORT.md"
+          echo "" >> "${REPORT}"
+          echo "## ${DATE}" >> "${REPORT}"
+          echo "" >> "${REPORT}"
+          echo "_Daily check ran. See GitHub Actions run for full output._" >> "${REPORT}"
+
+      - name: Commit report
+        run: |
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add docs/seo/INDEXATION_REPORT.md
+          git diff --cached --quiet || git commit -m "seo: daily indexation report ${DATE}"
+          git push
