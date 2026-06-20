@@ -58,144 +58,244 @@ function BlurReveal({ children, delay = 0, className = '' }: { children: React.R
     </motion.div>
   );
 }
-
-// ── Live Demo Playground (try before buying) ─────────────────────────────────
-function LiveDemo() {
-  const [email, setEmail] = useState('someone@guerrillamail.com');
-  const [ip, setIp] = useState('185.220.101.45');
+// ── Live Playground (one free API call per user per UTC day) ────────────────
+//
+// Talks to /api/playground — a Cloudflare Pages Function that holds the
+// server-side API key and forwards to the real /v1/check endpoint. No
+// signup, no API key, no login. The function rate-limits to one call per
+// browser per UTC day via a signed cookie.
+//
+// We do NOT show mock scores here — every result is the actual response
+// from the live API, with the real latency in milliseconds.
+function PlaygroundSection() {
+  const [email, setEmail] = useState('');
+  const [ip, setIp] = useState('');
+  const [phone, setPhone] = useState('');
   const [busy, setBusy] = useState(false);
-  const [step, setStep] = useState(0);
+  const [used, setUsed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<null | {
-    score: number;
     recommendation: 'allow' | 'review' | 'block';
-    signals: { label: string; hit: boolean }[];
-    ms: number;
+    overall_risk: 'low' | 'medium' | 'high' | string;
+    email?: { is_disposable?: boolean; domain?: string; risk_score?: number } | null;
+    ip?: { is_tor?: boolean; is_proxy?: boolean; is_hosting?: boolean; asn?: string; risk_score?: number } | null;
+    phone?: { valid?: boolean; risk_score?: number } | null;
   }>(null);
+  const [latencyMs, setLatencyMs] = useState<number | null>(null);
 
-  const checks = [
-    'SCANNING 125,847 DISPOSABLE DOMAINS',
-    'CROSS-CHECKING 70,821 TOR EXIT NODES',
-    'LOOKING UP 24,000+ VPN/HOSTING ASNs',
-    'MATCHING AGAINST ROLE-BASED PATTERNS',
-    'CHECKING YOUR ACCOUNT BLACKLIST',
-    'AGGREGATING RISK SCORE',
-  ];
+  // On mount, check whether we already burned the cookie (page refresh
+  // after the call). The server is the source of truth — we read its
+  // Set-Cookie indirectly by trying one no-op probe. But the simpler
+  // approach is to remember in localStorage too, so the UI matches the
+  // server's view across refreshes.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.localStorage.getItem('sd_pg_used') === new Date().toISOString().slice(0, 10)) {
+      setUsed(true);
+    }
+  }, []);
 
   async function run() {
     setBusy(true);
+    setError(null);
     setResult(null);
-    setStep(0);
+
     const t0 = performance.now();
+    try {
+      const res = await fetch('/api/playground', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim() || undefined,
+          ip: ip.trim() || undefined,
+          phone: phone.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      const ms = Math.round(performance.now() - t0);
+      setLatencyMs(ms);
 
-    for (let i = 0; i < checks.length; i++) {
-      setStep(i);
-      await new Promise(r => setTimeout(r, 120));
+      if (res.status === 429) {
+        setUsed(true);
+        window.localStorage.setItem('sd_pg_used', new Date().toISOString().slice(0, 10));
+        setError(data.message || 'You used your free playground call today.');
+        return;
+      }
+      if (!res.ok) {
+        setError(data.message || data.error || `Request failed (${res.status})`);
+        return;
+      }
+      // Mark used regardless of result — the call happened.
+      setUsed(true);
+      window.localStorage.setItem('sd_pg_used', new Date().toISOString().slice(0, 10));
+      setResult(data.result || null);
+    } catch (e: any) {
+      setError(e?.message || 'Network error');
+    } finally {
+      setBusy(false);
     }
+  }
 
-    const e = email.toLowerCase();
-    const i = ip;
-    const isDisposable = /guerrillamail|10minutemail|tempmail|mailinator|throwaway|yopmail|trashmail|sharklasers|maildrop|temp-mail/.test(e);
-    const isTor = /^185\.220\.|^199\.249\.|^204\.13\./.test(i);
-    const isVpn = /^185\.220\.|^198\.51\.100\./.test(i);
-    const isRole = /^(admin|support|info|abuse|postmaster)@/.test(e);
-    const score = Math.min(0.99,
-      0.05
-      + (isDisposable ? 0.85 : 0)
-      + (isTor ? 0.10 : 0)
-      + (isVpn ? 0.05 : 0)
-      + (isRole ? 0.15 : 0)
-    );
-    const recommendation: 'allow' | 'review' | 'block' = score > 0.7 ? 'block' : score > 0.3 ? 'review' : 'allow';
-    const ms = Math.round(performance.now() - t0);
+  // Examples the user can click to prefill — temp emails + known-bad IPs.
+  const examples = [
+    { label: 'try a temp email', email: 'demo@tempmail.com', ip: '' },
+    { label: 'try a real email', email: 'alex.chen@gmail.com', ip: '8.8.8.8' },
+    { label: 'try a Tor exit', email: 'anon@protonmail.com', ip: '185.220.101.5' },
+  ];
 
-    setResult({
-      score,
-      recommendation,
-      ms,
-      signals: [
-        { label: 'DISPOSABLE_DOMAIN', hit: isDisposable },
-        { label: 'TOR_EXIT_NODE', hit: isTor },
-        { label: 'VPN_PROXY', hit: isVpn },
-        { label: 'ROLE_BASED', hit: isRole },
-      ],
-    });
-    setBusy(false);
+  function fillExample(ex: { email: string; ip: string }) {
+    setEmail(ex.email);
+    setIp(ex.ip);
+    setPhone('');
   }
 
   return (
-    <div className="demo-card">
-      <div className="demo-head">
-        <div className="dots">
-          <span className="dot dot--r" /><span className="dot dot--y" /><span className="dot dot--g" />
-        </div>
-        <span className="demo-title">$ signupdoggy playground</span>
-        <span className="demo-tag">LIVE</span>
-      </div>
-      <div className="demo-body">
-        <div className="demo-row">
-          <label>EMAIL</label>
-          <input
-            className="demo-input"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="user@tempmail.com"
-            spellCheck={false}
-          />
-        </div>
-        <div className="demo-row">
-          <label>IP</label>
-          <input
-            className="demo-input"
-            value={ip}
-            onChange={e => setIp(e.target.value)}
-            placeholder="1.2.3.4"
-            spellCheck={false}
-          />
-        </div>
-        <button className="demo-run" onClick={run} disabled={busy}>
-          {busy ? '■ CHECKING...' : '▶ CHECK IT'}
-        </button>
-        {busy && (
-          <div className="demo-progress">
-            {checks.map((c, i) => (
-              <div key={c} className={`demo-step ${i === step ? 'active' : i < step ? 'done' : ''}`}>
-                <span className="demo-step-mark">{i < step ? '◼' : i === step ? '◼' : '◻'}</span>
-                <span className="demo-step-text">{c}</span>
+    <section id="playground" className="playground-section" aria-labelledby="playground-h">
+      <div className="playground-inner">
+        <BlurReveal>
+          <div className="playground-head">
+            <span className="prefix">// live playground</span>
+            <h2 id="playground-h" className="playground-h2">
+              Hit the real API. Right here. Right now.
+            </h2>
+            <p className="playground-lede">
+              Type an email, an IP, or a phone — we call <code>POST /v1/check</code> against the
+              same endpoint that powers every paying customer. <strong>One free call per day</strong>,
+              no signup, no API key, no sales call. After your free call, grab an API key for
+              unlimited checks (credits start at $5, never expire).
+            </p>
+          </div>
+        </BlurReveal>
+
+        <BlurReveal delay={0.06}>
+          <div className="demo-card playground-card">
+            <div className="demo-head">
+              <div className="dots">
+                <span className="dot dot--r" /><span className="dot dot--y" /><span className="dot dot--g" />
               </div>
-            ))}
+              <span className="demo-title">curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check</span>
+              <span className="demo-tag">FREE · ONE CALL</span>
+            </div>
+            <div className="demo-body">
+              <div className="demo-row">
+                <label>email</label>
+                <input
+                  className="demo-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="user@tempmail.com"
+                  spellCheck={false}
+                  autoComplete="off"
+                  disabled={used || busy}
+                />
+              </div>
+              <div className="demo-row">
+                <label>ip</label>
+                <input
+                  className="demo-input"
+                  value={ip}
+                  onChange={(e) => setIp(e.target.value)}
+                  placeholder="1.2.3.4  (optional)"
+                  spellCheck={false}
+                  autoComplete="off"
+                  disabled={used || busy}
+                />
+              </div>
+              <div className="demo-row">
+                <label>phone</label>
+                <input
+                  className="demo-input"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+15551234567  (optional, E.164)"
+                  spellCheck={false}
+                  autoComplete="off"
+                  disabled={used || busy}
+                />
+              </div>
+
+              <div className="playground-examples">
+                <span className="playground-examples-label">try:</span>
+                {examples.map((ex) => (
+                  <button
+                    key={ex.label}
+                    type="button"
+                    className="playground-chip"
+                    onClick={() => fillExample(ex)}
+                    disabled={used || busy}
+                  >
+                    {ex.label}
+                  </button>
+                ))}
+              </div>
+
+              <button className="demo-run" onClick={run} disabled={busy || used || (!email.trim() && !ip.trim() && !phone.trim())}>
+                {used ? '■ USED · COME BACK TOMORROW' : busy ? '■ CALLING /v1/check...' : '▶ CHECK IT'}
+              </button>
+
+              {error && (
+                <div className="playground-error" role="alert">
+                  <strong>!</strong> {error}
+                  {used && (
+                    <div className="playground-error-cta">
+                      Want unlimited? <Link to="/pricing">Get an API key — $5 / 1,000 calls, no expiry.</Link>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {result && (
+                <div className="demo-result">
+                  <div className="demo-line">
+                    <span className="demo-key">recommendation</span>
+                    <span className={`demo-val ${result.recommendation === 'block' ? 'demo-bad' : result.recommendation === 'review' ? 'demo-warn' : 'demo-ok'}`}>
+                      {result.recommendation.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="demo-line">
+                    <span className="demo-key">overall_risk</span>
+                    <span className="demo-val">{String(result.overall_risk || '').toUpperCase()}</span>
+                  </div>
+                  {result.email && (
+                    <div className="demo-line">
+                      <span className="demo-key">email.{'{ domain }'}</span>
+                      <span className="demo-val">
+                        {result.email.domain || '—'} · {result.email.is_disposable ? 'DISPOSABLE' : 'clean'} · score {result.email.risk_score ?? '—'}
+                      </span>
+                    </div>
+                  )}
+                  {result.ip && (
+                    <div className="demo-line">
+                      <span className="demo-key">ip.{'{ asn }'}</span>
+                      <span className="demo-val">
+                        {result.ip.asn || '—'} ·
+                        {' '}{result.ip.is_tor ? 'TOR ' : ''}{result.ip.is_proxy ? 'PROXY ' : ''}{result.ip.is_hosting ? 'HOSTING ' : ''}
+                        · score {result.ip.risk_score ?? '—'}
+                      </span>
+                    </div>
+                  )}
+                  {result.phone && (
+                    <div className="demo-line">
+                      <span className="demo-key">phone</span>
+                      <span className="demo-val">
+                        {result.phone.valid ? 'valid' : 'invalid'} · score {result.phone.risk_score ?? '—'}
+                      </span>
+                    </div>
+                  )}
+                  <div className="demo-line">
+                    <span className="demo-key">latency</span>
+                    <span className="demo-val">{latencyMs ?? '—'}ms (browser roundtrip)</span>
+                  </div>
+                  <div className="playground-after">
+                    Like what you see? <Link to="/pricing">Wire this into your signup handler — $5 / 1,000 calls, no monthly fee.</Link>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        )}
-        {result && (
-          <div className="demo-result">
-            <div className="demo-line">
-              <span className="demo-key">recommendation</span>
-              <span className={`demo-val ${result.recommendation === 'block' ? 'demo-bad' : result.recommendation === 'review' ? 'demo-warn' : 'demo-ok'}`}>
-                {result.recommendation.toUpperCase()}
-              </span>
-            </div>
-            <div className="demo-line">
-              <span className="demo-key">risk_score</span>
-              <span className="demo-val">{result.score.toFixed(2)}</span>
-            </div>
-            <div className="demo-line">
-              <span className="demo-key">latency</span>
-              <span className="demo-val">{result.ms}ms</span>
-            </div>
-            <div className="demo-line">
-              <span className="demo-key">databases_hit</span>
-              <span className="demo-val">6</span>
-            </div>
-            <div className="demo-signals">
-              {result.signals.map(s => (
-                <span key={s.label} className={`demo-sig ${s.hit ? 'demo-sig--hit' : ''}`}>
-                  {s.hit ? '◼' : '◻'} {s.label}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+        </BlurReveal>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -379,20 +479,16 @@ export default function Landing() {
               </p>
 
               <div className="hero-cta">
-                <Link to={ctaPrimary} className="btn-terminal">
-                  <span className="prompt">$</span>
-                  get-my-api-key
-                  <ArrowRightIcon />
-                </Link>
-                <a href="#demo" className="btn-terminal btn-terminal--outline">
-                  <span className="prompt">$</span>
-                  try-the-playground
-                </a>
-                <a href="mailto:jeffrinjames99@gmail.com" className="btn-terminal btn-terminal--ghost">
-                  <span className="prompt">$</span>
-                  talk-to-founder
-                </a>
-              </div>
+                              <Link to={ctaPrimary} className="btn-terminal">
+                                <span className="prompt">$</span>
+                                get-my-api-key
+                                <ArrowRightIcon />
+                              </Link>
+                              <a href="mailto:jeffrinjames99@gmail.com" className="btn-terminal btn-terminal--ghost">
+                                <span className="prompt">$</span>
+                                talk-to-founder
+                              </a>
+                            </div>
 
               <p className="hero-meta">
                 <span className="hero-eyebrow-dot" /> STARTS AT $5 · 1,000 REQUESTS · ONE-TIME · NO CARD ON FILE
@@ -427,8 +523,11 @@ export default function Landing() {
             </div>
           </section>
 
-          {/* ═══ VIBE STRIP — page-wide rectangular image (no text except as data) ═══ */}
-          <VibeStrip />
+          {/* ═══ PLAYGROUND — real /v1/check call, one free per day ═══════════════ */}
+                    <PlaygroundSection />
+
+                    {/* ═══ VIBE STRIP — page-wide rectangular image (no text except as data) ═══ */}
+                    <VibeStrip />
 
           {/* ═══════════════════════════════════════════════════════════════════
               STORY · 8 PARTS

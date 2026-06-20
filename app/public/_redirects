@@ -25,5 +25,10 @@
 /billing  /dashboard            301
 /blog/:slug.md  /blog/:slug    301
 
+# Pages Functions (live in functions/api/*.ts) are matched BEFORE _redirects.
+# The /api/playground endpoint is a Cloudflare Pages Function — no _redirects
+# entry needed. The SPA fallback below will not catch /api/* because CF
+# Pages Functions match first.
+
 # SPA fallback: anything that didn't match a static file → index.html.
 /*    /index.html   200

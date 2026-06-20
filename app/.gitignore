@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.local
+.DS_Store
+*.tsbuildinfo
+.env
+.env.local
+*.log
+.dev.vars
+.wrangler/
+.husky/

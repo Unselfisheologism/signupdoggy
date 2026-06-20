@@ -4738,3 +4738,107 @@ code { font-family: var(--font-mono); }
 
 /* ── Hide old classes we replaced (but keep selectors in case they
    still leak from other pages) — no-op placeholders. ──────────────── */
+
+
+/* ── Live Playground (one free /v1/check call per day) ───────────────── */
+.playground-section {
+  padding: var(--space-3xl) var(--space-lg);
+  border-bottom: var(--border-thin) solid var(--border-dim);
+  background: var(--bg-card);
+}
+.playground-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  gap: var(--space-xl);
+}
+.playground-head { text-align: left; max-width: 760px; }
+.playground-h2 {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: var(--space-sm) 0 var(--space-md);
+}
+.playground-h2::before { content: '> '; color: var(--accent); font-weight: 800; }
+.playground-lede { font-size: 16px; color: var(--text-secondary); line-height: 1.6; }
+.playground-lede code {
+  font-family: var(--font-mono);
+  background: var(--bg-elevated);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.92em;
+  border: var(--border-thin) solid var(--border-dim);
+}
+
+.playground-card {
+  max-width: 760px;
+  margin: 0;
+}
+
+.playground-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: var(--border-thin) solid var(--border-faint);
+}
+.playground-examples-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-right: var(--space-xs);
+}
+.playground-chip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  background: transparent;
+  border: var(--border-thin) solid var(--border-dim);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+.playground-chip:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.playground-chip:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.playground-error {
+  margin-top: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  background: rgba(255, 107, 107, 0.08);
+  border-left: 3px solid var(--terminal-red);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+.playground-error strong { color: var(--terminal-red); margin-right: 6px; }
+.playground-error-cta { margin-top: var(--space-xs); font-size: 13px; }
+.playground-error-cta a { color: var(--accent); }
+
+.playground-after {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: var(--border-thin) solid var(--border-faint);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.playground-after a { color: var(--accent); font-weight: 600; }
+
+.demo-card .demo-row:has(input:disabled) { opacity: 0.6; }
+.demo-card .demo-run:disabled { opacity: 0.55; cursor: not-allowed; }
+
+@media (max-width: 640px) {
+  .playground-section { padding: var(--space-2xl) var(--space-md); }
+  .playground-card { max-width: 100%; }
+}
