@@ -13,6 +13,13 @@ import Auth from './pages/Auth';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Checkout from './pages/Checkout';
+import StaticPage from './pages/StaticPage';
+import { SITE, ROUTES as SEO_ROUTES } from './lib/seoConfig';
+
+// Body text imports for static pages. These are the same strings the
+// prerender script uses to write <noscript> blocks. Kept in one place
+// (this file) so the React and prerender outputs always agree.
+import { COMPARE_BODIES, USE_CASE_BODIES, INTEGRATIONS_BODY, CHANGELOG_BODY } from './lib/staticBodies';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -42,6 +49,23 @@ function AppRoutes() {
           <Route path="/keys" element={<RequireAuth><ApiKeys /></RequireAuth>} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+
+          {/* ═══ COMPARISON PAGES (high buyer intent) ═══════════════════════ */}
+          <Route path="/vs/ipqualityscore" element={<StaticPage config={SEO_ROUTES.vsIpqualityscore} body={COMPARE_BODIES['/vs/ipqualityscore']} bannerCmd="./compare --vs=ipqualityscore" bannerStatus="COMPARISON" />} />
+          <Route path="/vs/maxmind" element={<StaticPage config={SEO_ROUTES.vsMaxmind} body={COMPARE_BODIES['/vs/maxmind']} bannerCmd="./compare --vs=maxmind" bannerStatus="COMPARISON" />} />
+          <Route path="/vs/sift" element={<StaticPage config={SEO_ROUTES.vsSift} body={COMPARE_BODIES['/vs/sift']} bannerCmd="./compare --vs=sift" bannerStatus="COMPARISON" />} />
+          <Route path="/vs/cloudflare-turnstile" element={<StaticPage config={SEO_ROUTES.vsTurnstile} body={COMPARE_BODIES['/vs/cloudflare-turnstile']} bannerCmd="./compare --vs=turnstile" bannerStatus="COMPARISON" />} />
+
+          {/* ═══ USE-CASE PAGES (long-tail, high buyer intent) ═══════════════ */}
+          <Route path="/use-cases/indie-hackers" element={<StaticPage config={SEO_ROUTES.useIndieHackers} body={USE_CASE_BODIES['/use-cases/indie-hackers']} bannerCmd="./use-case --for=indie-hackers" bannerStatus="USE CASE" />} />
+          <Route path="/use-cases/saas-startups" element={<StaticPage config={SEO_ROUTES.useSaasStartups} body={USE_CASE_BODIES['/use-cases/saas-startups']} bannerCmd="./use-case --for=saas-startups" bannerStatus="USE CASE" />} />
+          <Route path="/use-cases/ecommerce" element={<StaticPage config={SEO_ROUTES.useEcommerce} body={USE_CASE_BODIES['/use-cases/ecommerce']} bannerCmd="./use-case --for=ecommerce" bannerStatus="USE CASE" />} />
+
+          {/* ═══ INTEGRATIONS PAGE ════════════════════════════════════════════ */}
+          <Route path="/integrations" element={<StaticPage config={SEO_ROUTES.integrations} body={INTEGRATIONS_BODY} bannerCmd="./integrations --list" bannerStatus="DOCS" />} />
+
+          {/* ═══ CHANGELOG ════════════════════════════════════════════════════ */}
+          <Route path="/changelog" element={<StaticPage config={SEO_ROUTES.changelog} body={CHANGELOG_BODY} bannerCmd="./changelog --read" bannerStatus="RELEASE NOTES" />} />
         </Routes>
       </main>
     </div>

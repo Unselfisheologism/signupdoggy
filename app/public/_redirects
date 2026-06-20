@@ -7,6 +7,15 @@
 # matched first as static files; this block is the safety net for any
 # new route that hasn't been pre-rendered yet (e.g. /blog/<new-slug>).
 #
+# CRITICAL: Cloudflare Pages automatically issues a 308 redirect to add
+# trailing slashes to URLs that match a directory containing index.html
+# (e.g. /blog → /blog/). This happens BEFORE _redirects rules are
+# processed, so we cannot use _redirects to strip the slash — that would
+# create a redirect loop. Instead, the canonical URL in each prerendered
+# page's <link rel="canonical"> tag uses the trailing-slash form to match
+# what Cloudflare actually serves. The non-slash URL is still in the
+# sitemap and llms.txt; both versions resolve to the same content.
+#
 # We also redirect the legacy /signup path to /auth?next=/signup so old
 # links still work, and the /billing path that the docs mention to the
 # real /dashboard page (where the top-up button actually lives).

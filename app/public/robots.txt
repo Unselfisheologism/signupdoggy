@@ -17,6 +17,13 @@ Allow: /docs
 Allow: /pricing
 Allow: /blog
 Allow: /blog/
+Allow: /vs
+Allow: /vs/
+Allow: /use-cases
+Allow: /use-cases/
+Allow: /integrations
+Allow: /integrations/
+Allow: /changelog
 Allow: /terms
 Allow: /privacy
 Disallow: /auth
@@ -38,13 +45,25 @@ Allow: /
 User-agent: ChatGPT-User
 Allow: /
 
+User-agent: OAI-SearchBot
+Allow: /
+
 User-agent: Claude-Web
 Allow: /
 
 User-agent: ClaudeBot
 Allow: /
 
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
 User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
 Allow: /
 
 User-agent: Google-Extended
@@ -63,6 +82,18 @@ User-agent: Bytespider
 Allow: /
 
 User-agent: cohere-ai
+Allow: /
+
+User-agent: DeepSeekBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: Meta-ExternalAgent
 Allow: /
 
 # Ahrefs / Semrush / Moz — explicitly block. We don't sell backlinks and

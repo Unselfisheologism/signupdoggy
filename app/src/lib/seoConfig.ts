@@ -378,6 +378,281 @@ export const ROUTES: Record<string, SeoConfig> = {
       },
     ],
   },
+
+  // ═══ COMPARISON PAGES (high buyer intent) ═════════════════════════════════
+  vsIpqualityscore: {
+    path: '/vs/ipqualityscore',
+    title: 'IPQualityScore vs SignupDoggy — 2026 comparison, no affiliate links',
+    description:
+      'Side-by-side comparison of IPQualityScore and SignupDoggy for SaaS signup fraud. Pricing, accuracy, integration time, free tiers, and which to pick for indie hackers vs enterprise.',
+    keywords: 'IPQualityScore alternative, IPQualityScore vs SignupDoggy, fraud API comparison, IPQS alternative',
+    canonical: 'https://signupdoggy.pages.dev/vs/ipqualityscore',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'IPQualityScore vs SignupDoggy — 2026 comparison',
+        description: 'Side-by-side comparison of IPQualityScore and SignupDoggy. No affiliate links. Just the facts.',
+        datePublished: '2026-06-20',
+        dateModified: '2026-06-20',
+        inLanguage: 'en-US',
+        author: { '@type': 'Person', name: 'Jeffrin James', email: 'mailto:jeffrinjames99@gmail.com' },
+        publisher: { '@type': 'Organization', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev', logo: { '@type': 'ImageObject', url: 'https://signupdoggy.pages.dev/android-chrome-512x512.png' } },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://signupdoggy.pages.dev/vs/ipqualityscore' },
+        url: 'https://signupdoggy.pages.dev/vs/ipqualityscore',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://signupdoggy.pages.dev/vs' },
+          { '@type': 'ListItem', position: 3, name: 'vs IPQualityScore', item: 'https://signupdoggy.pages.dev/vs/ipqualityscore' },
+        ],
+      },
+    ],
+  },
+
+  vsMaxmind: {
+    path: '/vs/maxmind',
+    title: 'MaxMind minFraud vs SignupDoggy — 2026 developer comparison',
+    description:
+      'MaxMind minFraud vs SignupDoggy: a developer-focused comparison of pricing, accuracy, integration time, and which one fits a small SaaS team. 48x price difference, real numbers.',
+    keywords: 'MaxMind alternative, MaxMind minFraud vs SignupDoggy, minFraud alternative, fraud API comparison',
+    canonical: 'https://signupdoggy.pages.dev/vs/maxmind',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'MaxMind minFraud vs SignupDoggy — 2026 developer comparison',
+        description: 'Developer-focused comparison of MaxMind minFraud and SignupDoggy. Pricing, accuracy, integration time.',
+        datePublished: '2026-06-20',
+        dateModified: '2026-06-20',
+        inLanguage: 'en-US',
+        author: { '@type': 'Person', name: 'Jeffrin James', email: 'mailto:jeffrinjames99@gmail.com' },
+        publisher: { '@type': 'Organization', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev', logo: { '@type': 'ImageObject', url: 'https://signupdoggy.pages.dev/android-chrome-512x512.png' } },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://signupdoggy.pages.dev/vs/maxmind' },
+        url: 'https://signupdoggy.pages.dev/vs/maxmind',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://signupdoggy.pages.dev/vs' },
+          { '@type': 'ListItem', position: 3, name: 'vs MaxMind', item: 'https://signupdoggy.pages.dev/vs/maxmind' },
+        ],
+      },
+    ],
+  },
+
+  vsSift: {
+    path: '/vs/sift',
+    title: 'Sift vs SignupDoggy — fraud API comparison for small teams (2026)',
+    description:
+      'Sift is the 800-pound gorilla of fraud detection. SignupDoggy is a solo-founder project. Here is an honest comparison of features, price, and which one fits a 2-person SaaS team.',
+    keywords: 'Sift alternative, Sift vs SignupDoggy, fraud API for small teams, Sift Science alternative',
+    canonical: 'https://signupdoggy.pages.dev/vs/sift',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'Sift vs SignupDoggy — 2026 fraud API comparison for small teams',
+        description: 'Honest comparison of Sift and SignupDoggy for small SaaS teams.',
+        datePublished: '2026-06-20',
+        dateModified: '2026-06-20',
+        inLanguage: 'en-US',
+        author: { '@type': 'Person', name: 'Jeffrin James', email: 'mailto:jeffrinjames99@gmail.com' },
+        publisher: { '@type': 'Organization', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev', logo: { '@type': 'ImageObject', url: 'https://signupdoggy.pages.dev/android-chrome-512x512.png' } },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://signupdoggy.pages.dev/vs/sift' },
+        url: 'https://signupdoggy.pages.dev/vs/sift',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://signupdoggy.pages.dev/vs' },
+          { '@type': 'ListItem', position: 3, name: 'vs Sift', item: 'https://signupdoggy.pages.dev/vs/sift' },
+        ],
+      },
+    ],
+  },
+
+  vsTurnstile: {
+    path: '/vs/cloudflare-turnstile',
+    title: 'Cloudflare Turnstile vs a server-side fraud API: which actually wins?',
+    description:
+      'Cloudflare Turnstile is free and frictionless. A server-side fraud API costs $0.01 per call. Here is the 2-stage funnel pattern that uses both, with the full Node.js integration code.',
+    keywords: 'Turnstile alternative, Turnstile vs fraud API, Cloudflare Turnstile vs SignupDoggy',
+    canonical: 'https://signupdoggy.pages.dev/vs/cloudflare-turnstile',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: 'Cloudflare Turnstile vs a server-side fraud API — which actually wins?',
+        description: 'Comparison of Cloudflare Turnstile and a server-side fraud API for SaaS signups.',
+        datePublished: '2026-06-20',
+        dateModified: '2026-06-20',
+        inLanguage: 'en-US',
+        author: { '@type': 'Person', name: 'Jeffrin James', email: 'mailto:jeffrinjames99@gmail.com' },
+        publisher: { '@type': 'Organization', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev', logo: { '@type': 'ImageObject', url: 'https://signupdoggy.pages.dev/android-chrome-512x512.png' } },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': 'https://signupdoggy.pages.dev/vs/cloudflare-turnstile' },
+        url: 'https://signupdoggy.pages.dev/vs/cloudflare-turnstile',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://signupdoggy.pages.dev/vs' },
+          { '@type': 'ListItem', position: 3, name: 'vs Cloudflare Turnstile', item: 'https://signupdoggy.pages.dev/vs/cloudflare-turnstile' },
+        ],
+      },
+    ],
+  },
+
+  // ═══ USE-CASE PAGES (long-tail, high buyer intent) ═══════════════════════
+  useIndieHackers: {
+    path: '/use-cases/indie-hackers',
+    title: 'Fraud detection API for indie hackers — SignupDoggy',
+    description:
+      'SignupDoggy is the fraud-detection API built for indie hackers. $0.01 per call, $5 minimum, no sales call, no monthly fee. Filter bot signups from your SaaS without a 4-week vendor onboarding.',
+    keywords: 'fraud detection API for indie hackers, signup API indie, cheap fraud API, indie hacker signup validation',
+    canonical: 'https://signupdoggy.pages.dev/use-cases/indie-hackers',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Fraud detection API for indie hackers',
+        url: 'https://signupdoggy.pages.dev/use-cases/indie-hackers',
+        description: 'How indie hackers use SignupDoggy to filter bot signups without enterprise pricing or vendor onboarding.',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+        about: { '@type': 'Thing', name: 'Fraud detection for SaaS signups' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Use cases', item: 'https://signupdoggy.pages.dev/use-cases' },
+          { '@type': 'ListItem', position: 3, name: 'Indie hackers', item: 'https://signupdoggy.pages.dev/use-cases/indie-hackers' },
+        ],
+      },
+    ],
+  },
+
+  useSaasStartups: {
+    path: '/use-cases/saas-startups',
+    title: 'Fraud detection for SaaS startups — SignupDoggy',
+    description:
+      'How 2-50 person SaaS teams use SignupDoggy to keep their signup funnels clean, their Mixpanel data honest, and their support inbox free of bot-related tickets. Pricing, integration code, and the 2-stage funnel pattern.',
+    keywords: 'fraud detection SaaS startup, signup validation SaaS, bot detection for SaaS, anti-fraud API for startups',
+    canonical: 'https://signupdoggy.pages.dev/use-cases/saas-startups',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Fraud detection for SaaS startups',
+        url: 'https://signupdoggy.pages.dev/use-cases/saas-startups',
+        description: 'How SaaS startups use SignupDoggy to filter bot signups and keep their funnel data clean.',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Use cases', item: 'https://signupdoggy.pages.dev/use-cases' },
+          { '@type': 'ListItem', position: 3, name: 'SaaS startups', item: 'https://signupdoggy.pages.dev/use-cases/saas-startups' },
+        ],
+      },
+    ],
+  },
+
+  useEcommerce: {
+    path: '/use-cases/ecommerce',
+    title: 'Fraud detection for e-commerce and marketplaces — SignupDoggy',
+    description:
+      'How e-commerce platforms and marketplaces use SignupDoggy to filter account creation fraud, prevent promo abuse, and stop fake reviews. Plus how to combine with payment-fraud detection like Stripe Radar.',
+    keywords: 'fraud detection ecommerce, marketplace fraud API, account fraud ecommerce, fake signup detection',
+    canonical: 'https://signupdoggy.pages.dev/use-cases/ecommerce',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'Fraud detection for e-commerce and marketplaces',
+        url: 'https://signupdoggy.pages.dev/use-cases/ecommerce',
+        description: 'How e-commerce platforms use SignupDoggy to filter account creation fraud.',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Use cases', item: 'https://signupdoggy.pages.dev/use-cases' },
+          { '@type': 'ListItem', position: 3, name: 'E-commerce', item: 'https://signupdoggy.pages.dev/use-cases/ecommerce' },
+        ],
+      },
+    ],
+  },
+
+  // ═══ INTEGRATIONS PAGE ═══════════════════════════════════════════════════
+  integrations: {
+    path: '/integrations',
+    title: 'Integrations — Supabase, Cloudflare Workers, Next.js, Node, Python',
+    description:
+      'SignupDoggy integrates with everything: Supabase Auth, Cloudflare Workers, Next.js, Express, FastAPI, Django, and more. Working code for each, plus the 2-stage funnel pattern.',
+    keywords: 'SignupDoggy integrations, Supabase Auth integration, Cloudflare Workers, Next.js, Node.js, Python, FastAPI, fraud API integrations',
+    canonical: 'https://signupdoggy.pages.dev/integrations',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'SignupDoggy integrations',
+        url: 'https://signupdoggy.pages.dev/integrations',
+        description: 'How to integrate SignupDoggy with Supabase, Cloudflare Workers, Next.js, Node.js, Python, and more.',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Integrations', item: 'https://signupdoggy.pages.dev/integrations' },
+        ],
+      },
+    ],
+  },
+
+  // ═══ CHANGELOG ═══════════════════════════════════════════════════════════
+  changelog: {
+    path: '/changelog',
+    title: 'Changelog — SignupDoggy',
+    description:
+      'Every product change, every blocklist update, every new feature. The SignupDoggy changelog, updated weekly.',
+    keywords: 'SignupDoggy changelog, product updates, release notes, signup quality updates',
+    canonical: 'https://signupdoggy.pages.dev/changelog',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        name: 'SignupDoggy changelog',
+        url: 'https://signupdoggy.pages.dev/changelog',
+        description: 'Product updates and release notes for SignupDoggy.',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Changelog', item: 'https://signupdoggy.pages.dev/changelog' },
+        ],
+      },
+    ],
+  },
 };
 
 // Per-blog-post configs live next to the post registry so adding a
