@@ -1,0 +1,20 @@
+/* TEAM */
+Founder: Jeffrin James
+Site: https://signupdoggy.pages.dev
+Contact: mailto:jeffrinjames99@gmail.com
+Twitter: @signupdoggy
+Location: Mumbai, India
+Languages: English
+
+/* SITE */
+Last update: 2026/06/20
+Standards: HTML5, CSS3, ES2020
+Components: React 18, Vite 5, Cloudflare Pages, Cloudflare Workers
+Software: Node.js 20, TypeScript 5.6
+AI: Built with assistance from Claude (Anthropic)
+
+/* THANKS */
+Google Search Central documentation team for the open SEO specs
+Cloudflare for the edge network
+disposable-email-domains open-source contributors
+The indie hacker community

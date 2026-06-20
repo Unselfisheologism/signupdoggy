@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Open Graph image — used as the default image for every page. -->
+  <url>
+    <loc>https://signupdoggy.pages.dev/</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <image:image>
+      <image:loc>https://signupdoggy.pages.dev/og-image.png</image:loc>
+      <image:title>SignupDoggy — Catch fake signups in 1¢</image:title>
+      <image:alt>SignupDoggy — Disposable Email, VPN &amp; Tor Detection API. $0.01 per check.</image:alt>
+      <image:caption>Serverless fraud-detection API for SaaS signup forms</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://signupdoggy.pages.dev/docs</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <image:image>
+      <image:loc>https://signupdoggy.pages.dev/og-image.png</image:loc>
+      <image:title>SignupDoggy API Reference</image:title>
+      <image:alt>Full SignupDoggy API reference with curl, Node.js, and Python examples.</image:alt>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://signupdoggy.pages.dev/pricing</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <image:image>
+      <image:loc>https://signupdoggy.pages.dev/og-image.png</image:loc>
+      <image:title>SignupDoggy Pricing</image:title>
+      <image:alt>SignupDoggy pricing — $0.01 per fraud-detection API call. Pay once, credits never expire.</image:alt>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://signupdoggy.pages.dev/disposable-checker</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <image:image>
+      <image:loc>https://signupdoggy.pages.dev/og-image.png</image:loc>
+      <image:title>Free Disposable Email Checker</image:title>
+      <image:alt>Free, browser-based disposable email checker. No signup. No API key.</image:alt>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://signupdoggy.pages.dev/glossary</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <image:image>
+      <image:loc>https://signupdoggy.pages.dev/og-image.png</image:loc>
+      <image:title>SignupDoggy Glossary</image:title>
+      <image:alt>Plain-English glossary of signup-validation and fraud-detection terms.</image:alt>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://signupdoggy.pages.dev/alternatives</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <image:image>
+      <image:loc>https://signupdoggy.pages.dev/og-image.png</image:loc>
+      <image:title>SignupDoggy Alternatives</image:title>
+      <image:alt>Compare SignupDoggy with IPQualityScore, MaxMind, Sift, and other fraud APIs.</image:alt>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://signupdoggy.pages.dev/integrations</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <image:image>
+      <image:loc>https://signupdoggy.pages.dev/og-image.png</image:loc>
+      <image:title>SignupDoggy Integrations</image:title>
+      <image:alt>Working integration code for Supabase Auth, Cloudflare Workers, Next.js, Node, Python, Django.</image:alt>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://signupdoggy.pages.dev/blog</loc>
+    <lastmod>YYYY-MM-DD</lastmod>
+    <image:image>
+      <image:loc>https://signupdoggy.pages.dev/og-image.png</image:loc>
+      <image:title>SignupDoggy Blog</image:title>
+      <image:alt>Long-form notes on signup quality, user validation, and shipping anti-fraud infrastructure on a budget.</image:alt>
+    </image:image>
+  </url>
+
+</urlset>

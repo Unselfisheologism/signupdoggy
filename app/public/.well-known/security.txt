@@ -1,0 +1,13 @@
+# security.txt — RFC 9116
+# https://securitytxt.org/
+# Tells security researchers how to report vulnerabilities to us.
+
+Contact: mailto:jeffrinjames99@gmail.com
+Contact: https://signupdoggy.pages.dev/contact
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://signupdoggy.pages.dev/.well-known/security.txt
+
+# Acknowledgments
+Acknowledgments: https://signupdoggy.pages.dev/blog
+Hiring: https://signupdoggy.pages.dev/blog

@@ -376,7 +376,16 @@ function buildHead(config, extraSchemas = []) {
   const robots = config.noindex
     ? 'noindex, nofollow'
     : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+  // Speakable schema (task #7) is added per-route via the WebPage schema
+  // in seoConfig.ts. We also stamp a primaryImageOfPage on the same WebPage
+  // schema (task #13) so Google Images can attribute the hero image.
   const allSchemas = [...(config.schemas ?? []), ...extraSchemas];
+
+  // Build hreflang + x-default blocks (task #1).
+  // Single-language site today (en-US), so we emit one language entry plus
+  // the x-default fallback. When translations ship, just append more rows.
+  const hreflangEn = `<link rel="alternate" hreflang="en" href="${htmlEscape(canonical)}" />`;
+  const hreflangDefault = `<link rel="alternate" hreflang="x-default" href="${htmlEscape(canonical)}" />`;
 
   return `
   <title>${htmlEscape(config.title)}</title>
@@ -385,15 +394,28 @@ function buildHead(config, extraSchemas = []) {
   <meta name="robots" content="${robots}" />
   <meta name="googlebot" content="${robots}" />
   <meta name="author" content="Jeffrin James" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="rating" content="general" />
+  <meta name="distribution" content="global" />
+  <meta name="revisit-after" content="7 days" />
+  <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
+  <meta http-equiv="content-language" content="en-US" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
   <link rel="canonical" href="${htmlEscape(canonical)}" />
+  ${hreflangEn}
+  ${hreflangDefault}
   <link rel="alternate" type="text/plain" href="https://signupdoggy.pages.dev/llms.txt" title="llms.txt — plain-text index for AI agents" />
+  <link rel="alternate" type="text/plain" href="https://signupdoggy.pages.dev/llms-full.txt" title="llms-full.txt — full corpus for AI agents" />
   <link rel="sitemap" type="application/xml" href="https://signupdoggy.pages.dev/sitemap.xml" />
+  <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+  <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
   <meta property="og:title" content="${htmlEscape(config.title)}" />
   <meta property="og:description" content="${htmlEscape(config.description)}" />
   <meta property="og:type" content="${config.path === '/blog' || config.path.startsWith('/blog/') ? 'article' : 'website'}" />
@@ -411,6 +433,7 @@ function buildHead(config, extraSchemas = []) {
   <meta name="twitter:image:alt" content="${htmlEscape(config.title)}" />
   <meta name="twitter:site" content="@signupdoggy" />
   ${allSchemas.map((s) => `<script type="application/ld+json">${JSON.stringify(s)}</script>`).join('\n  ')}
+  ${config.modulePreload ? `<link rel="modulepreload" href="${htmlEscape(config.modulePreload)}" />` : ''}
 `;
 }
 
@@ -470,6 +493,13 @@ async function main() {
     process.exit(1);
   }
   const shellHtml = await readFile(join(DIST, 'index.html'), 'utf8');
+
+  // Extract the Vite-built JS bundle path from the shell so we can emit
+  // a <link rel="modulepreload"> for it on every prerendered route
+  // (task #22). Speeds up LCP by letting the browser fetch the bundle
+  // in parallel with the HTML parse.
+  const bundleMatch = shellHtml.match(/<script[^>]+src="(\/assets\/[^"]+\.js)"/i);
+  const modulePreload = bundleMatch ? bundleMatch[1] : null;
 
   const configSource = await loadText(CONFIG_TS);
   const ROUTES = extractRoutesObject(configSource);
@@ -544,18 +574,39 @@ async function main() {
       }));
 
       const all = [...routeEntries, ...postEntries, ...altEntries];
-  let count = 0;
-  for (const { config, body } of all) {
-    if (config.path === '/auth' || config.path === '/login' || config.path === '/signup' || config.path === '/dashboard' || config.path === '/keys' || config.path === '/checkout') continue;
-    const html = rewriteShell(shellHtml, config, body);
-    const out = config.path === '/' ? join(DIST, 'index.html') : join(DIST, config.path, 'index.html');
-    await mkdir(dirname(out), { recursive: true });
-    await writeFile(out, html, 'utf8');
-    count++;
-    console.log(`[prerender] ${config.path} → ${out.replace(DIST + '/', '')}`);
-  }
-  console.log(`[prerender] wrote ${count} static HTML files.`);
-}
+        let count = 0;
+        for (const { config, body } of all) {
+          if (config.path === '/auth' || config.path === '/login' || config.path === '/signup' || config.path === '/dashboard' || config.path === '/keys' || config.path === '/checkout') continue;
+          // Stamp the Vite bundle path onto every config so buildHead can emit
+          // a <link rel="modulepreload"> for it (speeds up LCP).
+          const html = rewriteShell(shellHtml, { ...config, modulePreload }, body);
+          const out = config.path === '/' ? join(DIST, 'index.html') : join(DIST, config.path, 'index.html');
+          await mkdir(dirname(out), { recursive: true });
+          await writeFile(out, html, 'utf8');
+          count++;
+          console.log(`[prerender] ${config.path} → ${out.replace(DIST + '/', '')}`);
+        }
+        console.log(`[prerender] wrote ${count} static HTML files.`);
+
+        // Stamp the current UTC date into sitemap lastmod fields. Cloudflare Pages
+        // copies public/sitemap.xml to dist/sitemap.xml verbatim — we replace the
+        // <lastmod>YYYY-MM-DD</lastmod> placeholder at build time so Google sees
+        // fresh timestamps on every deploy instead of a static date that ages out.
+        const today = new Date().toISOString().slice(0, 10);
+        for (const file of ['sitemap.xml', 'image-sitemap.xml']) {
+          try {
+            const p = join(DIST, file);
+            const src = await readFile(p, 'utf8');
+            const out = src.replace(/<lastmod>YYYY-MM-DD<\/lastmod>/g, `<lastmod>${today}</lastmod>`);
+            if (out !== src) {
+              await writeFile(p, out, 'utf8');
+              console.log(`[prerender] ${file} lastmod → ${today}`);
+            }
+          } catch {
+            // image-sitemap.xml is optional — skip silently if missing
+          }
+        }
+      }
 
 function rewriteShell(shell, config, body) {
   // Replace the entire <head> contents. We keep the <html>, the first
