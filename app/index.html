@@ -15,13 +15,34 @@
     <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark" />
 
-    <!-- Preconnect for fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Preconnect for fonts (DNS+TLS handshake starts in parallel with HTML parse) -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+        <!--
+          Async Google Fonts pattern (saves 200-400ms on first paint).
+          1. <link rel="preload" as="style"> starts fetching the CSS in parallel with HTML parse
+          2. <link rel="stylesheet" media="print" onload="this.media='all'"> applies the CSS
+             without blocking first paint. Falls back to a regular stylesheet via the
+             <noscript> fallback below.
+        -->
+        <link
+          rel="preload"
+          as="style"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap"
+          media="print"
+          onload="this.media='all'"
+        />
+        <noscript>
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap"
+          />
+        </noscript>
 
     <!-- SEO defaults (overridden per-route by prerender + SEO.tsx) -->
     <meta

@@ -393,6 +393,35 @@ export const ROUTES: Record<string, SeoConfig> = {
         publisher: { '@type': 'Organization', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
         inLanguage: 'en-US',
       },
+      // ItemList schema — enables the "list" rich-result in Google Search.
+      // Every published blog post becomes a ListItem with position, name,
+      // URL, and description. Google can render this as a list carousel
+      // directly under the blog listing in SERPs.
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'SignupDoggy blog posts',
+        description: 'Long-form notes on signup quality, user validation, and indie SaaS fraud prevention.',
+        itemListOrder: 'https://schema.org/ItemListOrderDescending',
+        numberOfItems: 15,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, url: 'https://signupdoggy.pages.dev/blog/disposable-email-list-2026-how-to-maintain', name: 'The disposable email domain list 2026: how to maintain your own', description: 'Every public disposable email list is stale within 48 hours. Here is the exact process to maintain your own blocklist.' },
+          { '@type': 'ListItem', position: 2, url: 'https://signupdoggy.pages.dev/blog/signup-validation-supabase-auth-integration', name: 'How to validate signups with Supabase Auth (with code, 2026)', description: 'A working Supabase Edge Function that scores a signup before allowing the user to be created.' },
+          { '@type': 'ListItem', position: 3, url: 'https://signupdoggy.pages.dev/blog/signup-form-anti-pattern-saas-30-percent-users', name: 'The signup form anti-pattern that costs SaaS 30% of real users', description: 'Most SaaS signup forms are optimized for bot defense at the cost of real-user conversion.' },
+          { '@type': 'ListItem', position: 4, url: 'https://signupdoggy.pages.dev/blog/best-fraud-detection-apis-indie-hackers-2026', name: 'The 7 best fraud detection APIs for indie hackers (2026 edition)', description: 'A ranked, side-by-side comparison of every fraud detection API with a free tier or under-$50/month plan.' },
+          { '@type': 'ListItem', position: 5, url: 'https://signupdoggy.pages.dev/blog/how-to-detect-vpn-users-nodejs', name: 'How to detect VPN users at signup (Node.js + fraud API, 2026)', description: 'A working code snippet for detecting VPN, Tor, and proxy users in your Node.js signup handler.' },
+          { '@type': 'ListItem', position: 6, url: 'https://signupdoggy.pages.dev/blog/email-validation-vs-email-verification', name: 'Email validation vs email verification: what is the difference?', description: 'These two terms get used interchangeably and they should not. Email validation checks the format. Email verification checks the mailbox.' },
+          { '@type': 'ListItem', position: 7, url: 'https://signupdoggy.pages.dev/blog/how-to-stop-bot-signups-without-captcha', name: 'How to stop bot signups without annoying real users (2026 playbook)', description: 'CAPTCHAs block bots and lose you 8-15% of real users. Server-side fraud APIs block bots with zero user friction.' },
+          { '@type': 'ListItem', position: 8, url: 'https://signupdoggy.pages.dev/blog/sift-vs-signupdoggy-fraud-api-comparison', name: 'Sift vs SignupDoggy: the 2026 fraud API comparison for small teams', description: 'Sift is the 800-pound gorilla. SignupDoggy is a solo-founder project. 360x price difference at typical volumes.' },
+          { '@type': 'ListItem', position: 9, url: 'https://signupdoggy.pages.dev/blog/maxmind-minfraud-vs-signupdoggy', name: 'MaxMind minFraud vs SignupDoggy: which one do you actually need?', description: 'MaxMind is the legacy enterprise choice. SignupDoggy is the indie-hacker alternative. 48x price difference.' },
+          { '@type': 'ListItem', position: 10, url: 'https://signupdoggy.pages.dev/blog/disposable-email-detection-nodejs-tutorial', name: 'Disposable email detection in Node.js: a 2026 tutorial with code', description: 'A copy-paste Node.js tutorial for detecting disposable, temporary, and throwaway email addresses at signup.' },
+          { '@type': 'ListItem', position: 11, url: 'https://signupdoggy.pages.dev/blog/cloudflare-turnstile-vs-server-side-fraud-api', name: 'Cloudflare Turnstile vs a server-side fraud API: which actually catches bots?', description: 'The 2-stage funnel pattern. Turnstile catches 95% of low-effort browser bots; the server-side fraud API catches the rest.' },
+          { '@type': 'ListItem', position: 12, url: 'https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users', name: 'How SaaS founders should actually get user validation (and why most advice is wrong)', description: '5-step playbook for validating a SaaS idea with buyers, not free users.' },
+          { '@type': 'ListItem', position: 13, url: 'https://signupdoggy.pages.dev/blog/ipqualityscore-vs-signupdoggy-honest-comparison', name: 'IPQualityScore vs SignupDoggy: an honest, no-affiliate-links comparison', description: 'Side-by-side feature, price, latency, and catch-rate comparison. 10-30x cheaper at every volume tier.' },
+          { '@type': 'ListItem', position: 14, url: 'https://signupdoggy.pages.dev/blog/how-to-block-vpn-and-tor-signups-without-blocking-real-users', name: 'How to block VPN and Tor signups without blocking real users', description: 'Blocking all VPN traffic at signup locks out 15% of real users. The threshold-and-signal approach that catches bots without throwing away buyers.' },
+          { '@type': 'ListItem', position: 15, url: 'https://signupdoggy.pages.dev/blog/best-free-disposable-email-checker-api-2026', name: 'The best free disposable email checker API for 2026', description: 'A side-by-side comparison of the disposable email checker APIs that actually have a usable free tier in 2026.' },
+        ],
+      },
       {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
@@ -770,6 +799,26 @@ export const ROUTES: Record<string, SeoConfig> = {
         url: 'https://signupdoggy.pages.dev/topics',
         isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
       },
+      // ItemList schema — enables the "list" rich-result in Google Search.
+      // Each topic group becomes a ListItem. Rendered in the prerendered
+      // HTML so it ships with every /topics request.
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'SignupDoggy blog topics',
+        description: 'Every topic the SignupDoggy blog covers.',
+        itemListOrder: 'https://schema.org/ItemListUnordered',
+        numberOfItems: 7,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Disposable email detection', url: 'https://signupdoggy.pages.dev/topics#disposable-email-detection', description: 'How to detect, block, and maintain a disposable-email blocklist. API comparisons, tutorials, and code.' },
+          { '@type': 'ListItem', position: 2, name: 'VPN, Tor, and proxy detection', url: 'https://signupdoggy.pages.dev/topics#vpn-tor-detection', description: 'How to detect VPN, Tor, and residential-proxy users at signup. The signal-stacking approach.' },
+          { '@type': 'ListItem', position: 3, name: 'Fraud API comparisons', url: 'https://signupdoggy.pages.dev/topics#fraud-api-comparisons', description: 'Side-by-side comparisons of fraud-detection APIs. IPQualityScore, MaxMind, Sift, Cloudflare Turnstile.' },
+          { '@type': 'ListItem', position: 4, name: 'Signup form optimization', url: 'https://signupdoggy.pages.dev/topics#signup-form-optimization', description: 'Conversion-killing anti-patterns in signup forms, and the fixes that keep real users while blocking bots.' },
+          { '@type': 'ListItem', position: 5, name: 'Bot detection and CAPTCHA alternatives', url: 'https://signupdoggy.pages.dev/topics#bot-detection', description: 'CAPTCHA alternatives and 2-stage funnel patterns for catching bot signups without losing real users.' },
+          { '@type': 'ListItem', position: 6, name: 'Indie SaaS and fraud prevention', url: 'https://signupdoggy.pages.dev/topics#indie-saas', description: 'Fraud prevention for indie hackers and bootstrapped SaaS teams.' },
+          { '@type': 'ListItem', position: 7, name: 'Supabase, Cloudflare Workers, integrations', url: 'https://signupdoggy.pages.dev/topics#integrations', description: 'Integrating SignupDoggy with Supabase Auth, Cloudflare Workers, Next.js, Node, Python, Django.' },
+        ],
+      },
       {
         '@context': 'https://schema.org',
         '@type': 'BreadcrumbList',
@@ -931,6 +980,28 @@ export const ROUTES: Record<string, SeoConfig> = {
         name: 'SignupDoggy Alternatives',
         description: 'Side-by-side comparison of fraud-detection APIs.',
         url: 'https://signupdoggy.pages.dev/alternatives',
+      },
+      // ItemList schema — every alternative is a ListItem. Enables the
+      // "list" rich-result for "X alternative" buyer-intent queries.
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'SignupDoggy alternatives — every fraud-detection API we compete with',
+        description: 'A side-by-side comparison of fraud-detection and signup-validation APIs.',
+        itemListOrder: 'https://schema.org/ItemListOrderAscending',
+        numberOfItems: 10,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'IPQualityScore alternative', url: 'https://signupdoggy.pages.dev/alternatives/ipqualityscore', description: 'IP risk scoring with the deepest IP-to-ASN database in the industry.' },
+          { '@type': 'ListItem', position: 2, name: 'MaxMind minFraud alternative', url: 'https://signupdoggy.pages.dev/alternatives/maxmind', description: 'The 800-pound gorilla of IP intelligence — enterprise-only pricing.' },
+          { '@type': 'ListItem', position: 3, name: 'Sift alternative', url: 'https://signupdoggy.pages.dev/alternatives/sift', description: 'Enterprise fraud platform with payment + content + account abuse in one.' },
+          { '@type': 'ListItem', position: 4, name: 'Cloudflare Turnstile alternative', url: 'https://signupdoggy.pages.dev/alternatives/cloudflare-turnstile', description: 'Free, frictionless CAPTCHA — but not a fraud API.' },
+          { '@type': 'ListItem', position: 5, name: 'hCaptcha alternative', url: 'https://signupdoggy.pages.dev/alternatives/hcaptcha', description: 'Privacy-focused CAPTCHA alternative to Google reCAPTCHA.' },
+          { '@type': 'ListItem', position: 6, name: 'SEON alternative', url: 'https://signupdoggy.pages.dev/alternatives/seon', description: 'Modern fraud API with strong social-media enrichment signals.' },
+          { '@type': 'ListItem', position: 7, name: 'Onfido alternative', url: 'https://signupdoggy.pages.dev/alternatives/onfido', description: 'KYC / identity-verification platform — not a signup fraud API.' },
+          { '@type': 'ListItem', position: 8, name: 'Persona alternative', url: 'https://signupdoggy.pages.dev/alternatives/persona', description: 'Identity verification with strong UX — still KYC, not signup fraud.' },
+          { '@type': 'ListItem', position: 9, name: 'Spamhaus alternative', url: 'https://signupdoggy.pages.dev/alternatives/spamhaus', description: 'The authority on email abuse — used as a data source, not a standalone API.' },
+          { '@type': 'ListItem', position: 10, name: 'ZeroBounce alternative', url: 'https://signupdoggy.pages.dev/alternatives/zerobounce', description: 'Email verification + deliverability tool — slow for inline signup use.' },
+        ],
       },
       {
         '@context': 'https://schema.org',

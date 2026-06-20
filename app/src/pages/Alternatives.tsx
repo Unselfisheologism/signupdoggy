@@ -272,9 +272,44 @@ For inline signup fraud scoring, SignupDoggy is the right alternative — sub-50
 ];
 
 function AlternativeHub() {
+  // ItemList schema built from ALTERNATIVES so Google can render this as
+  // a list rich-result for "X alternative" queries.
+  const alternativeSchemas = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'SignupDoggy Alternatives',
+      description: 'A directory of fraud-detection and signup-validation APIs that compete with SignupDoggy.',
+      url: 'https://signupdoggy.pages.dev/alternatives',
+      isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'SignupDoggy alternatives — every fraud-detection API we compete with',
+      description: 'A side-by-side comparison of fraud-detection and signup-validation APIs: IPQualityScore, MaxMind, Sift, Cloudflare Turnstile, hCaptcha, SEON, Onfido, Persona, Spamhaus, ZeroBounce.',
+      itemListOrder: 'https://schema.org/ItemListOrderAscending',
+      numberOfItems: ALTERNATIVES.length,
+      itemListElement: ALTERNATIVES.map((a, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `https://signupdoggy.pages.dev/alternatives/${a.slug}`,
+        name: `${a.name} alternative`,
+        description: a.tagline,
+      })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+        { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://signupdoggy.pages.dev/alternatives' },
+      ],
+    },
+  ];
   return (
     <AppLayout>
-      <SEO config={{ path: '/alternatives', title: 'SignupDoggy Alternatives — Compare every fraud-detection API (2026)', description: 'A side-by-side comparison of every fraud-detection and signup-validation API that competes with SignupDoggy. Includes IPQualityScore, MaxMind, Sift, Cloudflare Turnstile, hCaptcha, SEON, and Onfido.', keywords: 'SignupDoggy alternatives, fraud API alternatives', canonical: 'https://signupdoggy.pages.dev/alternatives', schemas: [] }} />
+      <SEO config={{ path: '/alternatives', title: 'SignupDoggy Alternatives — Compare every fraud-detection API (2026)', description: 'A side-by-side comparison of every fraud-detection and signup-validation API that competes with SignupDoggy. Includes IPQualityScore, MaxMind, Sift, Cloudflare Turnstile, hCaptcha, SEON, and Onfido.', keywords: 'SignupDoggy alternatives, fraud API alternatives', canonical: 'https://signupdoggy.pages.dev/alternatives', schemas: alternativeSchemas }} />
       <div className="page-content">
         <div className="term-banner">
           <span className="banner-prompt">$</span> ./alternatives --list

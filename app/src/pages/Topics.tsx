@@ -15,32 +15,6 @@ import { SEO } from '../components/SEO';
 import { posts as allPosts } from '../lib/posts';
 import { SITE } from '../lib/seoConfig';
 
-const config = {
-  path: '/topics',
-  title: 'Topics — SignupDoggy Blog',
-  description: 'All SignupDoggy blog posts grouped by topic: disposable email detection, VPN/Tor detection, fraud API comparisons, signup form optimization, and more.',
-  keywords: 'signupdoggy topics, disposable email detection, VPN detection, fraud API comparison, signup form',
-  canonical: 'https://signupdoggy.pages.dev/topics',
-  schemas: [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'CollectionPage',
-      name: 'Topics — SignupDoggy Blog',
-      description: 'All SignupDoggy blog posts grouped by topic.',
-      url: 'https://signupdoggy.pages.dev/topics',
-      isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
-        { '@type': 'ListItem', position: 2, name: 'Topics', item: 'https://signupdoggy.pages.dev/topics' },
-      ],
-    },
-  ],
-};
-
 const TOPIC_GROUPS: { topic: string; slug: string; description: string; tags: string[] }[] = [
   {
     topic: 'Disposable email detection',
@@ -85,6 +59,50 @@ const TOPIC_GROUPS: { topic: string; slug: string; description: string; tags: st
     tags: ['Supabase', 'Tutorial', 'Integration', 'Auth'],
   },
 ];
+
+const config = {
+  path: '/topics',
+  title: 'Topics — SignupDoggy Blog',
+  description: 'All SignupDoggy blog posts grouped by topic: disposable email detection, VPN/Tor detection, fraud API comparisons, signup form optimization, and more.',
+  keywords: 'signupdoggy topics, disposable email detection, VPN detection, fraud API comparison, signup form',
+  canonical: 'https://signupdoggy.pages.dev/topics',
+  schemas: [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: 'Topics — SignupDoggy Blog',
+      description: 'All SignupDoggy blog posts grouped by topic.',
+      url: 'https://signupdoggy.pages.dev/topics',
+      isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+    },
+    // ItemList schema — enables the "list" rich-result in Google Search.
+    // Each topic group becomes a ListItem with position, name, and a
+    // URL pointing at the post collection that matches the topic's tags.
+    {
+      '@context': 'https://schema.org',
+      '@type': 'ItemList',
+      name: 'SignupDoggy blog topics',
+      description: 'Every topic the SignupDoggy blog covers, from disposable email detection to fraud API comparisons.',
+      itemListOrder: 'https://schema.org/ItemListUnordered',
+      numberOfItems: TOPIC_GROUPS.length,
+      itemListElement: TOPIC_GROUPS.map((group, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: group.topic,
+        url: `https://signupdoggy.pages.dev/topics#${group.slug}`,
+        description: group.description,
+      })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+        { '@type': 'ListItem', position: 2, name: 'Topics', item: 'https://signupdoggy.pages.dev/topics' },
+      ],
+    },
+  ],
+};
 
 export default function Topics() {
   return (
