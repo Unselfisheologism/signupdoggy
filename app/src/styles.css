@@ -1612,6 +1612,26 @@ code { font-family: var(--font-mono); }
   display: flex;
   gap: var(--space-sm);
 }
+.btn-key--info {
+  background: transparent;
+  border-color: var(--border-dim);
+  color: var(--text-muted);
+}
+.btn-key--info:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.key-note {
+  margin-top: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #f5a623;
+  background: rgba(245, 166, 35, 0.08);
+  padding: 6px 10px;
+  border-left: 2px solid #f5a623;
+  border-radius: 2px;
+  line-height: 1.4;
+}
 .keys-empty {
   display: flex;
   flex-direction: column;

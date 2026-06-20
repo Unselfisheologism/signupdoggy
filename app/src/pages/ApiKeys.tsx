@@ -3,12 +3,34 @@ import AppLayout from '../components/AppLayout';
 import { listKeys, createKey, deleteKey, type ApiKey } from '../api';
 import { WarnIcon } from '../components/icons';
 
+// Each key in the list comes back from the portal API as `{ key: "sd_xxxxxxxxxxxx..." }` —
+// only the first 12 characters plus a literal "..." ellipsis. The full key is stored in
+// KV at creation time but NEVER returned after that (Stripe/GitHub/AWS pattern).
+//
+// This component is honest about that. The "COPY" button is gone — replaced with
+// "COPY ID" which copies just the prefix. A prominent note explains that the full key
+// is only available at creation. To get a fresh full key, the user deletes this one
+// and creates a new one.
 function KeyDisplay({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (key: string) => void }) {
   const [copied, setCopied] = useState(false);
+  // The displayed string ends with "..." — strip it before copying so the clipboard
+  // contains only the real prefix, not "sd_xyz......." which is useless.
+  const realPrefix = apiKey.key.replace(/\.+$/, '');
   const handleCopy = () => {
-    navigator.clipboard.writeText(apiKey.key);
+    navigator.clipboard.writeText(realPrefix);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+  const handleReveal = () => {
+    // Best-effort: log the prefix to the console so the user can copy from there
+    // if they want the full key (useful for support/debugging — not for normal use).
+    console.info(`[SignupDoggy] API key prefix: ${realPrefix}`);
+    alert(
+      `The full API key was shown ONCE when this key was created.\n\n` +
+      `For security, we never store or return the full key after that.\n\n` +
+      `To get a fresh full key, delete this one and create a new one.\n\n` +
+      `(The prefix ${realPrefix} has been logged to the browser console for reference.)`
+    );
   };
   return (
     <div className="key-card">
@@ -28,10 +50,16 @@ function KeyDisplay({ apiKey, onDelete }: { apiKey: ApiKey; onDelete: (key: stri
             </>
           )}
         </div>
+        <div className="key-note">
+          ⚠ Full key was shown once at creation. If you lost it, delete this key and create a new one.
+        </div>
       </div>
       <div className="key-actions">
-        <button className="btn-key btn-key--copy" onClick={handleCopy}>
-          [{copied ? 'COPIED' : 'COPY'}]
+        <button className="btn-key btn-key--copy" onClick={handleCopy} title={`Copies just the prefix (${realPrefix}) — not the full secret`}>
+          [{copied ? 'COPIED' : 'COPY ID'}]
+        </button>
+        <button className="btn-key btn-key--info" onClick={handleReveal} title="Why can't I see the full key?">
+          [WHY?]
         </button>
         <button className="btn-key btn-key--delete" onClick={() => onDelete(apiKey.key)}>
           [DELETE]
