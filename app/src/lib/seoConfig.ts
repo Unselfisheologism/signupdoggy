@@ -653,6 +653,221 @@ export const ROUTES: Record<string, SeoConfig> = {
       },
     ],
   },
+
+  // ═══ AUTHOR PAGE (E-E-A-T signal) ═══════════════════════════════════════
+  author: {
+    path: '/author/jeffrin-james',
+    title: 'Jeffrin James — Founder of SignupDoggy',
+    description:
+      'Jeffrin James is the founder of SignupDoggy, a serverless fraud-detection API for indie hackers and small SaaS teams. Six years building fraud-detection systems, one-person operation, Mumbai India.',
+    keywords: 'Jeffrin James, SignupDoggy founder, fraud detection engineer, indie hacker, Mumbai India',
+    canonical: 'https://signupdoggy.pages.dev/author/jeffrin-james',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ProfilePage',
+        mainEntity: {
+          '@type': 'Person',
+          name: 'Jeffrin James',
+          jobTitle: 'Founder & Solo Developer',
+          description: 'Founder of SignupDoggy. Six years building fraud-detection systems. One-person operation based in Mumbai, India.',
+          url: 'https://signupdoggy.pages.dev/author/jeffrin-james',
+          email: 'mailto:jeffrinjames99@gmail.com',
+          knowsAbout: ['Fraud detection', 'Disposable email detection', 'VPN and Tor detection', 'SaaS signup flows', 'Indie SaaS', 'Cloudflare Workers'],
+          worksFor: { '@type': 'Organization', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+          address: { '@type': 'PostalAddress', addressLocality: 'Mumbai', addressCountry: 'IN' },
+        },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Author', item: 'https://signupdoggy.pages.dev/author' },
+          { '@type': 'ListItem', position: 3, name: 'Jeffrin James', item: 'https://signupdoggy.pages.dev/author/jeffrin-james' },
+        ],
+      },
+    ],
+  },
+
+  // ═══ TOPICS HUB (pillar content) ═══════════════════════════════════════
+  topics: {
+    path: '/topics',
+    title: 'Topics — SignupDoggy Blog',
+    description:
+      'All SignupDoggy blog posts grouped by topic: disposable email detection, VPN/Tor detection, fraud API comparisons, signup form optimization, and more.',
+    keywords: 'signupdoggy topics, disposable email detection, VPN detection, fraud API comparison, signup form',
+    canonical: 'https://signupdoggy.pages.dev/topics',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Topics — SignupDoggy Blog',
+        description: 'All SignupDoggy blog posts grouped by topic.',
+        url: 'https://signupdoggy.pages.dev/topics',
+        isPartOf: { '@type': 'WebSite', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Topics', item: 'https://signupdoggy.pages.dev/topics' },
+        ],
+      },
+    ],
+  },
+
+  // ═══ FREE TOOL: DISPOSABLE EMAIL CHECKER ═════════════════════════════
+  // High search-volume landing page for "disposable email checker" queries.
+  // The component lives at /pages/DisposableChecker.tsx and the body text
+  // is loaded separately (see loadStaticBodies in scripts/prerender.mjs).
+  disposableChecker: {
+    path: '/disposable-checker',
+    title: 'Free Disposable Email Checker — SignupDoggy',
+    description:
+      'Free, instant, in-browser disposable email checker. Type an email — get a verdict. No signup, no API key, no tracking. Checks against 200,000+ disposable providers. Used by indie SaaS teams and solo founders.',
+    keywords:
+      'disposable email checker, free disposable email checker, temp mail checker, throwaway email detector, tempmail check, mailinator detector, email validation, signup validation, signupdoggy',
+    canonical: 'https://signupdoggy.pages.dev/disposable-checker',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'SignupDoggy Disposable Email Checker',
+        applicationCategory: 'UtilitiesApplication',
+        operatingSystem: 'Any (browser)',
+        description:
+          'Free browser-based tool that checks whether an email address is from a disposable, temporary, or throwaway provider. Uses a 200,000+ domain blocklist. No signup, no API key, no tracking — the check runs entirely client-side.',
+        url: 'https://signupdoggy.pages.dev/disposable-checker',
+        isAccessibleForFree: true,
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        featureList: [
+          '200,000+ disposable domain blocklist',
+          'Role-based email detection (admin@, support@, etc.)',
+          'Free email provider detection (gmail, yahoo, outlook)',
+          'Runs entirely client-side — no data leaves the browser',
+          'No signup, no API key, no credit card',
+        ],
+        creator: { '@type': 'Organization', name: 'SignupDoggy', url: 'https://signupdoggy.pages.dev' },
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'Is this disposable email checker really free?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Yes. No signup, no API key, no credit card. The check runs entirely in your browser using a 200,000+ domain blocklist. The email is never sent to any server — open the browser network tab to verify.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'How accurate is the disposable email detection?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'The same blocklist that powers the paid SignupDoggy API catches ~99% of disposable emails. The free tool is updated monthly; the paid API is updated daily.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Do you save the emails I check?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'No. The check happens entirely in your browser. The email is not transmitted to any server and is not stored in any database. Your recent checks live only in your browser session memory.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'Can I embed this tool on my site?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'Yes. Contact jeffrinjames99@gmail.com for the embed code. The tool ships as a single React component plus the bundled blocklist (~32 KB gzipped).',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'How is this different from the SignupDoggy API?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'The free tool checks one email at a time and only the email. The paid API (POST /v1/check) checks email + IP + phone in one call, returns a 0–1 risk score with allow/review/block recommendation, and updates the blocklist daily instead of monthly.',
+            },
+          },
+        ],
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Tools', item: 'https://signupdoggy.pages.dev/disposable-checker' },
+          { '@type': 'ListItem', position: 3, name: 'Disposable Email Checker', item: 'https://signupdoggy.pages.dev/disposable-checker' },
+        ],
+      },
+    ],
+  },
+
+  // ═══ GLOSSARY ═════════════════════════════════════════════════════════
+  // Educational pillar page that ranks for "what is X" queries in the
+  // signup-quality / fraud-detection space.
+  glossary: {
+    path: '/glossary',
+    title: 'Signup Quality Glossary — SignupDoggy',
+    description:
+      'A glossary of signup-quality, fraud-detection, and email-validation terms: disposable email, role-based email, MX record, Tor exit node, VPN/hosting ASN, IP risk score, bot detection, and more.',
+    keywords:
+      'signup quality glossary, fraud detection terms, disposable email definition, VPN detection glossary, Tor exit node, IP risk score, bot detection',
+    canonical: 'https://signupdoggy.pages.dev/glossary',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'DefinedTermSet',
+        name: 'SignupDoggy Glossary',
+        description: 'Glossary of signup-quality and fraud-detection terms.',
+        url: 'https://signupdoggy.pages.dev/glossary',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Glossary', item: 'https://signupdoggy.pages.dev/glossary' },
+        ],
+      },
+    ],
+  },
+
+  // ═══ ALTERNATIVES HUB ═════════════════════════════════════════════════
+  // "X alternative" pages are high-buyer-intent. We list every major
+  // competitor so each /alternatives/<slug> page can rank.
+  alternatives: {
+    path: '/alternatives',
+    title: 'SignupDoggy Alternatives — Compare every fraud-detection API (2026)',
+    description:
+      'A side-by-side comparison of every fraud-detection and signup-validation API that competes with SignupDoggy. Includes IPQualityScore, MaxMind, Sift, Cloudflare Turnstile, hCaptcha, SEON, and Onfido. Pricing, accuracy, integration time.',
+    keywords:
+      'SignupDoggy alternatives, fraud API alternatives, IPQualityScore alternative, MaxMind alternative, Sift alternative, signup validation API',
+    canonical: 'https://signupdoggy.pages.dev/alternatives',
+    schemas: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'SignupDoggy Alternatives',
+        description: 'Side-by-side comparison of fraud-detection APIs.',
+        url: 'https://signupdoggy.pages.dev/alternatives',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://signupdoggy.pages.dev/' },
+          { '@type': 'ListItem', position: 2, name: 'Alternatives', item: 'https://signupdoggy.pages.dev/alternatives' },
+        ],
+      },
+    ],
+  },
 };
 
 // Per-blog-post configs live next to the post registry so adding a

@@ -14,6 +14,11 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Checkout from './pages/Checkout';
 import StaticPage from './pages/StaticPage';
+import Author from './pages/Author';
+import Topics from './pages/Topics';
+import DisposableChecker from './pages/DisposableChecker';
+import Glossary from './pages/Glossary';
+import Alternatives from './pages/Alternatives';
 import { SITE, ROUTES as SEO_ROUTES } from './lib/seoConfig';
 
 // Body text imports for static pages. These are the same strings the
@@ -66,6 +71,22 @@ function AppRoutes() {
 
           {/* ═══ CHANGELOG ════════════════════════════════════════════════════ */}
           <Route path="/changelog" element={<StaticPage config={SEO_ROUTES.changelog} body={CHANGELOG_BODY} bannerCmd="./changelog --read" bannerStatus="RELEASE NOTES" />} />
+
+          {/* ═══ AUTHOR PAGE (E-E-A-T) ════════════════════════════════════════ */}
+          <Route path="/author/jeffrin-james" element={<Author />} />
+
+          {/* ═══ TOPICS HUB (pillar content) ═════════════════════════════════ */}
+          <Route path="/topics" element={<Topics />} />
+
+          {/* ═══ FREE TOOL: DISPOSABLE EMAIL CHECKER ═══════════════════════════ */}
+          <Route path="/disposable-checker" element={<DisposableChecker config={SEO_ROUTES.disposableChecker} />} />
+
+          {/* ═══ GLOSSARY (educational pillar) ═════════════════════════════════ */}
+          <Route path="/glossary" element={<Glossary />} />
+
+          {/* ═══ ALTERNATIVES HUB + PER-TOOL PAGES ════════════════════════════ */}
+          <Route path="/alternatives" element={<Alternatives />} />
+          <Route path="/alternatives/:slug" element={<Alternatives />} />
         </Routes>
       </main>
     </div>

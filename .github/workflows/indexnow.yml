@@ -1,0 +1,40 @@
+name: Submit to IndexNow
+
+# Submits all sitemap URLs to IndexNow (Bing + DuckDuckGo + Yahoo)
+# after every successful deploy to Cloudflare Pages.
+#
+# IndexNow is a free API. The key is at
+# https://signupdoggy.pages.dev/<key>.txt (placed by the build).
+# This workflow runs after the Cloudflare Pages deploy completes.
+
+on:
+  workflow_run:
+    workflows: ["Cloudflare Pages"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  submit:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deps
+        working-directory: app
+        run: npm install --no-audit --no-fund
+
+      - name: Build (generates sitemap + IndexNow key file)
+        working-directory: app
+        run: npm run build
+
+      - name: Submit to IndexNow
+        working-directory: app
+        run: npm run submit-indexnow

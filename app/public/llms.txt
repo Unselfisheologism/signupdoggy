@@ -184,6 +184,76 @@ hours. Here is the exact process to maintain your own blocklist: the
 5 GitHub repos to monitor, the per-provider crawls that catch the
 long tail, and how to deduplicate without losing entries.
 
+# ── FREE TOOLS ───────────────────────────────────────────────────────────────
+
+## [Free Disposable Email Checker](https://signupdoggy.pages.dev/disposable-checker)
+A free, browser-based tool that checks whether an email is from a
+disposable, temporary, or throwaway provider. No signup, no API key,
+no credit card. The check runs entirely client-side against a
+200,000+ domain blocklist. Same data that powers the paid API.
+
+# ── EDUCATIONAL PILLARS ──────────────────────────────────────────────────────
+
+## [Signup Quality Glossary](https://signupdoggy.pages.dev/glossary)
+Plain-English definitions of every term in the signup-validation and
+fraud-detection space: disposable email, role-based email, MX record,
+Tor exit node, VPN/hosting ASN, IP risk score, bot signup, CAPTCHA,
+email validation vs verification, risk band, pay-per-call pricing,
+and E-E-A-T.
+
+## [Topics hub](https://signupdoggy.pages.dev/topics)
+All blog posts grouped by topic: disposable email detection, VPN/Tor
+detection, fraud API comparisons, signup form optimization, bot
+detection, indie SaaS, integrations.
+
+## [Author: Jeffrin James](https://signupdoggy.pages.dev/author/jeffrin-james)
+Founder profile. 6+ years building fraud-detection systems. Maintains
+the 200,000+ domain disposable-email blocklist. Based in Mumbai, India.
+
+# ── ALTERNATIVES (high buyer-intent "X alternative" queries) ────────────────
+
+## [All SignupDoggy alternatives](https://signupdoggy.pages.dev/alternatives)
+A directory of every fraud-detection and signup-validation API that
+competes with SignupDoggy. One-paragraph summary per tool.
+
+## [IPQualityScore alternative](https://signupdoggy.pages.dev/alternatives/ipqualityscore)
+Why SignupDoggy is the lighter alternative to IPQualityScore for
+indie SaaS teams.
+
+## [MaxMind minFraud alternative](https://signupdoggy.pages.dev/alternatives/maxmind)
+48x price difference. The indie-hacker alternative to MaxMind's
+enterprise IP intelligence.
+
+## [Sift alternative](https://signupdoggy.pages.dev/alternatives/sift)
+Sift is the 800-pound gorilla. SignupDoggy is the lighter alternative
+for small teams.
+
+## [Cloudflare Turnstile alternative](https://signupdoggy.pages.dev/alternatives/cloudflare-turnstile)
+Turnstile is a CAPTCHA, not a fraud API. Use both in a 2-stage funnel.
+
+## [hCaptcha alternative](https://signupdoggy.pages.dev/alternatives/hcaptcha)
+Privacy-focused CAPTCHA. Same limitation as Turnstile — CAPTCHA, not
+fraud API.
+
+## [SEON alternative](https://signupdoggy.pages.dev/alternatives/seon)
+SEON's differentiator is social-media enrichment. SignupDoggy is the
+lighter alternative for indie SaaS.
+
+## [Onfido alternative](https://signupdoggy.pages.dev/alternatives/onfido)
+Onfido is KYC, not signup fraud. Use Onfido for IDV, SignupDoggy for
+signup fraud. Complementary, not competing.
+
+## [Persona alternative](https://signupdoggy.pages.dev/alternatives/persona)
+Persona is the modern alternative to Onfido. Same use case (KYC).
+
+## [Spamhaus alternative](https://signupdoggy.pages.dev/alternatives/spamhaus)
+Spamhaus is a data source, not a fraud API. Most fraud-detection APIs
+(including SignupDoggy) consume Spamhaus feeds behind the scenes.
+
+## [ZeroBounce alternative](https://signupdoggy.pages.dev/alternatives/zerobounce)
+ZeroBounce is email verification, slow for inline signup. SignupDoggy
+is the right alternative for inline signup scoring.
+
 # ── QUICK API SUMMARY ───────────────────────────────────────────────────────
 
 ## Endpoints

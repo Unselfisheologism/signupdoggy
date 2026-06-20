@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build && node scripts/prerender.mjs",
     "build:no-prerender": "tsc -b && vite build",
     "prerender": "node scripts/prerender.mjs",
+    "submit-indexnow": "node scripts/submit-indexnow.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

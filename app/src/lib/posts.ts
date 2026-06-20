@@ -31,6 +31,8 @@ export interface PostMeta {
   tags: string[];
   /** True for the most recent post — gets a "Latest" badge. */
   featured?: boolean;
+  /** Slugs of related posts (rendered at the bottom of the post). */
+  relatedSlugs?: string[];
 }
 
 export const posts: PostMeta[] = [
@@ -54,6 +56,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-19',
     readingTime: '11 min',
     tags: ['VPN detection', 'Tor', 'Fraud prevention'],
+  relatedSlugs: ['disposable-email-detection-nodejs-tutorial', 'disposable-email-list-2026-how-to-maintain', 'email-validation-vs-email-verification', 'how-to-detect-vpn-users-nodejs'],
   },
   {
     slug: 'ipqualityscore-vs-signupdoggy-honest-comparison',
@@ -64,6 +67,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-19',
     readingTime: '9 min',
     tags: ['IPQualityScore', 'Comparison', 'Fraud API'],
+  relatedSlugs: ['how-to-detect-vpn-users-nodejs', 'how-to-stop-bot-signups-without-captcha', 'best-fraud-detection-apis-indie-hackers-2026', 'cloudflare-turnstile-vs-server-side-fraud-api'],
   },
   {
     slug: 'cloudflare-turnstile-vs-server-side-fraud-api',
@@ -74,6 +78,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-19',
     readingTime: '7 min',
     tags: ['Turnstile', 'CAPTCHA', 'Bot detection'],
+  relatedSlugs: ['maxmind-minfraud-vs-signupdoggy', 'sift-vs-signupdoggy-fraud-api-comparison', 'best-fraud-detection-apis-indie-hackers-2026', 'vs/ipqualityscore'],
   },
   {
     slug: 'how-to-validate-your-saas-idea-with-real-users',
@@ -84,6 +89,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-19',
     readingTime: '9 min',
     tags: ['SaaS', 'Validation', 'Indie hackers'],
+  relatedSlugs: ['how-to-stop-bot-signups-without-captcha', 'best-fraud-detection-apis-indie-hackers-2026', 'signup-form-anti-pattern-saas-30-percent-users', 'integrations'],
   },  {
     slug: 'disposable-email-detection-nodejs-tutorial',
     title: 'Disposable email detection in Node.js: a 2026 tutorial with code',
@@ -91,6 +97,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '10 min',
     tags: ['Disposable email', 'Node.js', 'Tutorial', 'API'],
+  relatedSlugs: ['signup-form-anti-pattern-saas-30-percent-users', 'use-cases/indie-hackers', 'best-fraud-detection-apis-indie-hackers-2026', 'use-cases/saas-startups'],
   },
   {
     slug: 'maxmind-minfraud-vs-signupdoggy',
@@ -99,6 +106,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '8 min',
     tags: ['MaxMind', 'Comparison', 'Fraud API', 'Pricing'],
+  relatedSlugs: ['best-free-disposable-email-checker-api-2026', 'disposable-email-list-2026-how-to-maintain', 'signup-validation-supabase-auth-integration', 'email-validation-vs-email-verification'],
   },
   {
     slug: 'sift-vs-signupdoggy-fraud-api-comparison',
@@ -107,6 +115,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '9 min',
     tags: ['Sift', 'Comparison', 'Fraud API', 'Indie hackers'],
+  relatedSlugs: ['ipqualityscore-vs-signupdoggy-honest-comparison', 'sift-vs-signupdoggy-fraud-api-comparison', 'best-fraud-detection-apis-indie-hackers-2026', 'vs/maxmind'],
   },
   {
     slug: 'how-to-stop-bot-signups-without-captcha',
@@ -115,6 +124,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '11 min',
     tags: ['Bot detection', 'CAPTCHA', 'Signup fraud', 'Indie hackers'],
+  relatedSlugs: ['ipqualityscore-vs-signupdoggy-honest-comparison', 'maxmind-minfraud-vs-signupdoggy', 'best-fraud-detection-apis-indie-hackers-2026', 'vs/sift'],
   },
   {
     slug: 'email-validation-vs-email-verification',
@@ -123,6 +133,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '6 min',
     tags: ['Email validation', 'Email verification', 'Disposable email'],
+  relatedSlugs: ['cloudflare-turnstile-vs-server-side-fraud-api', 'best-fraud-detection-apis-indie-hackers-2026', 'signup-form-anti-pattern-saas-30-percent-users', 'how-to-block-vpn-and-tor-signups-without-blocking-real-users'],
   },
   {
     slug: 'how-to-detect-vpn-users-nodejs',
@@ -131,6 +142,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '8 min',
     tags: ['VPN detection', 'Node.js', 'Tutorial', 'Fraud API'],
+  relatedSlugs: ['disposable-email-detection-nodejs-tutorial', 'best-free-disposable-email-checker-api-2026', 'signup-validation-supabase-auth-integration', 'disposable-email-list-2026-how-to-maintain'],
   },
   {
     slug: 'best-fraud-detection-apis-indie-hackers-2026',
@@ -139,6 +151,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '12 min',
     tags: ['Comparison', 'Fraud API', 'Indie hackers', 'Pricing'],
+  relatedSlugs: ['how-to-block-vpn-and-tor-signups-without-blocking-real-users', 'best-fraud-detection-apis-indie-hackers-2026', 'cloudflare-turnstile-vs-server-side-fraud-api', 'signup-validation-supabase-auth-integration'],
   },
   {
     slug: 'signup-form-anti-pattern-saas-30-percent-users',
@@ -147,6 +160,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '7 min',
     tags: ['SaaS', 'Conversion', 'UX', 'Signup form'],
+  relatedSlugs: ['ipqualityscore-vs-signupdoggy-honest-comparison', 'maxmind-minfraud-vs-signupdoggy', 'sift-vs-signupdoggy-fraud-api-comparison', 'use-cases/indie-hackers'],
   },
   {
     slug: 'signup-validation-supabase-auth-integration',
@@ -155,6 +169,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '8 min',
     tags: ['Supabase', 'Tutorial', 'Integration', 'Auth'],
+  relatedSlugs: ['how-to-stop-bot-signups-without-captcha', 'how-to-validate-your-saas-idea-with-real-users', 'cloudflare-turnstile-vs-server-side-fraud-api', 'best-fraud-detection-apis-indie-hackers-2026'],
   },
   {
     slug: 'disposable-email-list-2026-how-to-maintain',
@@ -163,6 +178,7 @@ export const posts: PostMeta[] = [
     date: '2026-06-20',
     readingTime: '9 min',
     tags: ['Disposable email', 'Tutorial', 'Engineering'],
+    relatedSlugs: ['best-free-disposable-email-checker-api-2026', 'disposable-email-detection-nodejs-tutorial', 'email-validation-vs-email-verification', 'best-fraud-detection-apis-indie-hackers-2026'],
   },
 
 ];

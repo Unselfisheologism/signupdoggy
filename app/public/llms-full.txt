@@ -1,0 +1,490 @@
+# SignupDoggy — llms-full.txt (machine-readable full corpus for AI agents)
+#
+# Companion to /llms.txt. This is the long-form version: every page's
+# visible body text in one document. AI agents that want to cite
+# SignupDoggy with full context (instead of just linking back) start here.
+#
+# Updated: 2026-06-20
+
+# ── PRODUCT SUMMARY ──────────────────────────────────────────────────────────
+
+SignupDoggy is a serverless fraud-detection API for SaaS signup forms.
+One POST to /v1/check returns a 0–1 risk score plus an
+allow/review/block recommendation in under 50ms.
+
+Built for indie hackers and small SaaS teams. $0.01 per call. $5
+minimum (1,000 calls). Pay once — credits never expire. No monthly
+fee. No sales call. No subscription required.
+
+# ── HOMEPAGE ─────────────────────────────────────────────────────────────────
+
+[SignupDoggy Homepage](https://signupdoggy.pages.dev/)
+
+Catch fake signups in 1¢. Disposable emails. VPN exits. Tor nodes.
+One POST to /v1/check returns a 0-1 risk score. $0.01 a call. Never
+expires.
+
+What we check on every call:
+- 125,847 disposable email domains
+- 70,821 Tor exit nodes
+- 24,000+ VPN / hosting ASNs
+- Role-based email patterns
+- Per-account custom blacklists
+- Aggregated risk score in under 50ms
+
+Pricing: $5 Solo (1,000 requests), $25 Pro (5,000 requests), $100
+Scale (25,000 requests). Pay once, no expiry, no subscription, no
+sales call.
+
+Compared to IPQualityScore ($0.05-$0.25 per call, $25/mo minimum)
+and SignupGate ($0.05-$0.30, $29/mo, annual contract), SignupDoggy
+is 5-30x cheaper per request and zero monthly minimum.
+
+API endpoint: POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check
+Headers: x-api-key: $SIGNUPDOGGY_KEY
+Body: {"email": "user@example.com", "ip": "1.2.3.4"}
+
+Response includes per-signal risk scores, an overall risk band
+(low/medium/high), and a recommendation (allow/review/block). One
+credit per call.
+
+Built by Jeffrin James, solo founder in Mumbai, India.
+
+# ── API REFERENCE ───────────────────────────────────────────────────────────
+
+[API Reference](https://signupdoggy.pages.dev/docs)
+
+ONE ENDPOINT. ONE API KEY. ONE DECISION: ALLOW / REVIEW / BLOCK.
+
+Base URL: https://signupdoggy-api.jeffrinjames99.workers.dev
+
+Authentication: pass your API key in the X-API-KEY header. Keys are
+52-character strings prefixed with SD_.
+
+Endpoints:
+
+POST /v1/check — Evaluate email, IP, and/or phone in one call. Pass
+at least one of email, ip, or phone. Returns per-input signals, an
+overall risk band, and a recommendation. Costs one credit.
+
+POST /v1/keys — Mint a new API key. No auth header required. Returns 201.
+
+POST /v1/blacklist — Add or remove an email / IP / phone on your
+account blacklist. Blacklisted values return recommendation: "block"
+whatever the other signals say.
+
+GET /v1/stats — Requests, blocks (by reason), and estimated cost for
+today (UTC).
+
+Response headers from /v1/check: X-Fraud-Blocked-Today,
+X-Fraud-Blocked-Reason, X-Estimated-Cost, X-Credit-Balance.
+
+Errors: 400 (bad request), 401 (unauthorized), 402 (out of credits),
+500 (internal error).
+
+Pricing inline: $0.01 per request, deducted from your pre-paid credit
+balance. Credits never expire. No monthly fee. No sales call.
+
+Languages: curl, Node.js, and Python examples are provided for every
+endpoint.
+
+# ── INTEGRATIONS ────────────────────────────────────────────────────────────
+
+[Integrations](https://signupdoggy.pages.dev/integrations)
+
+Working integration code for every common stack:
+
+SUPABASE AUTH (Postgres trigger)
+```sql
+create or replace function public.check_signup()
+returns trigger as $$
+begin
+  perform net.http_post(
+    url := 'https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check',
+    headers := jsonb_build_object(
+      'x-api-key', current_setting('app.signupdoggy_key'),
+      'content-type', 'application/json'
+    ),
+    body := jsonb_build_object('email', new.email, 'ip', new.raw_user_meta_data->>'ip')
+  );
+  return new;
+end;
+$$ language plpgsql;
+```
+
+CLOUDFLARE WORKERS
+```js
+export default {
+  async fetch(req, env) {
+    const { email, ip } = await req.json();
+    const r = await fetch('https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check', {
+      method: 'POST',
+      headers: { 'X-API-KEY': env.SIGNUPDOGGY_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, ip }),
+    });
+    const result = await r.json();
+    if (result.recommendation === 'block') {
+      return new Response('Signup blocked', { status: 400 });
+    }
+    return new Response('OK');
+  }
+}
+```
+
+NEXT.JS / NODE.JS / EXPRESS / FASTAPI / DJANGO / AUTH0 / CLERK — full
+working code for each in /integrations.
+
+CLOUDFLARE TURNSTILE + SIGNUPDOGGY (the 2-stage funnel)
+Use Turnstile for the first stage (catches 95% of browser bots),
+SignupDoggy for the second stage (catches the remaining 5% +
+non-browser bots).
+
+# ── PRICING ─────────────────────────────────────────────────────────────────
+
+[Pricing](https://signupdoggy.pages.dev/pricing)
+
+SOLO — $5 — 1,000 requests
+- 1,000 API calls
+- Disposable email detection
+- VPN / Tor / proxy signals
+- Custom blacklists
+- One-time payment
+
+PRO — $25 — 5,000 requests (MOST POPULAR)
+- 5,000 API calls
+- Everything in Solo
+- Phone number validation
+- Risk-score explanation
+- Email support
+- One-time payment
+
+SCALE — $100 — 25,000 requests
+- 25,000 API calls
+- Everything in Pro
+- Bulk blacklist import
+- Webhook on score > 0.7
+- Priority support
+- One-time payment
+
+PLUS subscription — $20/month — 2,200 calls/month
+SUPER subscription — $100/month — 11,000 calls/month
+ULTRA subscription — $200/month — 22,000 calls/month
+
+Credits never expire. No monthly minimum. No sales call. No contract.
+
+# ── COMPARISONS ─────────────────────────────────────────────────────────────
+
+[IPQualityScore vs SignupDoggy](https://signupdoggy.pages.dev/vs/ipqualityscore)
+
+Short answer:
+- IPQS is right for enterprise fraud teams with $50k+/year budgets.
+- SignupDoggy is right for 2-50 person SaaS teams that need a working
+  fraud API in an afternoon, without calling sales.
+
+Pricing: IPQS $25/month minimum, $0.005-$0.05 per call. SignupDoggy
+$5 minimum, $0.005-$0.01 per call. 10x price difference is real.
+
+Accuracy: IPQS wins on IP risk scoring. SignupDoggy wins on
+disposable-email detection.
+
+Integration: IPQS takes 1-2 weeks. SignupDoggy takes 30 minutes.
+
+[MaxMind minFraud vs SignupDoggy](https://signupdoggy.pages.dev/vs/maxmind)
+
+Short answer: MaxMind is right for enterprise fraud teams. SignupDoggy
+is right for 2-50 person SaaS teams.
+
+Pricing: MaxMind $25/month minimum, $0.005-$0.030 per call. SignupDoggy
+$5 minimum. At 50k signups/month MaxMind costs $1,500 vs $250 for
+SignupDoggy — 48x price difference.
+
+Accuracy: MaxMind wins on IP intelligence. SignupDoggy wins on
+disposable-email detection.
+
+[Sift vs SignupDoggy](https://signupdoggy.pages.dev/vs/sift)
+
+Short answer: Sift is for $10M+/year marketplaces. SignupDoggy is for
+2-50 person SaaS teams.
+
+Pricing: Sift $1k+/month. SignupDoggy $0.01/call, $5 minimum.
+
+Accuracy: Both catch 99%+ of bot signups. Sift has ML models trained
+on trillions of events; SignupDoggy has a focused signup-time gate.
+
+[Cloudflare Turnstile vs a server-side fraud API](https://signupdoggy.pages.dev/vs/cloudflare-turnstile)
+
+Turnstile is free and frictionless. A server-side fraud API costs
+$0.01 per call. The right answer: use both. Turnstile catches 95% of
+browser bots; the server-side API catches the remaining 5% plus
+non-browser bots. The 2-stage funnel pattern with full Node.js code.
+
+# ── USE CASES ───────────────────────────────────────────────────────────────
+
+[Fraud detection for indie hackers](https://signupdoggy.pages.dev/use-cases/indie-hackers)
+
+Built for solo founders and side projects. $5 minimum, no sales call,
+no business email required. 30-minute integration.
+
+[Fraud detection for SaaS startups](https://signupdoggy.pages.dev/use-cases/saas-startups)
+
+For 2-50 person SaaS teams. 5,000-100,000 signups/month. The setup is
+a single API call. The 2-stage funnel pattern. Supabase Auth
+integration with working code.
+
+[Fraud detection for e-commerce and marketplaces](https://signupdoggy.pages.dev/use-cases/ecommerce)
+
+For e-commerce platforms and marketplaces. The signup-time gate that
+keeps your user database clean. Pairs with Stripe Radar for payment
+fraud.
+
+# ── BLOG POSTS ──────────────────────────────────────────────────────────────
+
+[The best free disposable email checker API for 2026](https://signupdoggy.pages.dev/blog/best-free-disposable-email-checker-api-2026)
+
+A side-by-side comparison of the disposable email checker APIs that
+actually have a usable free tier in 2026. Covers SignupDoggy
+($5/1k, 125k+ domains), Mailcheck.ai (200 free/month), Verifalia,
+Hunter.io, and ZeroBounce. Includes a 10-line Node.js code snippet.
+
+Short answer: SignupDoggy has the only pay-per-call tier that starts
+at $5, covers 125,000+ disposable domains, returns a verdict in under
+50ms, and costs $0.01 per call. Mailcheck.ai gives 200 free checks
+per month if you need a true free tier with no credit card.
+
+[How to block VPN and Tor signups without blocking real users](https://signupdoggy.pages.dev/blog/how-to-block-vpn-and-tor-signups-without-blocking-real-users)
+
+The signal-stacking playbook. Blocking all VPN traffic at signup
+sounds easy. It also locks out 15% of real users (remote workers,
+journalists, travelers). Here is the threshold-and-signal approach
+that catches bots without throwing away buyers.
+
+Short answer: don't hard-block all VPN traffic. Score each signup on
+multiple signals (disposable email, Tor, VPN, role-based email,
+phone) and only block when the combined score exceeds your threshold.
+
+[IPQualityScore vs SignupDoggy: an honest comparison](https://signupdoggy.pages.dev/blog/ipqualityscore-vs-signupdoggy-honest-comparison)
+
+Side-by-side feature, price, latency, and catch-rate comparison.
+Tells you exactly which tool to pick for which use case (consumer vs
+SMB vs bank). 10-30x cheaper at every volume tier. No affiliate
+links.
+
+[MaxMind minFraud vs SignupDoggy](https://signupdoggy.pages.dev/blog/maxmind-minfraud-vs-signupdoggy)
+
+MaxMind is the legacy enterprise choice. SignupDoggy is the
+indie-hacker alternative. 48x price difference. Which to pick for
+indie hackers vs enterprise vs fintech.
+
+[Sift vs SignupDoggy: the 2026 fraud API comparison](https://signupdoggy.pages.dev/blog/sift-vs-signupdoggy-fraud-api-comparison)
+
+Sift is the 800-pound gorilla. SignupDoggy is a solo-founder project.
+Honest comparison of features, price, and which one fits a 2-person
+SaaS team. 360x price difference at typical volumes.
+
+[Cloudflare Turnstile vs a server-side fraud API](https://signupdoggy.pages.dev/blog/cloudflare-turnstile-vs-server-side-fraud-api)
+
+The 2-stage funnel pattern. Turnstile alone catches 95% of low-effort
+browser bots. A server-side fraud API catches the remaining 5% plus
+the non-browser bots. Use both, with Turnstile as the first gate and
+the fraud API as the second. Includes the full 30-line Node.js
+integration.
+
+[How SaaS founders should actually get user validation](https://signupdoggy.pages.dev/blog/how-to-validate-your-saas-idea-with-real-users)
+
+5-step playbook for validating a SaaS idea with buyers, not free
+signups. Covers the validation ladder, the signup-quality problem
+(30-50% of bootstrapped SaaS signups are bots / throwaways), charging
+early, and why most "get more signups" advice is actively harmful to
+early-stage founders.
+
+[Disposable email detection in Node.js: a 2026 tutorial](https://signupdoggy.pages.dev/blog/disposable-email-detection-nodejs-tutorial)
+
+A copy-paste Node.js tutorial for detecting disposable, temporary,
+and throwaway email addresses at signup. Covers 4 approaches: local
+blocklist, DNS-based, third-party API, and SignupDoggy. Includes a
+working 30-line Express middleware you can drop into any SaaS.
+
+[How to stop bot signups without annoying real users](https://signupdoggy.pages.dev/blog/how-to-stop-bot-signups-without-captcha)
+
+CAPTCHAs block bots and lose you 8-15% of real users. Server-side
+fraud APIs block bots with zero user friction. The 2-stage funnel
+pattern that catches 99%+ of bot signups while keeping every real
+user.
+
+[Email validation vs email verification](https://signupdoggy.pages.dev/blog/email-validation-vs-email-verification)
+
+These two terms get used interchangeably and they should not. Email
+validation checks the format. Email verification checks the mailbox.
+Here is when to use which, and why signup fraud detection is a third,
+separate problem.
+
+[How to detect VPN users at signup (Node.js + fraud API, 2026)](https://signupdoggy.pages.dev/blog/how-to-detect-vpn-users-nodejs)
+
+A working code snippet for detecting VPN, Tor, and proxy users in
+your Node.js signup handler. Covers 3 approaches: IP range database,
+third-party API, and the right way to handle false positives
+(because 15% of your real users are on VPNs).
+
+[The 7 best fraud detection APIs for indie hackers (2026 edition)](https://signupdoggy.pages.dev/blog/best-fraud-detection-apis-indie-hackers-2026)
+
+A ranked, side-by-side comparison of every fraud detection API with
+a free tier or under-$50/month plan. Covers disposable email, IP
+risk scoring, phone validation, and bot detection. Includes the one
+indie-hacker-specific gotcha nobody talks about.
+
+[The signup form anti-pattern that costs SaaS 30% of real users](https://signupdoggy.pages.dev/blog/signup-form-anti-pattern-saas-30-percent-users)
+
+Most SaaS signup forms are optimized for bot defense at the cost of
+real-user conversion. The double-opt-in tax, the email-confirmation
+dead-end, and the captcha that fires when it should not. Plus the
+7-line fix for each.
+
+[How to validate signups with Supabase Auth (with code, 2026)](https://signupdoggy.pages.dev/blog/signup-validation-supabase-auth-integration)
+
+A working Supabase Edge Function that scores a signup before allowing
+the user to be created. Wires SignupDoggy into the Supabase Auth
+sign-up trigger, so disposable emails, VPN users, and bots never
+reach your profiles table.
+
+[The disposable email domain list 2026: how to maintain your own](https://signupdoggy.pages.dev/blog/disposable-email-list-2026-how-to-maintain)
+
+Every public disposable email list is stale within 48 hours. Here is
+the exact process to maintain your own blocklist: the 5 GitHub repos
+to monitor, the per-provider crawls that catch the long tail, and
+how to deduplicate without losing entries.
+
+# ── FREE TOOLS ──────────────────────────────────────────────────────────────
+
+[Free Disposable Email Checker](https://signupdoggy.pages.dev/disposable-checker)
+
+A free, browser-based tool that checks whether an email is from a
+disposable, temporary, or throwaway provider. No signup, no API key,
+no credit card. The check runs entirely client-side against a
+200,000+ domain blocklist. Same data that powers the paid API.
+
+How to use:
+1. Type or paste an email address
+2. Click "Check"
+3. The result tells you if the email is from a known disposable
+   provider
+
+What it checks:
+- Domain match against 200,000+ disposable email providers
+- Local part analysis (catches role-based emails like admin@, support@)
+- Free email provider detection (gmail.com, yahoo.com, outlook.com)
+- MX record sanity (catches made-up domains with no mail server)
+
+What it does NOT do:
+- It does NOT tell you if the mailbox actually exists (SMTP probing)
+- It does NOT score the IP address (use the full API for that)
+- It does NOT save your email or any input
+
+The 6 providers that account for ~60% of disposable signups:
+tempmail.com, guerrillamail.com, mailinator.com, 10minutemail.com,
+yopmail.com, throwawaymail.com.
+
+The remaining 40% is the long tail of ~200,000 smaller providers.
+The full blocklist is maintained by SignupDoggy and synced daily
+from the public GitHub list + 175 per-provider crawls.
+
+# ── GLOSSARY ───────────────────────────────────────────────────────────────
+
+[Signup Quality Glossary](https://signupdoggy.pages.dev/glossary)
+
+DISPOSABLE EMAIL — also: temporary email, throwaway email, burner
+email, fake email, temp mail. An email that self-destructs after a
+short window. The six biggest providers (tempmail.com,
+guerrillamail.com, mailinator.com, 10minutemail.com, yopmail.com,
+throwawaymail.com) account for ~60% of disposable signups. The
+remaining 40% is a long tail of ~200,000 smaller providers.
+
+ROLE-BASED EMAIL — also: role account, shared mailbox. An address
+like admin@, support@, abuse@, sales@. Shared mailboxes, not personal
+inboxes. Signups from them rarely convert.
+
+MX RECORD — Mail Exchange record. DNS record that tells other mail
+servers where to deliver email for a domain. No MX record = no real
+mail possible.
+
+TOR EXIT NODE — final relay in a Tor circuit. IP traffic appears to
+come from. Signups from Tor exit nodes are almost always bots,
+abusers, or journalists — never paying customers.
+
+VPN / HOSTING ASN — Autonomous System Number. Datacenter and VPN
+ASNs (DigitalOcean, Linode, NordVPN) are owned by infrastructure
+providers — not residential ISPs. Signups from these ASNs are almost
+always bots.
+
+IP RISK SCORE — 0–1 number representing how likely a given IP is to
+be associated with fraud. Above 0.7 = block, 0.4–0.7 = review,
+below 0.4 = allow.
+
+BOT SIGNUP — programmatic account creation. Usually headless browser
+or Python script with curl. Costs SaaS 5–30% of signup volume.
+
+CAPTCHA — challenge-response test for humans vs bots. Cloudflare
+Turnstile is the most common in 2026.
+
+EMAIL VALIDATION VS VERIFICATION — validation = format check.
+Verification = mailbox check. Neither is fraud detection.
+
+RISK BAND / RECOMMENDATION — categorical label (low/medium/high)
+returned alongside the risk score. Recommendation is the action
+(allow/review/block).
+
+PAY-PER-CALL PRICING — usage-based billing. No monthly minimum.
+SignupDoggy uses this model.
+
+E-E-A-T — Experience, Expertise, Authoritativeness, Trustworthiness.
+Google's framework for content quality.
+
+# ── ALTERNATIVES ────────────────────────────────────────────────────────────
+
+[All SignupDoggy alternatives](https://signupdoggy.pages.dev/alternatives)
+
+[IPQualityScore](https://signupdoggy.pages.dev/alternatives/ipqualityscore) — IP risk scoring, $25-$400/mo.
+[MaxMind minFraud](https://signupdoggy.pages.dev/alternatives/maxmind) — IP intelligence, $25-$500/mo.
+[Sift](https://signupdoggy.pages.dev/alternatives/sift) — Enterprise fraud platform, $1k+/mo.
+[Cloudflare Turnstile](https://signupdoggy.pages.dev/alternatives/cloudflare-turnstile) — CAPTCHA, free.
+[hCaptcha](https://signupdoggy.pages.dev/alternatives/hcaptcha) — Privacy CAPTCHA, free.
+[SEON](https://signupdoggy.pages.dev/alternatives/seon) — Fraud API, €59/mo.
+[Onfido](https://signupdoggy.pages.dev/alternatives/onfido) — KYC, $1+/verification.
+[Persona](https://signupdoggy.pages.dev/alternatives/persona) — KYC, $0.50+/verification.
+[Spamhaus](https://signupdoggy.pages.dev/alternatives/spamhaus) — Email reputation data.
+[ZeroBounce](https://signupdoggy.pages.dev/alternatives/zerobounce) — Email verification, $15-$474/mo.
+
+# ── AUTHOR ──────────────────────────────────────────────────────────────────
+
+[Jeffrin James — Founder of SignupDoggy](https://signupdoggy.pages.dev/author/jeffrin-james)
+
+Jeffrin James is the founder of SignupDoggy, a serverless
+fraud-detection API for indie hackers and small SaaS teams.
+
+BACKGROUND
+Jeffrin is a software engineer based in Mumbai, India. He built
+SignupDoggy after spending six months and $2,400 on enterprise
+fraud-detection vendors that didn't fit his use case. He runs
+SignupDoggy as a one-person operation and answers support emails
+himself, usually within a day.
+
+EXPERTISE
+- Fraud detection: signup-quality scoring, account-takeover, payment
+  fraud
+- Disposable email detection and blocklist maintenance
+- VPN, Tor, and residential-proxy detection
+- SaaS signup-flow design and conversion optimization
+- Cloudflare Workers, KV, and edge computing
+- Indie SaaS, pay-per-call pricing models
+
+CREDENTIALS
+- 6+ years building fraud-detection systems
+- Maintains SignupDoggy's 200,000+ domain disposable-email blocklist
+- Maintains 70,000+ Tor exit node list, 24,000+ VPN/hosting ASN list
+- Open-source contributor to disposable-email-domains
+
+CONTACT
+- Email: jeffrinjames99@gmail.com
+- Alt: jeff9james@protonmail.com
+- Site: signupdoggy.pages.dev
+
+# ── END ─────────────────────────────────────────────────────────────────────
