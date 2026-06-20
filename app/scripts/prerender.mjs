@@ -102,16 +102,55 @@ function extractRoutesObject(source) {
   }
   if (depth !== 0) throw new Error('Unbalanced braces in ROUTES');
   const objLiteral = source.slice(open, i);
-  // Make the object literal safe to evaluate: it has TypeScript type
-  // annotations in field positions, and `as const`. We don't try to
-  // parse those — instead we just take the values via a wrapper:
-  //   eval('(function(){ const ROUTES = ' + objLiteral + '; return ROUTES; })()')
-  // That's sufficient because ROUTES is a plain object literal with
-  // string and array-of-object values (no type assertions inside the
-  // values themselves, only on the export site).
+
+  // The schemas inside ROUTES reference `SITE.shortDescription`,
+  // `SITE.url`, etc. We need to evaluate SITE first and make it
+  // available inside the Function scope. Reuse the same brace-counting
+  // pass to pull the SITE literal out of the file.
+  const siteLiteral = extractSiteLiteral(source);
+
+  // Make the object literal safe to evaluate. We wrap the literal in
+  // parentheses so it parses as an EXPRESSION — without the parens,
+  // a `{...}` at the top of a Function body is parsed as a BLOCK
+  // STATEMENT, and the inner `key: value` pairs become labeled
+  // statements. The parser then chokes on the first `,` between
+  // labels (or on the second `:` in a label-position property name),
+  // failing with `SyntaxError: Unexpected token ':'` even though
+  // the object literal is otherwise valid JavaScript.
+  //
+  // Wrapping in `(${objLiteral})` forces expression-context parsing
+  // and works regardless of the object's leading or trailing syntax.
   // eslint-disable-next-line no-new-func
-  const ROUTES = new Function(`${objLiteral}; return ROUTES;`)();
+  const ROUTES = new Function(
+    `const SITE = (${siteLiteral});\n` +
+    `const ROUTES = (${objLiteral});\n` +
+    `return ROUTES;`
+  )();
   return ROUTES;
+}
+
+// Extract the SITE object literal from seoConfig.ts. Same brace-counting
+// pass as extractRoutesObject — duplicated here so SITE and ROUTES can
+// be parsed independently before being joined at eval time.
+function extractSiteLiteral(source) {
+  const marker = 'export const SITE';
+  const idx = source.indexOf(marker);
+  if (idx < 0) return 'undefined';
+  const eq = source.indexOf('=', idx);
+  const open = source.indexOf('{', eq);
+  let depth = 0; let i = open; let inString = null; let escape = false;
+  for (; i < source.length; i++) {
+    const c = source[i];
+    if (escape) { escape = false; continue; }
+    if (c === '\\') { escape = true; continue; }
+    if (inString) { if (c === inString) inString = null; continue; }
+    if (c === '"' || c === "'" || c === '`') { inString = c; continue; }
+    if (c === '/' && source[i + 1] === '/') { while (i < source.length && source[i] !== '\n') i++; continue; }
+    if (c === '{') depth++;
+    else if (c === '}') { depth--; if (depth === 0) { i++; break; } }
+  }
+  if (depth !== 0) throw new Error('Unbalanced braces in SITE');
+  return source.slice(open, i);
 }
 
 function extractPostsArray(source) {
@@ -136,7 +175,9 @@ function extractPostsArray(source) {
   }
   const arrLiteral = source.slice(open, i);
   // eslint-disable-next-line no-new-func
-  return new Function(`${arrLiteral}; return posts;`)();
+  // Wrap in parens — see extractRoutesObject for why this matters
+  // (top-level `{` parses as a block statement, not an object).
+  return new Function(`const posts = (${arrLiteral}); return posts;`)();
 }
 
 function extractPostBodies(source) {
@@ -165,7 +206,9 @@ function extractPostBodies(source) {
   }
   const objLiteral = source.slice(open, i);
   // eslint-disable-next-line no-new-func
-  return new Function(`${objLiteral}; return POST_BODIES;`)();
+  // Wrap in parens — see extractRoutesObject for why this matters
+  // (top-level `{` parses as a block statement, not an object).
+  return new Function(`const POST_BODIES = (${objLiteral}); return POST_BODIES;`)();
 }
 
 // ---------- Markdown → plain text for noscript body ----------
