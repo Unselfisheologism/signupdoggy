@@ -128,13 +128,13 @@ export const posts: PostMeta[] = [
   },
   {
     slug: 'email-validation-vs-email-verification',
-    title: 'Email validation vs email verification: what is the difference?',
-    description: 'These two terms get used interchangeably and they should not. Email validation checks the format. Email verification checks the mailbox. Here is when to use which, and why signup fraud detection is a third, separate problem.',
-    date: '2026-06-20',
-    readingTime: '6 min',
-    tags: ['Email validation', 'Email verification', 'Disposable email'],
-  relatedSlugs: ['cloudflare-turnstile-vs-server-side-fraud-api', 'best-fraud-detection-apis-indie-hackers-2026', 'signup-form-anti-pattern-saas-30-percent-users', 'how-to-block-vpn-and-tor-signups-without-blocking-real-users'],
-  },
+        title: 'Email Validation API vs Email Verification API — 2026 comparison',
+        description: 'Email validation API vs email verification API: what is the difference, what each checks, and when to use which. The 2026 developer playbook for choosing between free email validation APIs (SignupDoggy, AbstractAPI, ZeroBounce, Mailcheck). Plus the third problem — signup fraud detection — that nobody talks about.',
+        date: '2026-06-20',
+        readingTime: '6 min',
+        tags: ['Email validation API', 'Email verification API', 'Disposable email', 'API comparison'],
+        relatedSlugs: ['cloudflare-turnstile-vs-server-side-fraud-api', 'best-fraud-detection-apis-indie-hackers-2026', 'signup-form-anti-pattern-saas-30-percent-users', 'how-to-block-vpn-and-tor-signups-without-blocking-real-users'],
+      },
   {
     slug: 'how-to-detect-vpn-users-nodejs',
     title: 'How to detect VPN users at signup (Node.js + fraud API, 2026)',
@@ -172,16 +172,46 @@ export const posts: PostMeta[] = [
   relatedSlugs: ['how-to-stop-bot-signups-without-captcha', 'how-to-validate-your-saas-idea-with-real-users', 'cloudflare-turnstile-vs-server-side-fraud-api', 'best-fraud-detection-apis-indie-hackers-2026'],
   },
   {
-    slug: 'disposable-email-list-2026-how-to-maintain',
-    title: 'The disposable email domain list 2026: how to maintain your own',
-    description: 'Every public disposable email list is stale within 48 hours. Here is the exact process to maintain your own blocklist: the 5 GitHub repos to monitor, the per-provider crawls that catch the long tail, and how to deduplicate without losing entries.',
-    date: '2026-06-20',
-    readingTime: '9 min',
-    tags: ['Disposable email', 'Tutorial', 'Engineering'],
-    relatedSlugs: ['best-free-disposable-email-checker-api-2026', 'disposable-email-detection-nodejs-tutorial', 'email-validation-vs-email-verification', 'best-fraud-detection-apis-indie-hackers-2026'],
-  },
+      slug: 'disposable-email-list-2026-how-to-maintain',
+      title: 'The disposable email domain list 2026: how to maintain your own',
+      description: 'Every public disposable email list is stale within 48 hours. Here is the exact process to maintain your own blocklist: the 5 GitHub repos to monitor, the per-provider crawls that catch the long tail, and how to deduplicate without losing entries.',
+      date: '2026-06-20',
+      readingTime: '9 min',
+      tags: ['Disposable email', 'Tutorial', 'Engineering'],
+      relatedSlugs: ['best-free-disposable-email-checker-api-2026', 'disposable-email-detection-nodejs-tutorial', 'email-validation-vs-email-verification', 'best-fraud-detection-apis-indie-hackers-2026'],
+    },
 
-];
+    {
+      slug: 'vpn-detection-api-comparison',
+      title: 'The best VPN detection API in 2026 — honest comparison of 5 vendors',
+      description: 'VPN detection API comparison: SignupDoggy, IPQualityScore, MaxMind, ipinfo, ProxyCheck. Pricing, accuracy, latency, and the one false-positive issue that costs you 15% of real users if you handle it wrong. Also covers Tor exit node API detection and residential proxy detection.',
+      date: '2026-06-20',
+      readingTime: '11 min',
+      tags: ['VPN detection', 'Tor detection', 'Comparison', 'Fraud API'],
+      relatedSlugs: ['how-to-detect-vpn-users-nodejs', 'how-to-block-vpn-and-tor-signups-without-blocking-real-users', 'best-fraud-detection-apis-indie-hackers-2026', 'ipqualityscore-vs-signupdoggy-honest-comparison'],
+    },
+
+    {
+      slug: 'best-bot-detection-api',
+      title: 'The best bot detection API for SaaS signups in 2026 — 5 vendors compared',
+      description: 'Bot detection API comparison for SaaS signup forms: Cloudflare Turnstile, SignupDoggy, DataDome, PerimeterX (HUMAN), and reCAPTCHA v3. Pricing, catch rate, latency, and the 2-stage funnel pattern that catches 99%+ of bots while keeping 100% of real users. Bot signup prevention without CAPTCHA friction.',
+      date: '2026-06-20',
+      readingTime: '10 min',
+      tags: ['Bot detection', 'CAPTCHA', 'Comparison', 'Fraud API'],
+      relatedSlugs: ['how-to-stop-bot-signups-without-captcha', 'cloudflare-turnstile-vs-server-side-fraud-api', 'best-fraud-detection-apis-indie-hackers-2026', 'signup-form-anti-pattern-saas-30-percent-users'],
+    },
+
+    {
+      slug: 'tor-exit-node-api',
+      title: 'Tor exit node API — the 2026 developer guide to blocking Tor users at signup',
+      description: 'Tor exit node API: how to detect Tor users at signup, the ethics of blocking Tor, the false-positive rate, and the right way to handle journalist / activist traffic. Compare 5 vendors (SignupDoggy, IPQualityScore, MaxMind, dan.me.uk, torproject.org) by accuracy, latency, and price.',
+      date: '2026-06-20',
+      readingTime: '8 min',
+      tags: ['Tor detection', 'VPN detection', 'Tutorial', 'Fraud API'],
+      relatedSlugs: ['vpn-detection-api-comparison', 'how-to-detect-vpn-users-nodejs', 'how-to-block-vpn-and-tor-signups-without-blocking-real-users', 'best-fraud-detection-apis-indie-hackers-2026'],
+    },
+
+  ];
 
 export function getPostBySlug(slug: string): PostMeta | undefined {
   return posts.find((p) => p.slug === slug);

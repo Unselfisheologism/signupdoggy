@@ -44,6 +44,18 @@
           />
         </noscript>
 
+    <!-- TownSquare footer widget (below-the-fold, async-loaded so it never blocks first paint) -->
+    <link rel="preload" as="style" href="https://townsquare.cauenapier.com/widget.css" />
+    <link
+      rel="stylesheet"
+      href="https://townsquare.cauenapier.com/widget.css"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link rel="stylesheet" href="https://townsquare.cauenapier.com/widget.css" />
+    </noscript>
+
     <!-- SEO defaults (overridden per-route by prerender + SEO.tsx) -->
     <meta
       name="description"

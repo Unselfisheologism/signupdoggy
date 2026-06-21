@@ -1,0 +1,129 @@
+\`# Tor exit node API — the 2026 developer guide to blocking Tor users at signup
+
+Tor exit node API is the niche but important category for fraud prevention. The honest answer: detecting Tor users at signup is technically trivial (every vendor does it correctly), but the ethical question — whether you SHOULD block Tor users — is where most SaaS companies get it wrong.
+
+This post covers both: how Tor exit node detection actually works, how to implement it at signup, and the right way to handle the journalist / activist traffic that legitimate Tor users represent.
+
+## How Tor exit node detection works
+
+The Tor network publishes a list of every exit node (the final hop before traffic reaches the destination website) every hour. This list is publicly available at:
+
+- **https://check.torproject.org/torbulkexitlist** (Tor Project's official list, updated hourly)
+- **https://www.dan.me.uk/torlist/** (community-maintained, updated daily)
+- **MaxMind**, **IPQualityScore**, and **SignupDoggy** maintain their own (often larger) lists
+
+A Tor exit node API is just a wrapper around one of these lists. You send an IP, the API tells you whether it's a Tor exit node. That's the whole technical implementation.
+
+## Compare Tor exit node APIs (2026)
+
+| API | List source | Update frequency | False positives | Free tier | Latency | Cost per call |
+|---|---|---|---|---|---|---|
+| SignupDoggy | Own list + Tor Project + dan.me.uk | Hourly | ~0% | $0 (browser) / $5 min (API) | ~50ms | $0.005–$0.01 |
+| IPQualityScore | Own list | Hourly | ~0% | $0 (limited) / $25/month | ~80ms | $0.005–$0.016 |
+| MaxMind minFraud | ❌ doesn't detect Tor | n/a | n/a | ❌ | n/a | n/a |
+| dan.me.uk (free) | Community-maintained | Daily | ~0% | Free (manual download) | n/a | $0 |
+| check.torproject.org (free) | Tor Project official | Hourly | ~0% | Free (manual download) | n/a | $0 |
+
+**Note**: MaxMind minFraud does not detect Tor. If you need Tor detection with MaxMind, you have to maintain your own list (downloaded hourly from Tor Project).
+
+## The ethics of blocking Tor
+
+Most SaaS companies default to hard-blocking all Tor traffic. This is wrong for three reasons:
+
+1. **Journalists and activists**. A journalist investigating a corrupt government in their own country uses Tor to protect their source's identity. If they sign up for your tool to research your competitor, blocking them loses you a legitimate user who needs your tool.
+2. **People in censored countries**. Users in China, Iran, Russia, and similar countries use Tor to access the global internet. If they want to sign up for a tool that's blocked in their country, blocking them at signup is a UX failure.
+3. **Security-conscious users**. Some users just prefer Tor. They might be paranoid, but they're not fraudsters.
+
+The right approach: hard-block Tor for high-value accounts (anything tied to money, identity, or sensitive data), but soft-block Tor (require email confirmation before account activation) for low-value accounts (newsletters, free-tier SaaS).
+
+## How to implement Tor exit node detection at signup
+
+Three approaches, from simplest to most robust:
+
+### Approach 1: free list download (smallest scale)
+
+    import fs from 'fs';
+    import { createHash } from 'crypto';
+
+    // Download the Tor Project list hourly
+    async function refreshTorList() {
+      const res = await fetch('https://check.torproject.org/torbulkexitlist');
+      const text = await res.text();
+      const ips = text.split('\n').filter(l => /^\d+\.\d+\.\d+\.\d+$/.test(l));
+      fs.writeFileSync('/tmp/tor-exits.txt', ips.join('\n'));
+    }
+
+    // Check if an IP is a Tor exit
+    function isTorExit(ip) {
+      const list = fs.readFileSync('/tmp/tor-exits.txt', 'utf8').split('\n');
+      return list.includes(ip);
+    }
+
+This works but requires you to maintain the list yourself (hourly refresh), and it doesn't scale beyond a few hundred requests/second.
+
+### Approach 2: vendor API (recommended for SaaS)
+
+    // SignupDoggy: VPN + Tor + disposable email + bot patterns in one call
+    const r = await fetch('https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check', {
+      method: 'POST',
+      headers: { 'X-API-KEY': process.env.SIGNUPDOGGY_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, ip: req.ip }),
+    }).then(r => r.json());
+
+    const ipCategory = r.signals.ip.category; // 'vpn', 'tor', 'hosting', 'mobile', 'residential'
+
+    if (ipCategory === 'tor') {
+      // For high-value accounts (e.g., anything tied to money): hard block
+      // For low-value accounts (e.g., newsletter): soft block (email confirmation required)
+      return res.status(400).json({
+        error: 'Signups from Tor networks require email confirmation. Check your email.',
+      });
+    }
+
+This approach catches Tor + VPN + residential proxy + disposable email + bot patterns in one call. Sub-50ms p95. $0.01/call with $5 minimum.
+
+### Approach 3: enterprise bot management (overkill for most SaaS)
+
+DataDome and PerimeterX detect Tor as part of their broader bot management. But they require enterprise contracts starting at $24,000/year. Not worth it unless you're a marketplace or fintech with 100K+ signups/month.
+
+## The right answer for most SaaS companies
+
+**Soft-block Tor**: detect it, log it, require email confirmation before account activation. Hard-block for high-value accounts (anything tied to money, identity, or sensitive data).
+
+This catches 99%+ of Tor-based fraud (the fraudsters want a one-click signup; they don't want to verify an email) while letting the 1% of legitimate Tor users through.
+
+Implementation:
+
+    if (ipCategory === 'tor') {
+      // Create the account but flag it for email verification
+      await users.insert({ email, ip, status: 'pending_verification', tor_used: true });
+      await sendVerificationEmail(email);
+
+      return res.status(200).json({
+        message: 'Check your email to activate your account.',
+      });
+    }
+
+The account is created but cannot be used until the user verifies their email. This is friction for the fraudster (they need a working email address they control, which defeats most Tor-based fraud) but transparent for the legitimate user.
+
+## How to evaluate which Tor exit node API is right for you
+
+Three questions:
+
+1. **What's your signup volume?** Under 10K/month, the free Tor Project list works. Over 10K/month, use a vendor API.
+2. **Do you also need VPN detection?** If yes, use SignupDoggy or IPQualityScore (both do Tor + VPN). MaxMind does NOT do Tor.
+3. **Do you need disposable-email detection?** Only SignupDoggy + IPQS do it.
+
+For most SaaS companies, **SignupDoggy is the right default**: it covers Tor + VPN + disposable email + bot patterns, costs $0.005–$0.01 per call with $5 minimum, and has the most complete signal.
+
+## Get started
+
+Try the playground for free — one /v1/check call per day, no signup.
+
+Buy credits at /pricing — $5 minimum, no monthly fee.
+
+For VPN detection, see /blog/how-to-detect-vpn-users-nodejs.
+
+---
+
+**Tags:** Tor detection, VPN detection, Tutorial, Fraud API\`

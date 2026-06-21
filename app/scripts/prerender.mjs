@@ -664,7 +664,13 @@ function rewriteShell(shell, config, body) {
   // renders blank. Match any src="/assets/..." script or
   // href="/assets/..." stylesheet, regardless of attribute order.
   const keep = [];
-  const keepRe = /(<link[^>]*rel=["']?preconnect["']?[^>]*>|<link[^>]*fonts\.googleapis\.com[^>]*>|<link[^>]*href=["']?\/assets\/[^"']+\.css["']?[^>]*>|<script[^>]*src=["']?\/assets\/[^"']+\.js["']?[^>]*><\/script>)/gi;
+  // Keep: preconnect, Google Fonts, TownSquare widget CSS, AND the Vite
+  // bundle (JS + CSS). Without the Vite bundle, the React SPA never
+  // boots and the page renders blank. Match any src="/assets/..."
+  // script or href="/assets/..." stylesheet, regardless of attribute
+  // order. The townsquare.cauenapier.com clause preserves the footer
+  // widget's stylesheet link added in app/index.html.
+  const keepRe = /(<link[^>]*rel=["']?preconnect["']?[^>]*>|<link[^>]*fonts\.googleapis\.com[^>]*>|<link[^>]*townsquare\.cauenapier\.com[^>]*>|<link[^>]*href=["']?\/assets\/[^"']+\.css["']?[^>]*>|<script[^>]*src=["']?\/assets\/[^"']+\.js["']?[^>]*><\/script>)/gi;
   let m;
   while ((m = keepRe.exec(headContent)) !== null) keep.push(m[0]);
 

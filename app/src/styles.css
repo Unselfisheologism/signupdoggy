@@ -3004,48 +3004,95 @@ code { font-family: var(--font-mono); }
 .hero-stats, .hero-stat { display: none; }
 
 /* ═══════════════════════════════════════════════
-   FOOTER MINI-GAME — CatchTheFakes
+   TOWNSQUARE FOOTER WIDGET — theme + wrapper
    ═══════════════════════════════════════════════ */
-.catch-game {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: var(--space-md);
-}
-.catch-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  flex-wrap: wrap;
-}
-.catch-title { color: var(--accent); font-weight: 700; }
-.catch-hint { color: var(--text-secondary); flex: 1; text-align: center; }
-.catch-hs { color: var(--text-primary); }
-.catch-frame {
+
+/* Wrapper in the lp-footer: a tidy bordered box, centered, below the signoff. */
+.lp-footer-townsquare {
   display: flex;
   justify-content: center;
-  border: var(--border-thin) solid var(--border-dim);
-  background: #000;
-  padding: 0;
-  max-width: 720px;
-  margin: 0 auto;
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: var(--border-thin) solid var(--border-dim);
+}
+.townsquare-mount {
+  /* The widget sizes itself; this just gives it breathing room. */
+  min-height: 320px;
   width: 100%;
-}
-.catch-frame canvas {
-  display: block;
-  width: 100%;
-  height: auto;
   max-width: 720px;
-  cursor: crosshair;
-  outline: none;
-  image-rendering: pixelated;
+  display: flex;
+  justify-content: center;
 }
-@media (max-width: 768px) {
-  .catch-hint { display: none; }
+
+/* ── Host palette (matches the SignupDoggy landing look: warm cream /
+      dark ink, with a single orange "you" accent). ── */
+#townsquare-root#townsquare-root {
+  --scene: #e4e2dd;
+  --page: #efede9;
+  --surface: #fdf8f4;
+  --ink: #2a2926;
+  --you: #c8641f;
+  --tree-trunk: color-mix(in oklab, var(--text) 58%, var(--muted) 42%);
+  --tree-canopy: color-mix(in oklab, var(--text) 58%, var(--muted) 42%);
+  --other: #26241f;
+  --ground: rgba(42, 41, 38, 0.16);
+  --scene-edge: color-mix(in oklab, var(--scene) 88%, var(--page) 12%);
+  --you-deep: var(--you);
+  --text: var(--ink);
+  --muted: var(--ink);
 }
+#townsquare-root#townsquare-root[data-townsquare-theme="dark"] {
+  --scene: #242521;
+  --page: #181917;
+  --surface: #24231f;
+  --ink: #f2eee6;
+  --you: #df8a43;
+  --tree-trunk: color-mix(in oklab, var(--text) 58%, var(--muted) 42%);
+  --tree-canopy: color-mix(in oklab, var(--text) 58%, var(--muted) 42%);
+  --other: #ddd7cc;
+  --ground: rgba(242, 238, 230, 0.18);
+  --scene-edge: color-mix(in oklab, var(--scene) 88%, var(--page) 12%);
+  --you-deep: var(--you);
+  --text: var(--ink);
+  --muted: var(--ink);
+}
+@media (prefers-color-scheme: dark) {
+  #townsquare-root#townsquare-root[data-townsquare-theme="auto"] {
+  --scene: #242521;
+  --page: #181917;
+  --surface: #24231f;
+  --ink: #f2eee6;
+  --you: #df8a43;
+  --tree-trunk: color-mix(in oklab, var(--text) 58%, var(--muted) 42%);
+  --tree-canopy: color-mix(in oklab, var(--text) 58%, var(--muted) 42%);
+  --other: #ddd7cc;
+  --ground: rgba(242, 238, 230, 0.18);
+  --scene-edge: color-mix(in oklab, var(--scene) 88%, var(--page) 12%);
+  --you-deep: var(--you);
+  --text: var(--ink);
+  --muted: var(--ink);
+  }
+}
+#townsquare-root#townsquare-root .townsquare__stage {
+  background: linear-gradient(
+    180deg,
+    var(--scene) 0%,
+    var(--scene) 72%,
+    var(--scene-edge) 72%,
+    var(--page) 72.4%,
+    var(--page) 100%
+  );
+}
+#townsquare-root#townsquare-root .townsquare__ground {
+  background: var(--ground);
+}
+
+/* ═══════════════════════════════════════════════
+   FOOTER MINI-GAME — CatchTheFakes (removed; replaced by TownSquare widget)
+   ═══════════════════════════════════════════════ */
+/* (.catch-game, .catch-meta, .catch-frame, .catch-frame canvas —
+   removed 2026-06-21 along with CatchTheFakes.tsx. TownSquare mounts via
+   the .lp-footer-townsquare wrapper above.) */
 
 /* ── Demo progress steps (live, during check) ── */
 .demo-progress {
