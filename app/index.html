@@ -100,6 +100,28 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <!--
+      TownSquare footer widget — pasted verbatim from the embed snippet.
+      The mount <div> and ES module <script> live OUTSIDE the React root
+      (sibling of #root) so React never wipes them, and the inline
+      module script runs after DOM parse with the div already present
+      in the document. The widget self-sizes and styles itself; our
+      theme overrides (host palette) live in src/styles.css.
+    -->
+    <link rel="stylesheet" href="https://townsquare.cauenapier.com/widget.css" />
+    <div id="townsquare-root"></div>
+    <script type="module">
+      import { mountTownSquare } from "https://townsquare.cauenapier.com/townsquare.mjs";
+
+      mountTownSquare(document.getElementById("townsquare-root"), {
+        serverOrigin: "https://townsquare.cauenapier.com",
+        siteKey: "site__1BzllsokQYI7JEt",
+        scene: {"benches":2,"benchXs":[0.2,0.72],"trees":1,"treeXs":[0.8],"lamps":1,"lampXs":[0.12],"birds":3},
+        theme: "host"
+      });
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

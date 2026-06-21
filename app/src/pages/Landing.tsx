@@ -4,7 +4,6 @@ import { useAuth } from '../auth';
 import { motion, useInView } from 'motion/react';
 import { ArrowRightIcon } from '../components/icons';
 import { SEO } from '../components/SEO';
-import TownSquare from '../components/TownSquare';
 import { ROUTES as SEO_ROUTES } from '../lib/seoConfig';
 
 // ── Animated Counter ──────────────────────────────────────────────────────────
@@ -1368,14 +1367,6 @@ await db.users.insert({ ...req.body, sd_score: score.score });
 
             <div className="lp-footer-signoff">
               <span>$ ./whoami → jeffrin-james, mumbai, india, indie hacker</span>
-            </div>
-
-            {/* ═══ TOWNSQUARE FOOTER WIDGET ═══ */}
-            {/* The interactive square that lives at the bottom of the page.
-                Replaces the old CatchTheFakes canvas game — TownSquare is
-                third-party-hosted, embed-only, no React state needed. */}
-            <div className="lp-footer-townsquare">
-              <TownSquare />
             </div>
           </footer>
         </div>
