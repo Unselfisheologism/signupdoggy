@@ -4995,3 +4995,59 @@ code { font-family: var(--font-mono); }
   font-size: 32px;
   color: var(--sd-accent);
 }
+
+/* ═══ CONTENT-VISIBILITY: defer below-fold sections to reduce main-thread
+       paint / layout cost during initial render.
+
+       PageSpeed flagged this page for a 3,510ms LCP element render delay,
+       most of which was the React tree rendering every below-fold section
+       (8 story sections, pricing grid, compare table, closer, footer, the
+       12-row vibe-strip with animations, the AnimatedCounter counters,
+       etc.) before the LCP candidate (the playground-lede paragraph)
+       finished painting.
+
+       content-visibility: auto tells the browser to skip layout + paint
+       for an element until it gets within ~1 viewport of being visible.
+       contain-intrinsic-size gives the browser a placeholder height so
+       the scrollbar doesn't jump when the section "wakes up". The
+       numbers are conservative upper bounds on each section's rendered
+       height so the scrollbar stays stable even on the smallest
+       viewports where intrinsic sizing would normally collapse to 0.
+
+       We do NOT apply this to:
+         - .hero, .playground-section, .playground-head  (above the LCP
+           fold — they're the LCP candidate and must render immediately)
+         - .window (the page chrome — it wraps everything)
+         - .term-header (the nav — it's above the fold)
+         - any [class*="-section"] that could legitimately be the LCP
+           on other routes (StaticPage wraps its body in .page-content
+           which we don't touch) */
+.crt .story-section,
+.crt .vibe-strip,
+.crt .pricing-section,
+.crt .compare,
+.crt .closer,
+.crt .lp-footer,
+.crt .trust-toast-wrap {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 800px;
+}
+
+/* .demo-result is intentionally NOT in the content-visibility list above
+   — it's the result panel that appears INSIDE the playground card after
+   the user clicks CHECK IT. It must paint instantly when it appears
+   (no fade-in, no skipped layout) so the user sees the /v1/check
+   response without a flash of empty space. */
+
+/* Smaller intrinsic-size for the vibe strip — it's a fixed-height
+   visual band, not a section. 1px × 320px keeps the scrollbar
+   stable without reserving too much space up front. */
+.crt .vibe-strip {
+  contain-intrinsic-size: 1px 320px;
+}
+
+/* Pricing grid is wider than tall on mobile — smaller intrinsic
+   width guess prevents layout reflow when it wakes up. */
+.crt .pricing-section {
+  contain-intrinsic-size: 1px 900px;
+}

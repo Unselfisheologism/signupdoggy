@@ -2,18 +2,42 @@
 // and integrations pages. Renders markdown-like content using the
 // existing docs/blog CSS classes so the new pages match the design
 // language of the rest of the site.
+//
+// The body strings (COMPARE_BODIES / USE_CASE_BODIES / INTEGRATIONS_BODY /
+// CHANGELOG_BODY) used to be imported at the App.tsx top level so each
+// Route could pass them as a prop. That pulled the entire 21 KB body
+// payload into the main bundle even though StaticPage is lazy-loaded
+// and only ever renders on routes that need one of those bodies.
+// We now look the body up internally by config.path so the strings
+// live in the StaticPage chunk (loaded only when a user actually visits
+// /vs/* / /use-cases/* / /integrations / /changelog).
 
 import { useMemo } from 'react';
 import { marked } from 'marked';
 import AppLayout from '../components/AppLayout';
 import { SEO } from '../components/SEO';
 import type { SeoConfig } from '../lib/seoConfig';
+import {
+  COMPARE_BODIES,
+  USE_CASE_BODIES,
+  INTEGRATIONS_BODY,
+  CHANGELOG_BODY,
+} from '../lib/staticBodies';
 
 interface StaticPageProps {
   config: SeoConfig;
-  body: string;
+  body?: string; // optional — overrides the internal lookup if supplied
   bannerCmd: string;
   bannerStatus: string;
+}
+
+function resolveBody(configPath: string, override?: string): string {
+  if (override) return override;
+  if (configPath.startsWith('/vs/')) return COMPARE_BODIES[configPath] || '';
+  if (configPath.startsWith('/use-cases/')) return USE_CASE_BODIES[configPath] || '';
+  if (configPath === '/integrations') return INTEGRATIONS_BODY;
+  if (configPath === '/changelog') return CHANGELOG_BODY;
+  return '';
 }
 
 export default function StaticPage({ config, body, bannerCmd, bannerStatus }: StaticPageProps) {
@@ -23,7 +47,7 @@ export default function StaticPage({ config, body, bannerCmd, bannerStatus }: St
   }, []);
 
   // Strip the leading H1 if present (we render our own h1).
-  const cleaned = body.replace(/^#\s+.*\n+/, '');
+  const cleaned = resolveBody(config.path, body).replace(/^#\s+.*\n+/, '');
   const html = renderer.parse(cleaned) as string;
 
   return (

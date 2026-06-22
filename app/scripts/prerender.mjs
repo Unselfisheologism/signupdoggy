@@ -424,9 +424,15 @@ function buildHead(config, extraSchemas = []) {
   <link rel="alternate" type="text/plain" href="https://signupdoggy.pages.dev/llms.txt" title="llms.txt — plain-text index for AI agents" />
   <link rel="alternate" type="text/plain" href="https://signupdoggy.pages.dev/llms-full.txt" title="llms-full.txt — full corpus for AI agents" />
   <link rel="sitemap" type="application/xml" href="https://signupdoggy.pages.dev/sitemap.xml" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://townsquare.cauenapier.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://townsquare.cauenapier.com" />
+    <!-- TownSquare widget.css is no longer preloaded here. It was 47 KiB
+         of unused CSS that competed with the LCP for the main thread even
+         though the widget only mounts when the footer scrolls into view.
+         The deferred loader in index.html injects the stylesheet on demand.
+         We keep the preconnect so the dynamic import is DNS+TLS-warm when
+         the loader finally fires. -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

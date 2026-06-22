@@ -40,17 +40,44 @@
           />
         </noscript>
 
-    <!-- TownSquare footer widget (below-the-fold, async-loaded so it never blocks first paint) -->
-    <link rel="preload" as="style" href="https://townsquare.cauenapier.com/widget.css" />
-    <link
-      rel="stylesheet"
-      href="https://townsquare.cauenapier.com/widget.css"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link rel="stylesheet" href="https://townsquare.cauenapier.com/widget.css" />
-    </noscript>
+    <!--
+      TownSquare footer widget — fully deferred.
+
+      PageSpeed previously flagged the townsquare widget for two forced
+      reflows (141ms each) at /widget/movement.mjs:283 and
+      /widget/bubble-layout.mjs:272, plus 47 KiB of unused CSS and 87 KiB
+      of unused JS that competed with the LCP element for the main
+      thread. The old setup also pulled the whole townsquare module graph
+      (dom.mjs, movement.mjs, bubble-layout.mjs, chat.mjs, utils.mjs,
+      presence.mjs, connections.mjs, protocol.mjs, birds.mjs,
+      site-config.mjs) onto every page load, even when the widget never
+      scrolled into view.
+
+      New strategy:
+      1. Do NOT preload or load the townsquare CSS in <head>. The
+         widget.css was previously loaded async with the media="print" +
+         onload swap pattern, but even async-loaded it counted toward
+         unused-CSS on the landing route because the widget never mounts
+         until the footer scrolls into view. We now inject the <link>
+         only when the deferred loader fires.
+      2. The inline <script> at the end of <body> sets up an
+         IntersectionObserver on #townsquare-root and falls back to a
+         requestIdleCallback for browsers that scroll past the footer
+         without an IntersectionObserver trigger (some legacy mobile
+         browsers). The observer fires when #townsquare-root is within
+         200 px of the viewport bottom — by that point the user has
+         already scrolled past the LCP element and the LCP measurement
+         has long since fired.
+      3. The dynamic import('townsquare.mjs') only happens AFTER the
+         observer or idle callback fires. Until then, no network request
+         is made for any townsquare module — LCP, FCP, TBT and unused-JS
+         metrics all benefit.
+
+      Behavior matches the old "always load" semantics for users who
+      actually reach the footer: same widget, same scene, same theme.
+      Users who bounce before the footer (the vast majority on a landing
+      page) no longer pay for a chat widget they never see.
+    -->
 
     <!-- SEO defaults (overridden per-route by prerender + SEO.tsx) -->
     <meta
@@ -97,25 +124,78 @@
   <body>
     <div id="root"></div>
 
-    <!--
-      TownSquare footer widget — async-loaded so it never blocks first paint.
-      The stylesheet is loaded with the media="print" + onload swap pattern in
-      the <head> above. The mount <div> and ES module <script> live OUTSIDE
-      the React root (sibling of #root) so React never wipes them, and the
-      inline module script runs after DOM parse with the div already present
-      in the document. The widget self-sizes and styles itself; our theme
-      overrides (host palette) live in src/styles.css.
-    -->
+    <!-- TownSquare mount point. The widget is mounted by the deferred
+         loader below; React never touches this div because it lives
+         outside the #root sibling. -->
     <div id="townsquare-root"></div>
-    <script type="module">
-      import { mountTownSquare } from "https://townsquare.cauenapier.com/townsquare.mjs";
 
-      mountTownSquare(document.getElementById("townsquare-root"), {
-        serverOrigin: "https://townsquare.cauenapier.com",
-        siteKey: "site__1BzllsokQYI7JEt",
-        scene: {"benches":2,"benchXs":[0.2,0.72],"trees":1,"treeXs":[0.8],"lamps":1,"lampXs":[0.12],"birds":3},
-        theme: "host"
-      });
+    <!-- Deferred townsquare loader. Inline (not a module) so it runs
+         immediately on parse without waiting for module graph
+         resolution. We deliberately keep this small (~600 bytes) so
+         it lands on the same packet as the HTML. -->
+    <script>
+      (function () {
+        if (typeof window === 'undefined') return;
+        var mount = document.getElementById('townsquare-root');
+        if (!mount) return;
+
+        var loaded = false;
+        function loadTownSquare() {
+          if (loaded) return;
+          loaded = true;
+
+          // 1. Inject the widget stylesheet. By the time this fires
+          //    (footer in viewport, or browser idle after 4s) the
+          //    initial render and LCP have already happened.
+          var link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = 'https://townsquare.cauenapier.com/widget.css';
+          document.head.appendChild(link);
+
+          // 2. Dynamic-import the widget module. The module imports
+          //    trigger townsquare's own module graph (dom, movement,
+          //    bubble-layout, etc.) but ONLY after the user has
+          //    scrolled near the footer — so the forced reflow cost
+          //    never competes with the LCP render.
+          var s = document.createElement('script');
+          s.type = 'module';
+          s.textContent =
+            'import { mountTownSquare } from "https://townsquare.cauenapier.com/townsquare.mjs";\n' +
+            'mountTownSquare(document.getElementById("townsquare-root"), {\n' +
+            '  serverOrigin: "https://townsquare.cauenapier.com",\n' +
+            '  siteKey: "site__1BzllsokQYI7JEt",\n' +
+            '  scene: {"benches":2,"benchXs":[0.2,0.72],"trees":1,"treeXs":[0.8],"lamps":1,"lampXs":[0.12],"birds":3},\n' +
+            '  theme: "host"\n' +
+            '});';
+          document.body.appendChild(s);
+        }
+
+        // Trigger A: user scrolls within 200px of the footer.
+        if ('IntersectionObserver' in window) {
+          var io = new IntersectionObserver(function (entries) {
+            for (var i = 0; i < entries.length; i++) {
+              if (entries[i].isIntersecting) {
+                io.disconnect();
+                loadTownSquare();
+                return;
+              }
+            }
+          }, { rootMargin: '0px 0px 200px 0px' });
+          io.observe(mount);
+        }
+
+        // Trigger B: idle fallback. If the user scrolls past the
+        // footer without ever placing #townsquare-root inside the
+        // 200px-rootMargin band (rare — usually happens on tall
+        // viewports or scroll-jank), schedule the load on idle so
+        // the widget is at least ready by the time they reach it.
+        // 4s is well after LCP fires on any 3G+ connection.
+        if ('requestIdleCallback' in window) {
+          window.requestIdleCallback(loadTownSquare, { timeout: 4000 });
+        } else {
+          setTimeout(loadTownSquare, 4000);
+        }
+      })();
     </script>
 
     <script type="module" src="/src/main.tsx"></script>

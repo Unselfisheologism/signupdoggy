@@ -152,30 +152,45 @@ function PlaygroundSection() {
   return (
     <section id="playground" className="playground-section" aria-labelledby="playground-h">
       <div className="playground-inner">
-        <BlurReveal>
-          <div className="playground-head">
-            <span className="prefix">// live playground</span>
-            <h2 id="playground-h" className="playground-h2">
-              Hit the real API. Right here. Right now.
-            </h2>
-            <p className="playground-lede">
-              Type an email, an IP, or a phone — we call <code>POST /v1/check</code> against the
-              same endpoint that powers every paying customer. <strong>One free call per day</strong>,
-              no signup, no API key, no sales call. After your free call, grab an API key for
-              unlimited checks (credits start at $5, never expire).
-            </p>
-          </div>
-        </BlurReveal>
+        {/* LCP target — render WITHOUT BlurReveal (opacity:0 → 1 over 500ms)
+            so the playground-lede paragraph paints immediately on first React
+            render. PageSpeed flagged this section as the LCP element with a
+            3,510ms element render delay — most of which was BlurReveal's
+            opacity-0 initial state keeping the LCP candidate invisible until
+            the animation completed. The playground-card below keeps its
+            BlurReveal because it's not the LCP and the staggered reveal
+            still reads correctly. */}
+        <div className="playground-head">
+          <span className="prefix">// live playground</span>
+          <h2 id="playground-h" className="playground-h2">
+            Hit the real API. Right here. Right now.
+          </h2>
+          <p className="playground-lede">
+            Type an email, an IP, or a phone — we call <code>POST /v1/check</code> against the
+            same endpoint that powers every paying customer. <strong>One free call per day</strong>,
+            no signup, no API key, no sales call. After your free call, grab an API key for
+            unlimited checks (credits start at $5, never expire).
+          </p>
+        </div>
 
-        <BlurReveal delay={0.06}>
-          <div className="demo-card playground-card">
-            <div className="demo-head">
-              <div className="dots">
-                <span className="dot dot--r" /><span className="dot dot--y" /><span className="dot dot--g" />
-              </div>
-              <span className="demo-title">curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check</span>
-              <span className="demo-tag">FREE · ONE CALL</span>
+        {/* Playground card: the interactive form that actually issues a
+            /v1/check request. Kept OUTSIDE BlurReveal so it paints at
+            opacity:1 on first React render — PageSpeed considers any
+            element that starts at opacity:0 (even with a transition to
+            opacity:1) as "not yet rendered" for LCP purposes. Wrapping
+            the inputs in a motion fade-in delays first interaction by
+            ~500ms and produces a visible flash of empty space on slow
+            connections. The fade-in was purely cosmetic; the page reads
+            fine without it because the playground-head above already
+            frames what the card does. */}
+        <div className="demo-card playground-card">
+          <div className="demo-head">
+            <div className="dots">
+              <span className="dot dot--r" /><span className="dot dot--y" /><span className="dot dot--g" />
             </div>
+            <span className="demo-title">curl -X POST https://signupdoggy-api.jeffrinjames99.workers.dev/v1/check</span>
+            <span className="demo-tag">FREE · ONE CALL</span>
+          </div>
             <div className="demo-body">
               <div className="demo-row">
                 <label>email</label>
@@ -293,8 +308,7 @@ function PlaygroundSection() {
               )}
             </div>
           </div>
-        </BlurReveal>
-      </div>
+        </div>
     </section>
   );
 }
