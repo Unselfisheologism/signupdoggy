@@ -424,10 +424,9 @@ function buildHead(config, extraSchemas = []) {
   <link rel="alternate" type="text/plain" href="https://signupdoggy.pages.dev/llms.txt" title="llms.txt — plain-text index for AI agents" />
   <link rel="alternate" type="text/plain" href="https://signupdoggy.pages.dev/llms-full.txt" title="llms-full.txt — full corpus for AI agents" />
   <link rel="sitemap" type="application/xml" href="https://signupdoggy.pages.dev/sitemap.xml" />
-  <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-  <link rel="dns-prefetch" href="//fonts.gstatic.com" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://townsquare.cauenapier.com" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -649,28 +648,29 @@ function rewriteShell(shell, config, body) {
   // <body>. If we drop them here the React SPA never loads and
   // users see a blank page. They must be preserved.
 
-  // Preserve the preconnect + Google Fonts link + the Vite-injected
-  // JS/CSS bundle (the SPA still needs them at runtime). Snip
-  // everything between <head> and </head>, drop the bits we don't
-  // want, then insert the new meta block.
+  // Preserve the preconnect + async Google Fonts link + async TownSquare
+  // widget CSS + the Vite bundle (JS + CSS). Without the Vite bundle,
+  // the React SPA never boots and the page renders blank. The regex
+  // is intentionally narrow so it ONLY matches the async / preload
+  // variants of the external stylesheets — it does NOT match the bare
+  // <link rel="stylesheet"> that sits inside <noscript> as a no-JS
+  // fallback. Pulling that fallback out of <noscript> (which the old
+  // regex did) turned it into a render-blocking request for every
+  // prerendered page; that cost 1,200ms on the critical path.
+  //
+  // We also strip HTML comments from the head before matching — the
+  // source template embeds example <link rel="preload"> syntax inside
+  // a `<!-- ... -->` block for documentation, and the regex would
+  // happily match that prose and surface broken tags into the served
+  // HTML.
   const headMatch = shell.match(/<head>([\s\S]*?)<\/head>/i);
   if (!headMatch) {
     // No head — unlikely, but bail safely.
     return shell;
   }
-  const headContent = headMatch[1];
-  // Keep: preconnect, Google Fonts, AND the Vite bundle (JS + CSS).
-  // Without the Vite bundle, the React SPA never boots and the page
-  // renders blank. Match any src="/assets/..." script or
-  // href="/assets/..." stylesheet, regardless of attribute order.
+  const headContent = headMatch[1].replace(/<!--[\s\S]*?-->/g, '');
   const keep = [];
-  // Keep: preconnect, Google Fonts, TownSquare widget CSS, AND the Vite
-  // bundle (JS + CSS). Without the Vite bundle, the React SPA never
-  // boots and the page renders blank. Match any src="/assets/..."
-  // script or href="/assets/..." stylesheet, regardless of attribute
-  // order. The townsquare.cauenapier.com clause preserves the footer
-  // widget's stylesheet link added in app/index.html.
-  const keepRe = /(<link[^>]*rel=["']?preconnect["']?[^>]*>|<link[^>]*fonts\.googleapis\.com[^>]*>|<link[^>]*townsquare\.cauenapier\.com[^>]*>|<link[^>]*href=["']?\/assets\/[^"']+\.css["']?[^>]*>|<script[^>]*src=["']?\/assets\/[^"']+\.js["']?[^>]*><\/script>)/gi;
+  const keepRe = /(<link[^>]*rel=["']?preconnect["']?[^>]*>|<link[^>]*rel=["']?modulepreload["']?[^>]*>|<link\s+rel=["']?preload["']?[^>]*>|<link\s+rel=["']?stylesheet["']?[^>]*media=["']print["'][^>]*>|<link[^>]*href=["']?\/assets\/[^"']+\.css["']?[^>]*>|<script[^>]*src=["']?\/assets\/[^"']+\.js["']?[^>]*><\/script>)/gi;
   let m;
   while ((m = keepRe.exec(headContent)) !== null) keep.push(m[0]);
 

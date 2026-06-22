@@ -15,17 +15,13 @@
     <meta name="theme-color" content="#000000" />
     <meta name="color-scheme" content="dark" />
 
-    <!-- Preconnect for fonts (DNS+TLS handshake starts in parallel with HTML parse) -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-        <!--
-          Async Google Fonts pattern (saves 200-400ms on first paint).
-          1. <link rel="preload" as="style"> starts fetching the CSS in parallel with HTML parse
-          2. <link rel="stylesheet" media="print" onload="this.media='all'"> applies the CSS
-             without blocking first paint. Falls back to a regular stylesheet via the
-             <noscript> fallback below.
-        -->
+    <!--
+      The preconnect hints for Google Fonts + the TownSquare footer widget
+      origin are injected by the prerender step (scripts/prerender.mjs →
+      buildHead) so every route gets exactly one preconnect per origin.
+      Keeping them in one place avoids duplicates in the prerendered HTML —
+      Lighthouse flags more than 4 preconnect connections as a warning.
+    -->
         <link
           rel="preload"
           as="style"
@@ -102,14 +98,14 @@
     <div id="root"></div>
 
     <!--
-      TownSquare footer widget — pasted verbatim from the embed snippet.
-      The mount <div> and ES module <script> live OUTSIDE the React root
-      (sibling of #root) so React never wipes them, and the inline
-      module script runs after DOM parse with the div already present
-      in the document. The widget self-sizes and styles itself; our
-      theme overrides (host palette) live in src/styles.css.
+      TownSquare footer widget — async-loaded so it never blocks first paint.
+      The stylesheet is loaded with the media="print" + onload swap pattern in
+      the <head> above. The mount <div> and ES module <script> live OUTSIDE
+      the React root (sibling of #root) so React never wipes them, and the
+      inline module script runs after DOM parse with the div already present
+      in the document. The widget self-sizes and styles itself; our theme
+      overrides (host palette) live in src/styles.css.
     -->
-    <link rel="stylesheet" href="https://townsquare.cauenapier.com/widget.css" />
     <div id="townsquare-root"></div>
     <script type="module">
       import { mountTownSquare } from "https://townsquare.cauenapier.com/townsquare.mjs";
